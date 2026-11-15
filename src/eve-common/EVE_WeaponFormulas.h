@@ -91,4 +91,14 @@ inline float NormalizeDamageResonance(double value, bool isPresent)
     return static_cast<float>(std::max(0.0, std::min(1.0, value)));
 }
 
+ // MaxVelocity is metres/second; ExplosionDelay and flight timers are ms.
+inline double CalculateMissileMaximumRange(double velocity, double lifetimeMs)
+{
+    if (!std::isfinite(velocity) || !std::isfinite(lifetimeMs)
+        || velocity <= 0.0 || lifetimeMs <= 0.0)
+        return 0.0;
+    const double range = velocity * lifetimeMs / 1000.0;
+    return std::isfinite(range) ? range : 0.0;
+}
+
 #endif

@@ -7,6 +7,7 @@
 
 
 #include "eve-server.h"
+#include "EVE_WeaponFormulas.h"
 
 #include "StatisticMgr.h"
 #include "exploration/Probes.h"
@@ -569,8 +570,18 @@ uint32 ActiveModule::DoCycle() {
         }
 
         float shipTotalCapacitor = m_shipRef->GetAttribute(AttrCapacitorCapacity).get_float();
-
-        m_shipRef->SetShipCapacitorLevel(newCap / shipTotalCapacitor);
+        if (!std::isfinite(shipTotalCapacitor) || shipTotalCapacitor <= 0.0f) {
+            if (requiredCapacitorCharge > 0.0f) {
+                _log(MODULE__ERROR, "ActiveModule::DoCycle() - %s has invalid capacitor capacity %.3f.",
+                     m_shipRef->name(), shipTotalCapacitor);
+                AbortCycle();
+                return 0;
+            }
+            // A zero-capacitor NPC/special hull must not feed division by
+            // zero/NaN into ship capacitor attributes.
+        } else {
+            m_shipRef->SetShipCapacitorLevel(newCap / shipTotalCapacitor);
+        }
     }
 
     // not sure if this is entirely accurate...wip
@@ -1400,10 +1411,15 @@ void ActiveModule::LaunchMissile(SystemEntity* targetSE)
 {
     // A null argument preserves the ordinary launcher behaviour. Defender
     // launchers pass the hostile missile they are attempting to intercept.
-    if (targetSE == nullptr)
-        targetSE = m_targetSE;
-
+    // The saved module target pointer can be stale after its ship/NPC dies.
+    // Resolve ordinary launcher targets by ID in the live system registry
+    // before reading *any* member of that pointer. Defender targets are
+    // passed in explicitly from the same-tick live missile scan.
     Client* pClient = (m_shipRef.get() != nullptr) ? m_shipRef->GetPilot() : nullptr;
+    SystemManager* liveSystem = (pClient != nullptr) ? pClient->SystemMgr() : nullptr;
+    if (targetSE == nullptr)
+        targetSE = (liveSystem != nullptr && m_targetID != 0)
+            ? liveSystem->GetSE(m_targetID) : nullptr;
     if (pClient == nullptr || targetSE == nullptr || m_chargeRef.get() == nullptr) {
         _log(MODULE__WARNING, "ActiveModule::LaunchMissile - missing pilot, target, or loaded charge for %s.",
              (m_modRef.get() != nullptr) ? m_modRef->name() : "(unknown module)");
@@ -1500,7 +1516,7 @@ void ActiveModule::ApplySmartBombDamage()
         if (target == nullptr || target != entry.second || target->IsDead())
             continue;
         if (!(target->IsShipSE() || target->IsNPCSE() || target->IsDroneSE()
-              || target->IsPOSSE() || target->IsDeployableSE() || target->IsSentrySE()
+              || target->IsMissileSE() || target->IsPOSSE() || target->IsDeployableSE() || target->IsSentrySE()
               || target->IsWeaponSE() || target->IsBatterySE() || target->IsTowerSE()))
             continue;
 
@@ -1516,6 +1532,18 @@ void ActiveModule::ApplySmartBombDamage()
                       GetAttribute(AttrEmDamage).get_float(),
                       GetAttribute(AttrExplosiveDamage).get_float(),
                       1.0f, EVEEffectID::targetAttack);
+        // Smartbombs also destroy incoming missiles. Do not route the
+        // projectile through ship shield/armor damage logic; missile HP is
+        // stored as a separate destructible target attribute.
+        if (target->IsMissileSE()) {
+            Missile* incoming = target->GetMissileSE();
+            const double missileHP = targetItem->GetAttribute(AttrHP).get_double()
+                - targetItem->GetAttribute(AttrDamage).get_double();
+            if (incoming != nullptr && incoming->IsAlive() && missileHP > 0.0
+                && damage.GetTotal() * sConfig.rates.damageRate >= missileHP)
+                incoming->Intercept();
+            continue;
+        }
         target->ApplyDamage(damage);
     }
 }
@@ -1531,9 +1559,11 @@ void ActiveModule::LaunchDefenderMissile()
         return;
 
     double defenderRange = GetAttribute(AttrMaxRange).get_float();
-    const double missileRange =
-        m_chargeRef->GetAttribute(AttrMaxVelocity).get_float()
-        * m_chargeRef->GetAttribute(AttrExplosionDelay).get_float();
+    // ExplosionDelay is in milliseconds, but MaxVelocity is metres/sec.
+    // Old code multiplied them directly, overestimating defender reach x1000.
+    const double missileRange = CalculateMissileMaximumRange(
+        m_chargeRef->GetAttribute(AttrMaxVelocity).get_double(),
+        m_chargeRef->GetAttribute(AttrExplosionDelay).get_double());
     if (missileRange > 0.0)
         defenderRange = (defenderRange > 0.0) ? std::min(defenderRange, missileRange) : missileRange;
     if (!std::isfinite(defenderRange) || defenderRange <= 0.0)

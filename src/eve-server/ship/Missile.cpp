@@ -73,52 +73,66 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
         flightTime *= (1 + (0.1f * (pChar->GetSkillLevel(EvESkill::MissileBombardment, true)))); // 10% increase in flightTime
 
         self->MultiplyAttribute(AttrMaxVelocity, (1 + (0.1f * (pChar->GetSkillLevel(EvESkill::MissileProjection, true))))); // 10% increase in velocity
-        self->MultiplyAttribute(AttrAoeCloudSize, (1 - (0.05f * (pChar->GetSkillLevel(EvESkill::GuidedMissilePrecision, true)))));  //  5% decrease in exp radius
+        // Crucible Guided Missile Precision only affects guided rounds:
+        // light, heavy and cruise missiles (including FoF/T2 variants).
+        // Rockets, heavy assault missiles and torpedoes are unguided.
+        switch (m_self->groupID()) {
+            case EVEDB::invGroups::Light_Missile:
+            case EVEDB::invGroups::FoF_Light_Missile:
+            case EVEDB::invGroups::Advanced_Light_Missile:
+            case EVEDB::invGroups::Heavy_Missile:
+            case EVEDB::invGroups::FoF_Heavy_Missile:
+            case EVEDB::invGroups::Advanced_Heavy_Missile:
+            case EVEDB::invGroups::Cruise_Missile:
+            case EVEDB::invGroups::FoF_Cruise_Missile:
+            case EVEDB::invGroups::Advanced_Cruise_Missile:
+                self->MultiplyAttribute(AttrAoeCloudSize,
+                    (1 - (0.05f * pChar->GetSkillLevel(EvESkill::GuidedMissilePrecision, true))));
+                break;
+            default: break;
+        }
         self->MultiplyAttribute(AttrAoeVelocity, (1 + (0.1f * (pChar->GetSkillLevel(EvESkill::TargetNavigationPrediction, true)))));  // 10% increase in exp velocity
 
-        m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::WarheadUpgrades, true)))); // 5% increase in damage (upped from 2%)
+        m_damageMod *= (1 + (0.02f * (pChar->GetSkillLevel(EvESkill::WarheadUpgrades, true)))); // Crucible: 2% damage per level
         switch (m_self->groupID()) {
             case EVEDB::invGroups::Light_Missile:
             case EVEDB::invGroups::FoF_Light_Missile:
             case EVEDB::invGroups::Advanced_Light_Missile: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::LightMissiles, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Light_Missile)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::LightMissileSpecialization, true)))); // 3% increase in damage
+                // Light Missile Specialization modifies launcher rate of fire, not per-warhead damage.
             } break;
             case EVEDB::invGroups::Heavy_Missile:
             case EVEDB::invGroups::FoF_Heavy_Missile:
             case EVEDB::invGroups::Advanced_Heavy_Missile: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::HeavyMissiles, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Heavy_Missile)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::HeavyMissileSpecialization, true)))); // 3% increase in damage
+                // Heavy Missile Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Cruise_Missile:
             case EVEDB::invGroups::FoF_Cruise_Missile:
             case EVEDB::invGroups::Advanced_Cruise_Missile: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::CruiseMissiles, true)))); // 5% increase in
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Cruise_Missile)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::CruiseMissileSpecialization, true)))); // 3% increase in damage
+                // Cruise Missile Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Torpedo:
             case EVEDB::invGroups::Advanced_Torpedo: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::Torpedoes, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Torpedo)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::TorpedoSpecialization, true)))); // 3% increase in damage
+                // Torpedo Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Rocket:
             case EVEDB::invGroups::Advanced_Rocket: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::Rockets, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Rocket)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::RocketSpecialization, true)))); // 3% increase in damage
+                // Rocket Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Defender_Missile: {
-                m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::DefenderMissiles, true)))); // 5% increase in damage
+                // Crucible Defender Missiles skill grants +5% interceptor
+                // flight velocity per level, not damage to ships.
+                self->MultiplyAttribute(AttrMaxVelocity,
+                    (1 + (0.05f * pChar->GetSkillLevel(EvESkill::DefenderMissiles, true))));
             } break;
             case EVEDB::invGroups::Assault_Missile:
             case EVEDB::invGroups::Advanced_Assault_Missile: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::HeavyAssaultMissiles, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Assault_Missile)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::HeavyAssaultMissileSpecialization, true)))); // 3% increase in damage
+                // Heavy Assault Missile Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Citadel_Cruise: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::CitadelCruiseMissiles, true)))); // 5% increase in damage
@@ -140,11 +154,17 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
         if (pMod->IsLinked()) {
             uint8 mod = m_fromSE->GetShipSE()->GetShipItemRef()->GetLinkedCount(pMod);
             m_damageMod *= mod;
-            flightTime *= mod;
+            // Weapon grouping combines volley damage but does NOT increase
+            // individual missile flight lifetime or effective range.
             m_hullHP *= mod;
         }
 
-    m_lifeTimer.Start(flightTime);
+    if (!std::isfinite(flightTime) || flightTime <= 0.0) {
+        _log(DAMAGE__ERROR, "Missile %u has invalid flight lifetime %.3f ms. Expiring safely.",
+             m_self->itemID(), flightTime);
+        flightTime = 1.0;
+    }
+    m_lifeTimer.Start(static_cast<uint32>(flightTime));
 
     //_log(DAMAGE__MESSAGE, "Created Missile object for %s (%u)", self.get()->name(), self.get()->itemID());
 }
@@ -338,6 +358,10 @@ void Missile::HitTarget() {
         signatureRadius, explosionRadius, explosionVelocity,
         liveTarget->GetVelocity().length(), reductionFactor, reductionSensitivity);
 
+    if (!std::isfinite(damageFactor) || damageFactor <= 0.0) {
+        m_alive = false;
+        return;
+    }
     Damage damage(liveSource, m_modRef, m_self, EVEEffectID::missileLaunching);
     damage *= m_damageMod;
     damage *= static_cast<float>(damageFactor);

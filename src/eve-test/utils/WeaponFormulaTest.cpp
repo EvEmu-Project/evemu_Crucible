@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <limits>
 
 int utils_WeaponFormulaTest(int argc, char* argv[])
 {
@@ -29,6 +30,10 @@ int utils_WeaponFormulaTest(int argc, char* argv[])
     const float immune = NormalizeDamageResonance(0.0, true);
     const float halfDamage = NormalizeDamageResonance(0.5, true);
 
+    const double fiveSecondRange = CalculateMissileMaximumRange(1500.0, 5000.0);
+    const double invalidRange = CalculateMissileMaximumRange(
+        std::numeric_limits<double>::infinity(), 1000.0);
+
     const bool passed =
         std::fabs(fullDamage - 1.0) < 0.000001 &&
         std::fabs(signatureLimited - 0.5) < 0.000001 &&
@@ -41,7 +46,8 @@ int utils_WeaponFormulaTest(int argc, char* argv[])
         std::fabs(smallSig - 0.0625) < 0.000001 &&
         noFalloff == 0.0 && std::fabs(normalHit - 0.69) < 0.000001 &&
         miss == 0.0f && wreck == 3.0f && noImpossibleWreck == 0.0f &&
-        noResistance == 1.0f && immune == 0.0f && halfDamage == 0.5f;
+        noResistance == 1.0f && immune == 0.0f && halfDamage == 0.5f &&
+        fiveSecondRange == 7500.0 && invalidRange == 0.0;
 
     if (!passed) {
         ::printf("Weapon formula test failed: full=%.6f signature=%.6f velocity=%.6f capped=%.6f invalid=%.6f\n",

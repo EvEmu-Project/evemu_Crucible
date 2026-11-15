@@ -94,7 +94,12 @@ void TurretModule::ApplyDamage()
             m_effectID
     );
 
-    d *= GetAttribute(AttrDamageMultiplier).get_float();
+    // A missing DamageMultiplier should not turn an otherwise functional
+    // civilian/legacy turret into a zero-damage weapon.
+    float weaponMultiplier = GetAttribute(AttrDamageMultiplier).get_float();
+    if (!std::isfinite(weaponMultiplier) || weaponMultiplier <= 0.0f)
+        weaponMultiplier = 1.0f;
+    d *= weaponMultiplier;
     d *= sConfig.rates.turretDamage;
 
     if (m_linkMaster)
