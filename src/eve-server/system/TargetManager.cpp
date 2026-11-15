@@ -502,46 +502,48 @@ void TargetManager::ClearTargets(bool notify/*true*/) {
     m_canAttack = false;
     SystemManager* system = (mySE != nullptr) ? mySE->SystemMgr() : nullptr;
 
-    for (auto cur : m_targets) {
-        // Resolve by ID before touching the non-owning pointer. This remains
-        // safe if a target was removed before its normal loss notification.
-        SystemEntity* liveTarget = (system != nullptr && cur.second != nullptr)
-            ? system->GetSE(cur.second->targetID) : nullptr;
-        if (liveTarget != nullptr && liveTarget == cur.first
-            && liveTarget->TargetMgr() != nullptr)
+    // Remove our entries before notifying other target managers. Their
+    // TargetedByLost callbacks can re-enter AI/target cleanup and must not
+    // invalidate an iterator into m_targets.
+    std::vector<uint32> targetIDs;
+    targetIDs.reserve(m_targets.size());
+    for (auto& entry : m_targets) {
+        if (entry.second != nullptr)
+            targetIDs.push_back(entry.second->targetID);
+        SafeDelete(entry.second);
+    }
+    m_targets.clear();
+    sEntityList.DeleteTargMgr(mySE);
+
+    for (uint32 targetID : targetIDs) {
+        SystemEntity* liveTarget = (system != nullptr) ? system->GetSE(targetID) : nullptr;
+        if (liveTarget != nullptr && liveTarget->TargetMgr() != nullptr)
             liveTarget->TargetMgr()->TargetedByLost(mySE);
 
-        const uint32 targetID = (cur.second != nullptr) ? cur.second->targetID : 0;
-        SafeDelete(cur.second);
         _log(TARGET__TRACE, "ClearTargets() - %s(%u) has cleared target ID %u.",
-                mySE->GetName(), mySE->GetID(), targetID);
+             mySE->GetName(), mySE->GetID(), targetID);
     }
-
-    m_targets.clear();
-
-    // no targets to process.  remove from proc map
-    sEntityList.DeleteTargMgr(mySE);
 }
 
 void TargetManager::ClearFromTargets() {
     if (m_targetedBy.empty())
         return;
 
-    std::vector<SystemEntity *> ToNotify;
-    SystemManager* system = mySE->SystemMgr();
-    for (auto cur : m_targetedBy) {
-        // Resolve the targeter by retained ID before touching its raw pointer.
-        SystemEntity* liveTargeter = (system != nullptr && cur.second != nullptr)
-            ? system->GetSE(cur.second->targetID) : nullptr;
-        if (liveTargeter == cur.first)
-            ToNotify.push_back(liveTargeter);
-        SafeDelete(cur.second);
+    std::vector<uint32> targeterIDs;
+    targeterIDs.reserve(m_targetedBy.size());
+    SystemManager* system = (mySE != nullptr) ? mySE->SystemMgr() : nullptr;
+    for (auto& entry : m_targetedBy) {
+        if (entry.second != nullptr)
+            targeterIDs.push_back(entry.second->targetID);
+        SafeDelete(entry.second);
     }
 
     m_targetedBy.clear();
 
-    // Do not notify until the map is clear: TargetLost() may re-enter cleanup.
-    for (SystemEntity* targeter : ToNotify) {
+    // Re-resolve each targeter after the previous callback. A callback may
+    // remove another entity, so never retain raw entity pointers across them.
+    for (uint32 targeterID : targeterIDs) {
+        SystemEntity* targeter = (system != nullptr) ? system->GetSE(targeterID) : nullptr;
         if (targeter != nullptr && targeter->TargetMgr() != nullptr)
             targeter->TargetMgr()->TargetLost(mySE);
     }
