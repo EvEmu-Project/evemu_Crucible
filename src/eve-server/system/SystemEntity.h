@@ -273,6 +273,7 @@ public:
     virtual PyDict*             MakeSlimItem();
 
     /* virtual functions to be overridden in derived classes */
+    virtual void                TargetAdded(SystemEntity* pTarget) { /* Do nothing here */ }
     virtual void     MissileLaunched(Missile* pMissile) { /* Do nothing here */ }
     virtual void                UpdateDamage()          { /* Do nothing here */ }
     virtual bool                LoadExtras()            { return true; }
