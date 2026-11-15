@@ -112,7 +112,7 @@ public:
     void AssignShip(ShipSE* pSE)                        { m_AI->AssignShip(pSE); }
     void SetTarget(SystemEntity* pSE = nullptr)         { m_targetID = (pSE == nullptr ? 0 : pSE->GetID()); }
 
-    ShipSE* GetHomeShip()                               { return m_pShipSE; }
+    ShipSE* GetHomeShip(); // resolves controller ID through the live system registry
     SystemManager* GetSystemManager()                    { return m_system; }
 
 protected:
