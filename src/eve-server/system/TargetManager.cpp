@@ -66,7 +66,7 @@ void TargetManager::PruneStaleTargets() {
     if (mySE == nullptr || mySE->SystemMgr() == nullptr)
         return;
 
-    std::vector<uint32> liveStaleTargetIDs;
+    std::vector<std::pair<uint32, SystemEntity*>> liveStaleTargets;
     std::vector<SystemEntity*> nullEntries;
     std::vector<uint32> missingTargetIDs;
     SystemManager* system = mySE->SystemMgr();
@@ -82,7 +82,7 @@ void TargetManager::PruneStaleTargets() {
             && liveTarget->SysBubble() == mySE->SysBubble())
             continue;
         if (liveTarget == entry.first)
-            liveStaleTargetIDs.push_back(entry.second->targetID);
+            liveStaleTargets.emplace_back(entry.second->targetID, entry.first);
         else
             missingTargetIDs.push_back(entry.second->targetID);
     }
@@ -98,8 +98,11 @@ void TargetManager::PruneStaleTargets() {
     // IDs across callbacks: TargetedByLost() can trigger AI/state changes that
     // remove other entities, so a previously collected raw pointer may no
     // longer be valid by the time its turn is processed.
-    for (uint32 targetID : liveStaleTargetIDs) {
+    for (const auto& staleTarget : liveStaleTargets) {
+        const uint32 targetID = staleTarget.first;
         SystemEntity* target = system->GetSE(targetID);
+        if (target != staleTarget.second)
+            continue;
         if (target == nullptr)
             continue;
 
@@ -113,7 +116,7 @@ void TargetManager::PruneStaleTargets() {
 
         // Re-resolve after the callback before invoking the normal loss path.
         target = system->GetSE(targetID);
-        if (target == nullptr)
+        if (target == nullptr || target != staleTarget.second)
             continue;
         current = m_targets.find(target);
         if (current != m_targets.end() && current->second != nullptr
@@ -505,19 +508,20 @@ void TargetManager::ClearTargets(bool notify/*true*/) {
     // Remove our entries before notifying other target managers. Their
     // TargetedByLost callbacks can re-enter AI/target cleanup and must not
     // invalidate an iterator into m_targets.
-    std::vector<uint32> targetIDs;
-    targetIDs.reserve(m_targets.size());
+    std::vector<std::pair<uint32, SystemEntity*>> targets;
+    targets.reserve(m_targets.size());
     for (auto& entry : m_targets) {
         if (entry.second != nullptr)
-            targetIDs.push_back(entry.second->targetID);
+            targets.emplace_back(entry.second->targetID, entry.first);
         SafeDelete(entry.second);
     }
     m_targets.clear();
     sEntityList.DeleteTargMgr(mySE);
 
-    for (uint32 targetID : targetIDs) {
+    for (const auto& target : targets) {
+        const uint32 targetID = target.first;
         SystemEntity* liveTarget = (system != nullptr) ? system->GetSE(targetID) : nullptr;
-        if (liveTarget != nullptr && liveTarget->TargetMgr() != nullptr)
+        if (liveTarget == target.second && liveTarget->TargetMgr() != nullptr)
             liveTarget->TargetMgr()->TargetedByLost(mySE);
 
         _log(TARGET__TRACE, "ClearTargets() - %s(%u) has cleared target ID %u.",
@@ -529,12 +533,12 @@ void TargetManager::ClearFromTargets() {
     if (m_targetedBy.empty())
         return;
 
-    std::vector<uint32> targeterIDs;
-    targeterIDs.reserve(m_targetedBy.size());
+    std::vector<std::pair<uint32, SystemEntity*>> targeters;
+    targeters.reserve(m_targetedBy.size());
     SystemManager* system = (mySE != nullptr) ? mySE->SystemMgr() : nullptr;
     for (auto& entry : m_targetedBy) {
         if (entry.second != nullptr)
-            targeterIDs.push_back(entry.second->targetID);
+            targeters.emplace_back(entry.second->targetID, entry.first);
         SafeDelete(entry.second);
     }
 
@@ -542,9 +546,9 @@ void TargetManager::ClearFromTargets() {
 
     // Re-resolve each targeter after the previous callback. A callback may
     // remove another entity, so never retain raw entity pointers across them.
-    for (uint32 targeterID : targeterIDs) {
-        SystemEntity* targeter = (system != nullptr) ? system->GetSE(targeterID) : nullptr;
-        if (targeter != nullptr && targeter->TargetMgr() != nullptr)
+    for (const auto& targeterEntry : targeters) {
+        SystemEntity* targeter = (system != nullptr) ? system->GetSE(targeterEntry.first) : nullptr;
+        if (targeter == targeterEntry.second && targeter->TargetMgr() != nullptr)
             targeter->TargetMgr()->TargetLost(mySE);
     }
 }
