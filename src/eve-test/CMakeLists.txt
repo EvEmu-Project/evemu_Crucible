@@ -29,7 +29,8 @@ SET( utils_SOURCE
      "utils/EvilNumberTest.cpp"
      "utils/WeaponFormulaTest.cpp"
      "utils/MovementFormulaTest.cpp"
-     "utils/DroneControlRangeTest.cpp" )
+     "utils/DroneControlRangeTest.cpp"
+     "utils/AgentHelpersTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -77,3 +78,5 @@ ADD_TEST( NAME "MovementFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/MovementFormulaTest" )
 ADD_TEST( NAME "DroneControlRangeTest"
           COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )
+ADD_TEST( NAME "AgentHelpersTest"
+          COMMAND "${TARGET_NAME}" "utils/AgentHelpersTest" )

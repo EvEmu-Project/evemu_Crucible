@@ -146,11 +146,12 @@ PyObjectEx* ManagerDB::GetAgents() {
         "    agt.level,"
         "    agt.quality,"
         "    agt.corporationID,"
-        "    chr.stationID,"
-        "    chr.gender,"
-        "    bl.bloodlineID"
+        "    COALESCE(NULLIF(chr.stationID, 0), st.stationID, 0) AS stationID,"
+        "    COALESCE(chr.gender, 0) AS gender,"
+        "    COALESCE(bl.bloodlineID, 0) AS bloodlineID"
         " FROM agtAgents AS agt"
         " LEFT JOIN chrNPCCharacters AS chr ON chr.characterID = agt.agentID"
+        " LEFT JOIN staStations AS st ON st.stationID = agt.locationID"
         " LEFT JOIN bloodlineTypes AS bl ON bl.typeID = chr.typeID"
     ))
     {

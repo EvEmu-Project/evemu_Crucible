@@ -1,5 +1,16 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-15 — Agent data, station portraits and mission safety
+
+- Agent station listing no longer relies exclusively on optional `chrNPCCharacters.stationID`: `ManagerDB::GetAgents` and `AgentDB::LoadAgentData` use `agtAgents.locationID` when it resolves to `staStations`, while preserving the legacy result columns.
+- Individual agents no longer fail to load merely because the optional NPC bloodline record is missing. Genuine missing primary agent rows or query failures now fail cleanly; the `AgentData` structure is initialized to zero instead of exposing undefined values.
+- The image server's missing-image redirects now use the supported `images.evetech.net` character-portrait/logo/icon/render APIs rather than the deprecated `image.eveonline.com` URL. Legacy 50px station agent portraits map to 64px remote requests while local `image_cache/Character/id_50.jpg` and `id_512.jpg` files continue to work. Historical NPC portraits absent from the remote CDN cannot be recreated by URL mapping; client support for HTTPS redirects must be tested.
+- Local PNG images are now served with the correct `image/png` MIME type. Invalid zero image ID/size requests receive a 404 before attempting a redirect.
+- Mission accept, complete, decline, defer and quit paths now validate that an agent actually has an offer in the required state before side effects; this prevents default-constructed missions and repeated completion payouts.
+- Fixed time-bonus calculation: compare the current FILETIME with the acceptance timestamp plus the configured minutes, and show the actual bonus ISK rather than an estimated multiple of the base reward. Broken bonus check previously never paid eligible bonuses.
+- Error handling now returns early if loading agent skill data from SQL fails.
+- Added `AgentHelpersTest` for image URL mapping and bonus-time math and a dedicated [agent image/mission audit](docs/AGENT_STATION_IMAGE_AUDIT_2026-11-15.md). GitHub build and Crucible client gameplay verification pending for the new code.
+
 This file tracks fixes and maintenance changes made on this fork's `master` branch. Entries describe code changes, not a guarantee that every gameplay path has been manually tested.
 
 

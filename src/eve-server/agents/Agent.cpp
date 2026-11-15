@@ -78,7 +78,7 @@ static bool IsSecurityMissionDivision(uint32 divisionID)
 }
 
 Agent::Agent(uint32 id)
-: m_agentID(id)
+: m_agentID(id), m_agentData{}
 {
     m_important = false;
     m_buttonID = 1;
@@ -91,7 +91,8 @@ Agent::Agent(uint32 id)
 
 
 bool Agent::Load() {
-    AgentDB::LoadAgentData(m_agentID, m_agentData);
+    if (!AgentDB::LoadAgentData(m_agentID, m_agentData))
+        return false;
     sMissionDataMgr.LoadAgentOffers(m_agentID, m_offers);
 
     if (m_agentData.research)

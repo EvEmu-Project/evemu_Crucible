@@ -23,9 +23,11 @@
     Author:        caytchen
 */
 
+#include "EVE_AgentHelpers.h"
 #include "imageserver/ImageServerConnection.h"
 
 boost::asio::const_buffer ImageServerConnection::_responseOK = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
+boost::asio::const_buffer ImageServerConnection::_responseOKPNG = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/png\r\n\r\n", 44);
 boost::asio::const_buffer ImageServerConnection::_responseNotFound = boost::asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
 boost::asio::const_buffer ImageServerConnection::_responseRedirectBegin = boost::asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);
 boost::asio::const_buffer ImageServerConnection::_responseRedirectEnd = boost::asio::buffer("\r\n\r\n", 4);
@@ -99,6 +101,10 @@ void ImageServerConnection::ProcessHeaders()
     std::string sizeStr = request.substr(del + 1);
     _id = atoi(idStr.c_str());
     _size = atoi(sizeStr.c_str());
+    if (_id == 0 || _size == 0) {
+        NotFound();
+        return;
+    }
 
     _imageData = sImageServer.GetImage(_category, _id, _size);
     if (!_imageData) {
@@ -111,12 +117,22 @@ void ImageServerConnection::ProcessHeaders()
             NotFound();
             return;
         }
+        // Client still requests the original Crucible-era URL, but CCP
+        // retired image.eveonline.com. Redirect to the current API instead.
+        // An NPC agent's old 50px portrait maps to the 64px CDN variant.
+        _redirectUrl = EvEAgent::ModernImageUrl(_category, _id, _size);
+        if (_redirectUrl.empty()) {
+            NotFound();
+            return;
+        }
         Redirect();
         return;
     }
 
-    // first we have to send the responseOK, then our actual result
-    boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::bind(&ImageServerConnection::SendImage, shared_from_this()));
+    // JPEG portraits, PNG logos/icons/renders: do not advertise PNG as JPEG.
+    boost::asio::async_write(_socket,
+        (_category == "Character" ? _responseOK : _responseOKPNG),
+        boost::asio::transfer_all(), std::bind(&ImageServerConnection::SendImage, shared_from_this()));
 }
 
 void ImageServerConnection::SendImage()
@@ -139,11 +155,10 @@ void ImageServerConnection::RedirectLocation()
     // A 301 is expected for uncached NPC/static artwork; it is not a server error.
     sLog.Debug("     Image Server", "Redirecting missing image %s/%u_%u to fallback.",
                _category.c_str(), _id, _size);
-    std::string extension = _category == "Character" ? "jpg" : "png";
-    std::stringstream url;
-    url << ImageServer::FallbackURL << _category << "/" << _id << "_" << _size << "." << extension;
-    _redirectUrl = url.str();
-    boost::asio::async_write(_socket, boost::asio::buffer(_redirectUrl), boost::asio::transfer_all(), std::bind(&ImageServerConnection::RedirectFinalize, shared_from_this()));
+    // The URL has been validated BEFORE sending the 301 response prefix.
+    // It must remain a member string until the async write completes.
+    boost::asio::async_write(_socket, boost::asio::buffer(_redirectUrl),
+        boost::asio::transfer_all(), std::bind(&ImageServerConnection::RedirectFinalize, shared_from_this()));
 }
 
 void ImageServerConnection::RedirectFinalize()
