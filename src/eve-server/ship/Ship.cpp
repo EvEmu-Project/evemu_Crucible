@@ -2841,8 +2841,9 @@ void ShipSE::ScoopDrone(SystemEntity* pSE) {
 
     DroneSE* drone = pSE->GetDroneSE();
     const bool usedBandwidth = drone->IsEnabled();
-    const double bandwidthUsed = usedBandwidth
-        ? pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed).get_double()
+    InventoryItemRef droneItem = pSE->GetSelf();
+    const double bandwidthUsed = (usedBandwidth && droneItem.get() != nullptr)
+        ? droneItem->GetAttribute(AttrDroneBandwidthUsed).get_double()
         : 0.0;
 
     m_drones.erase(pSE->GetID());
