@@ -500,7 +500,7 @@ bool SystemManager::LoadSystemDynamics() {
         if (pSE->GetPosition().isZero())
             pSE->SetPosition(sMapData.GetRandPointOnPlanet(m_data.systemID));
         //pSE->SetPosition(sMapData.GetRandPointOnMoon(m_data.systemID));
-        if (pSE->GetTypeID() == EVEDB::invGroups::Wormhole) { //Wormholes don't need anomaly signals
+        if (pSE->GetGroupID() == EVEDB::invGroups::Wormhole) { // Wormholes don't need anomaly signals
             AddEntity(pSE, false);
         } else {
             AddEntity(pSE);

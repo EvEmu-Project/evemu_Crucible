@@ -196,40 +196,20 @@ void BubbleManager::NewBubbleCenter(GVector shipVelocity, GPoint &newCenter) {
 }
 
 void BubbleManager::Remove(SystemEntity *ent) {
-    // suns, planets and moons arent in bubbles
-    // if (ent->IsStaticEntity())
-    //    return;
-    if (ent->SysBubble() != nullptr) {
-        _log(
-            DESTINY__BUBBLE_DEBUG,
-            "BubbleManager::Remove(): Entity %s(%u) being removed from Bubble %u",
-            ent->GetName(),
-            ent->GetID(),
-            ent->SysBubble()->GetID()
-        );
+    if (ent == nullptr)
+        return;
+    SystemBubble* owningBubble = ent->SysBubble();
+    if (owningBubble == nullptr)
+        return;
 
-        // iterate through all other bubbles and determine if the entity is
-        // in them.
-        std::list<SystemBubble *>::iterator itr = m_bubbles.begin();
-        while (itr != m_bubbles.end()) {
-            if (*itr == nullptr) {
-                continue;
-            }
-
-            _log(
-                DESTINY__BUBBLE_DEBUG,
-                "BubbleManager::Remove(): Entity %s(%u) being untracked from Bubble %u",
-                ent->GetName(),
-                ent->GetID(),
-                ent->SysBubble()->GetID()
-            );
-
-            (*itr)->Untrack(ent);
-            ++itr;
-        }
-
-        ent->SysBubble()->Remove(ent);
-    }
+    // Entities belong to ONE bubble. The previous implementation attempted to
+    // untrack each entity from every bubble in the system, repeatedly sending
+    // remove-ball updates to unrelated pilots. It also looped forever when
+    // the bubble list contained a null entry (continue without ++itr).
+    _log(DESTINY__BUBBLE_DEBUG,
+         "BubbleManager::Remove(): Removing entity %s(%u) from its bubble %u",
+         ent->GetName(), ent->GetID(), owningBubble->GetID());
+    owningBubble->Remove(ent);
 }
 
 /** UPDATE  large items, (sun, planet, moons) are no longer in bubbles.

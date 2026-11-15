@@ -241,6 +241,16 @@ void SystemBubble::ProcessWander(std::vector<SystemEntity *> &wanderers) {
 }
 
 void SystemBubble::Add(SystemEntity* pSE) {
+    if (pSE == nullptr)
+        return;
+    // Do not overwrite the entity's owning-bubble pointer on a duplicate add.
+    // Old code checked dynamic membership only AFTER setting m_bubble = this.
+    if (m_dynamicEntities.find(pSE->GetID()) != m_dynamicEntities.end()) {
+        _log(DESTINY__BUBBLE_TRACE,
+             "SystemBubble::Add() - Entity %u is already a dynamic member of bubble %u.",
+             pSE->GetID(), m_bubbleID);
+        return;
+    }
     //if they are already in this bubble, do not continue.
     if (m_entities.find(pSE->GetID()) != m_entities.end()) {
         _log(
@@ -353,8 +363,8 @@ void SystemBubble::Add(SystemEntity* pSE) {
     _log(
         DESTINY__BUBBLE_DEBUG,
         "SystemBubble::Add() - Added pSE %p (%s) to bubble %u",
+        static_cast<void*>(pSE),
         pSE->GetName(),
-        pSE,
         m_bubbleID
     );
 
@@ -375,14 +385,25 @@ void SystemBubble::Untrack(SystemEntity *pSE) {
 
     uint32 pseId(pSE->GetID());
 
-    // assume that the entity is properly registered for its ID
-    if (pSE->m_bubble == nullptr) {
-        _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::Remove() - Entity %u bubble pointer is null for bubble %u", pseId, m_bubbleID);
+    // Ignore harmless duplicate untrack calls. Previously a null bubble
+    // pointer emitted a full unsymbolized stack trace on every call without
+    // checking whether this bubble even contained the entity.
+    const bool tracked = m_entities.find(pseId) != m_entities.end()
+        || m_dynamicEntities.find(pseId) != m_dynamicEntities.end()
+        || m_drones.find(pseId) != m_drones.end();
+    if (!tracked)
+        return;
 
-        if (sConfig.debug.StackTrace) {
-            EvE::traceStack();
-        }
-
+    if (pSE->m_bubble != this) {
+        // A stale registration must be removed, but must not trigger client
+        // remove-ball notifications for an entity owned by another bubble.
+        sLog.Warning("SystemBubble::Untrack()",
+                     "Entity %u has stale membership in bubble %u (owner bubble: %u).",
+                     pseId, m_bubbleID,
+                     pSE->m_bubble != nullptr ? pSE->m_bubble->GetID() : 0);
+        m_entities.erase(pseId);
+        m_dynamicEntities.erase(pseId);
+        m_drones.erase(pseId);
         return;
     }
 
@@ -451,6 +472,13 @@ void SystemBubble::Untrack(SystemEntity *pSE) {
  * `Untrack` instead if you don't want to do this.
  */
 void SystemBubble::Remove(SystemEntity *pSE) {
+    if (pSE == nullptr)
+        return;
+    if (pSE->m_bubble != this) {
+        // Do not clear another bubble's ownership during a stale removal.
+        Untrack(pSE);
+        return;
+    }
     Untrack(pSE);
 
     if (is_log_enabled(DESTINY__BUBBLE_DEBUG)) {

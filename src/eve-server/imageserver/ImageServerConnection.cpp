@@ -136,7 +136,9 @@ void ImageServerConnection::Redirect()
 
 void ImageServerConnection::RedirectLocation()
 {
-    sLog.Error("     Image Server"," RedirectLocation() called.");
+    // A 301 is expected for uncached NPC/static artwork; it is not a server error.
+    sLog.Debug("     Image Server", "Redirecting missing image %s/%u_%u to fallback.",
+               _category.c_str(), _id, _size);
     std::string extension = _category == "Character" ? "jpg" : "png";
     std::stringstream url;
     url << ImageServer::FallbackURL << _category << "/" << _id << "_" << _size << "." << extension;
