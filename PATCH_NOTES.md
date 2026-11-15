@@ -230,3 +230,10 @@ The synthetic Blockade reward/kill target assignment in `Agent::MakeOffer()` has
 - Fixed launch bandwidth validation to happen before moving the item or creating the space entity. Previously an over-bandwidth launch could leave an inert drone in space after the command failed.
 - Pending engage targets are stored as entity IDs and re-resolved through the current solar-system manager each tick, avoiding stale entity pointers when an NPC dies or leaves the system. A new explicit engage order now clears a different stale/locked target before acquiring the new target. Added guards for invalid target state and a valid min/max orbit-speed interval.
 - Validation pending on the latest branch head: Windows/Linux/Docker CI and in-game tests for light/medium/heavy drones, target lock, approach, orbit, damage, target death, return-home, return-to-bay, bay-full failure, abandon and bandwidth rejection.
+
+## 2026-11-15 — Drone command decoding and automatic NPC engagement
+
+- Fixed `entity.CmdEngage` argument decoding: the client can encode item IDs as Python `PyLong` values, while the handler previously required `PyInt` for the target and rejected non-`PyInt` drone IDs. The command now accepts both integer wire types and validates the server's 32-bit entity-ID range before lookup.
+- Added automatic hostile-NPC acquisition for online combat drones. Idle drones scan their current bubble, select the nearest living NPC that is not owned by the pilot or of the same non-zero faction, engage it, and reacquire the next NPC after the current target is destroyed/lost.
+- Explicit return orders suppress automatic reacquisition. Relaunching/online or issuing a new engage order enables combat acquisition again.
+- Validation pending: CI and in-game tests of command decoding, automatic NPC acquisition, sequential target switching, faction filtering and return suppression.
