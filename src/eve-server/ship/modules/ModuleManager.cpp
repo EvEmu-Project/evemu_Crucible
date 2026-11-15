@@ -1024,8 +1024,10 @@ void ModuleManager::UnloadCharge(GenericModule* pMod)
     m_charges.erase(pMod->flag());
 
     if (!pMod->IsLoaded()) {
-        _log(MODULE__ERROR, "MM::UnloadCharge() - %s at %s is not loaded", \
-                pMod->GetSelf()->name(), sDataMgr.GetFlagName(pMod->flag()));
+        // Unload requests commonly include empty weapon slots; this is a
+        // harmless no-op, not an operational error.
+        _log(MODULE__TRACE, "MM::UnloadCharge() - %s at %s is not loaded; nothing to unload.",
+             pMod->GetSelf()->name(), sDataMgr.GetFlagName(pMod->flag()));
         return;
     }
 
@@ -1144,11 +1146,16 @@ void ModuleManager::UnloadModule(GenericModule* pMod) {
 
 void ModuleManager::UnloadWeapons()
 {
-    std::map<uint8, GenericModule*>::iterator mItr;
-    for (uint8 i = flagHiSlot0; 1 < flagFixedSlot; ++i) {
-        mItr = m_modules.find((uint8)i);
-        if (mItr->second != nullptr)
-            UnloadCharge(mItr->second);
+    // Iterate only modules that actually exist in the weapon-to-fixed-slot
+    // range. The previous loop tested the constant expression
+    // "1 < flagFixedSlot" (an endless uint8 loop) and dereferenced find()
+    // without checking for end(), either of which could hang or crash.
+    const uint8 firstSlot = static_cast<uint8>(flagHiSlot0);
+    const uint8 endSlot = static_cast<uint8>(flagFixedSlot);
+    for (auto itr = m_modules.lower_bound(firstSlot);
+         itr != m_modules.end() && itr->first < endSlot; ++itr) {
+        if (itr->second != nullptr)
+            UnloadCharge(itr->second);
     }
 }
 
