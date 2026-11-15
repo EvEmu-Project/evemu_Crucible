@@ -244,10 +244,10 @@ bool DroneSE::ScoopToBay() {
 
 void DroneSE::IdleOrbit(ShipSE* pShipSE/*nullptr*/) {
     if (pShipSE == nullptr)
-        pShipSE = m_pShipSE;
+        pShipSE = GetHomeShip();
 
-    if (!m_online)
-        return;         // error here?
+    if (!m_online || pShipSE == nullptr || m_destiny == nullptr)
+        return;
 
     // TODO:  fix these speeds
     // set speed and begin orbit
