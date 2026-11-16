@@ -3,7 +3,7 @@
 **Project:** EVEmu Crucible 1.6.5, client build 360229  
 **PR:** https://github.com/xrizonx/evemu_Crucible/pull/25  
 **Updated:** 2026-11-16  
-**Status:** Original assembled station-container crash and the nine station/ship/container inventory checks (B1–B9) are reported working by the operator. POS, customs-office and broader regression checks remain open.
+**Status: MERGE-READY CANDIDATE.** Assembled-container workflows and all B1–B9 station/ship/container checks were reported working by the operator. Remaining POS, customs-office and broader manual QA are **deferred, non-blocking post-merge verification** by operator decision (16 Nov 2026). These untested items are NOT marked as passed.
 
 Only check a box after running it with the final PR-head server binary and
 recording the result. A green GitHub Action is **not** an in-game pass.
@@ -61,69 +61,87 @@ workflows, not all possible container/POS paths, succeed.
   validation error; no stale-client context, wrong-client capacity check,
   crash or permission leakage.
 
-## C. Outstanding POS/starbase lifecycle
+## Merge decision and risk acceptance — 16 November 2026
 
-- [ ] **C1.** Anchor a control tower at a valid moon and confirm state
+- **Accepted for merge:** A1–A8 and B1–B9: 17 of 37 items supported by operator runtime reports and supplied SQL findings.
+- **Manual QA waived as a merge prerequisite:** C1–C9 (9 POS tests), D1–D3 (3 customs tests), and E1–E3/E5–E8 (7 database/operational tests) are **19 deferred items**, not passed.
+- **Automated CI remains required:** E4 covers Windows UCRT64, Linux GCC, Docker and registered safety/CTest checks. On the pre-documentation head `047221efc3f78dc5cf150cfc0e94422f898c3ef1`, [run #43859501069](https://github.com/xrizonx/evemu_Crucible/actions/runs/43859501069) succeeded. Confirm the **final** head's CI before merging.
+- **GitHub PR state at preparation:** PR #25 was reported **clean/mergeable**, not a draft, with no unresolved recorded reviews. Repository branch protection/ruleset permissions were not available to this integration; GitHub's actual merge button remains authoritative.
+- **Known risk:** POS tower/module initialization, corporate permissions, customs-office persistence and multi-character regressions have not been demonstrated in-game. These paths may have bugs after merging. Keep a working database backup and preserve a rollback SHA.
+- No untested item is represented as working. This is a decision to **defer verification**, not remove tests, turn off CI, or waive repository protection rules.
+
+### Required before merge (automated, not manual gameplay testing)
+
+Verify the latest PR-head GitHub Actions run passes for Windows, Linux and Docker. Do not merge a failing build solely to bypass manual checks.
+
+## C. Deferred post-merge (non-blocking) — POS/starbase lifecycle
+
+- **C1.** Anchor a control tower at a valid moon and confirm state
   updates, slim-item notifications, position and saved `posStructureData`.
-- [ ] **C2.** Online and offline a tower with a test force field/password;
+- **C2.** Online and offline a tower with a test force field/password;
   check shield lifecycle, no stale shield entity and no crash.
-- [ ] **C3.** Anchor, online, offline, unanchor and scoop a supported POS
+- **C3.** Anchor, online, offline, unanchor and scoop a supported POS
   module; verify control tower links and state persistence on restart.
-- [ ] **C4.** Add/remove disposable items to/from the tower fuel bay or
+- **C4.** Add/remove disposable items to/from the tower fuel bay or
   corporate hangar array; verify proper flags, capacity and ownership.
-- [ ] **C5.** Attempt capacity overflow and a move without required corporate
+- **C5.** Attempt capacity overflow and a move without required corporate
   permissions. Both must reject without mutating owner, location or quantity.
-- [ ] **C6.** Test expected rejection of POS actions with missing tower,
+- **C6.** Test expected rejection of POS actions with missing tower,
   moon, gate, planet or sovereignty hub using a disposable test DB; check
   clear server logs and no null-pointer crash.
-- [ ] **C7.** Test supported jump bridge, reactor and moon-miner initialization,
+- **C7.** Test supported jump bridge, reactor and moon-miner initialization,
   especially after reboot, for base/derived `InitData` consistency.
-- [ ] **C8.** Retry previously problematic POS RPCs (tower notifications,
+- **C8.** Retry previously problematic POS RPCs (tower notifications,
   password, sentry settings, permissions, and anchoring) when the target
   entity is absent or unloading. Expect safe rejection without a crash.
-- [ ] **C9.** Verify that repeated POS initialization does not create
+- **C9.** Verify that repeated POS initialization does not create
   duplicate `posStructureData`/`posTowerData`/`posJumpBridgeData` rows.
 
-## D. Outstanding customs offices / orbital cargo
+## D. Deferred post-merge (non-blocking) — customs offices / orbital cargo
 
-- [ ] **D1.** Move cargo into and out of a supported customs office; verify
+- **D1.** Move cargo into and out of a supported customs office; verify
   `entity.locationID` matches the actual destination, including after restart.
-- [ ] **D2.** Reject oversized customs-office transfers without moving items
+- **D2.** Reject oversized customs-office transfers without moving items
   or changing their owner/flag.
-- [ ] **D3.** Check relevant planetary export/import or launch containers:
+- **D3.** Check relevant planetary export/import or launch containers:
   claim/remove contents and verify intended cleanup without deleting
   unrelated cargo; skip unsupported client mechanics with a recorded note.
 
-## E. Outstanding database, regression and release checks
+## E. Deferred post-merge (non-blocking) — database, regression and release checks
 
-- [ ] **E1.** Run the **read-only** SQL integrity audit against a database
+- **E1.** Run the **read-only** SQL integrity audit against a database
   backup: `sql/diagnostics/2026-11-16-container-pos-integrity.sql`.
   Investigate any returned containment cycles, suspect parent rows, orphan
   POS data or stale attributes. Do not auto-delete rows.
-- [ ] **E2.** Confirm rename, inventory move and POS operations with a
+- **E2.** Confirm rename, inventory move and POS operations with a
   second character and a separate corporation where available. Check
   visibility, ownership and role restrictions.
-- [ ] **E3.** Station services regressions: docking/undocking, agent/journal,
+- **E3.** Station services regressions: docking/undocking, agent/journal,
   NPC 50px portrait request and market/inventory windows; no client disconnect
   or server crash. The earlier station-entry pass does not cover every RPC.
-- [ ] **E4.** Verify the **final PR-head** GitHub Actions run completes:
+- **E4.** Verify the **final PR-head** GitHub Actions run completes:
   Windows UCRT64, Linux GCC, Docker, safety source checks and CTest.
   An older green SHA does not count for the final changes.
-- [ ] **E5.** Install the final Windows ZIP with the matching bundled UCRT64
+- **E5.** Install the final Windows ZIP with the matching bundled UCRT64
   DLLs. Verify `BUILD-INFO.txt` commit SHA matches the installed executable.
-- [ ] **E6.** Start the new server and confirm its startup banner shows
+- **E6.** Start the new server and confirm its startup banner shows
   **Server Revision: 0.8.7-Rizonx**. Supported client stays **Crucible
   1.6.5 / 7.31 / 360229 / MachoNet 320**.
-- [ ] **E7.** No inventory changes were made through an unreviewed or
+- **E7.** No inventory changes were made through an unreviewed or
   destructive SQL migration. Record the DB backup and restore point used.
-- [ ] **E8.** Review logs after repeated action cycles and one restart for
+- **E8.** Review logs after repeated action cycles and one restart for
   `POS__ERROR`, `INV__ERROR`, exceptions or missing `StationContainerTransfer
   END` markers. Record any persistent errors with item IDs and a crash
   stack/minidump if applicable.
 
 ## Sign-off criteria / test evidence
 
-PR #25 has **17 of 37 checks marked passed** based on the operator's completed A/B testing and supplied SQL results. **20 remain open** across POS (C1–C9), customs offices (D1–D3), and database/regression/release checks (E1–E8). The remaining C–E tests must be completed or explicitly marked *unsupported/out of scope* for full PR sign-off. The B-series result is a grouped operator report, not independently archived per-case evidence.
+**Merge-ready with deferred manual QA** by operator decision. 17 tests are
+reported complete, 19 manual tests are deferred to post-merge, and E4 is the
+automated final-head CI gate. POS/customs-office functional verification is
+not a required pre-merge condition for this PR. Keep deferred tests in the
+backlog, and require new runtime evidence before declaring those paths
+validated in release notes.
 
 For each remaining test, record: date and client/server binary SHA, character
 and item IDs, before/after SQL location/owner/quantity, what was clicked,
