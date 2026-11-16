@@ -47,9 +47,12 @@ inline std::string ModernImageUrl(const std::string& category,
         return std::string();
     const char* prefix = nullptr;
     const char* variation = nullptr;
-    if (category == "Character") {
-        prefix = "characters"; variation = "portrait";
-    } else if (category == "Corporation") {
+    // A Crucible (2012) client must not be redirected to the modern HTTPS
+    // character portrait CDN. Missing local character images should return
+    // HTTP 404; other legacy image categories retain their modern fallbacks.
+    if (category == "Character")
+        return std::string();
+    if (category == "Corporation") {
         prefix = "corporations"; variation = "logo";
     } else if (category == "Alliance") {
         prefix = "alliances"; variation = "logo";

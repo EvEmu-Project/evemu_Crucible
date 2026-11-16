@@ -33,7 +33,8 @@ SET( utils_SOURCE
      "utils/AgentHelpersTest.cpp"
      "utils/MissionLifecycleTest.cpp"
      "utils/ContainerAssemblyTest.cpp"
-     "utils/StationOfficeIntegrityTest.cpp" )
+     "utils/StationOfficeIntegrityTest.cpp"
+     "utils/ImageCompatibilityTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -89,3 +90,5 @@ ADD_TEST( NAME "ContainerAssemblyTest"
           COMMAND "${TARGET_NAME}" "utils/ContainerAssemblyTest" )
 ADD_TEST( NAME "StationOfficeIntegrityTest"
           COMMAND "${TARGET_NAME}" "utils/StationOfficeIntegrityTest" )
+ADD_TEST( NAME "ImageCompatibilityTest"
+          COMMAND "${TARGET_NAME}" "utils/ImageCompatibilityTest" )

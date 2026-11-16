@@ -1,5 +1,15 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-16 — Prevent modern portrait redirects during Crucible station loading
+
+- Operator verified that even after PR #22 fully removed experimental portraits and PR #23 fixed station offices, the 2012 Crucible client requested `Character/90000000_256` and `Character/3011918_50`; the latter **still received a 301 redirect** to `images.evetech.net` immediately before logout.
+- Root-cause candidate verified in source: `ImageServerConnection::ProcessHeaders` retained pre-experiment `EvEAgent::ModernImageUrl` fallback for missing NPC character portraits. Legacy clients may not support the modern external HTTPS destination; the earlier rollback did not disable this pre-existing redirect.
+- Missing **Character** pictures (player or NPC) now get HTTP **404**, with `Content-Length: 0`, `Connection: close` and `Cache-Control: no-store`; no external redirect and no newly bundled agent JPEG. Existing local player/agent JPEG files continue to load if present.
+- Before returning `image/jpeg`, `ImageServer::GetImage` now rejects an empty image or an obviously invalid JPEG signature, preventing mislabeled PNG files in `image_cache/Character` from being returned as JPEG. This signature check is **not** a full JPEG decoder.
+- Non-Character modern fallbacks, market container assembly, station office guard repairs, agent missions, Blockade reward, drones, weapons, and warp remain unchanged.
+- Extended existing `AgentHelpersTest` and added `ImageCompatibilityTest` for no character HTTPS fallback, preserved logo/icon URLs and JPEG signature checks.
+- **Crucible in-client crash fix not yet confirmed.** Earlier PR #21 404 responses did not stop the crash, so another cause or client-side cached redirects/images remain plausible. Clear only cached image data (not settings) and retest with the matching build; obtain client Event Viewer exception/minidump if it persists. See [Crucible portrait response diagnostic](docs/CRUCIBLE_IMAGE_REDIRECT_CRASH_TRIAGE_2026-11-16.md).
+
 ## 2026-11-16 — Fix corporation office selection and station-load null dereferences
 
 - Investigated continuing Crucible station-load disconnects after full removal of experimental agent portraits. Supplied server excerpt contains 16 identical unsymbolized call stacks and station/faction-warfare RPCs; the actual client crash dump is not included, so the client-side root cause remains unconfirmed.

@@ -12,8 +12,8 @@ int utils_AgentHelpersTest(int argc, char* argv[]) {
     const double tick = 10000000.0;
     const bool passed =
         Mission::kBlockadeSecurityTestRewardISK == 50000000u
-        && EvEAgent::ModernImageUrl("Character", 3010819, 50)
-            == "https://images.evetech.net/characters/3010819/portrait?size=64"
+        && EvEAgent::ModernImageUrl("Character", 3011918, 50).empty()
+        && EvEAgent::ModernImageUrl("Character", 90000000, 256).empty()
         && EvEAgent::ModernImageUrl("Corporation", 1000012, 64)
             == "https://images.evetech.net/corporations/1000012/logo?size=64"
         && EvEAgent::ModernImageUrl("InventoryType", 587, 32)
