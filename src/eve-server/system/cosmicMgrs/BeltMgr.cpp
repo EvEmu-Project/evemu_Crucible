@@ -20,6 +20,7 @@
 #include "EVEServerConfig.h"
 
 #include "StaticDataMgr.h"
+#include "EVE_AsteroidSpawnHelpers.h"
 #include "math/Trig.h"
 #include "system/SystemBubble.h"
 #include "system/SystemManager.h"
@@ -383,30 +384,7 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
 }
 
 uint32 BeltMgr::GetAsteroidType(double p, const std::unordered_multimap<float, uint16>& roids) {
-    // Support SQL weights specified as fractions, percentages or rounded
-    // probabilities without biasing type selection or returning typeID 0.
-    double total = 0.0;
-    uint32 lastTypeID = 0;
-    for (const auto& entry : roids) {
-        if (entry.second && std::isfinite(entry.first) && entry.first > 0.0f) {
-            total += entry.first;
-            lastTypeID = entry.second;
-        }
-    }
-    if (!(total > 0.0) || !std::isfinite(total))
-        return 0;
-
-    const double threshold = p * total;
-    double accumulated = 0.0;
-    for (const auto& entry : roids) {
-        if (!entry.second || !std::isfinite(entry.first) || entry.first <= 0.0f)
-            continue;
-        accumulated += entry.first;
-        if (threshold < accumulated)
-            return entry.second;
-    }
-    // MakeRandomFloat can return its upper endpoint.
-    return lastTypeID;
+    return EvEAsteroidSpawns::SelectWeightedType(p, roids);
 }
 
 bool BeltMgr::SpawnAsteroid(uint32 beltID, uint32 typeID, double radius, const GPoint& position, bool ice/*false*/) {
