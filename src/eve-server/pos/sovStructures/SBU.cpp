@@ -62,6 +62,7 @@ void SBUSE::SetOnline()
     if (!sov.claimStructureID || GetGates() <= 0.0f) {
         _log(SOV__ERROR, "SBU %u cannot online: system %u is unclaimed or has no gates.",
              m_self->itemID(), m_system->GetID());
+        RejectOnlining();
         return;
     }
 
