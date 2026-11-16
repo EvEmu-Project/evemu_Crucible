@@ -728,7 +728,7 @@ PyResult CorpRegistryBound::UpdateTitles(PyCallArgs &call, PyObject* titles) {
     return nullptr;
 }
 
-PyResult CorpRegistryBound::UpdateCorporation(PyCallArgs &call, PyRep* description, PyRep* url, PyRep* tax)
+PyResult CorpRegistryBound::UpdateCorporation(PyCallArgs &call, PyRep* description, PyRep* url, PyRep* tax, PyInt* applicationEnabled)
 {
     _log(CORP__CALL, "CorpRegistryBound::UpdateCorporation() for corp %u", m_corpID);
     call.Dump(CORP__CALL_DUMP);
@@ -749,6 +749,11 @@ PyResult CorpRegistryBound::UpdateCorporation(PyCallArgs &call, PyRep* descripti
     // PyLong. Do not dereference a null PyFloat* or silently coerce None.
     if (tax == nullptr || !(tax->IsFloat() || tax->IsInt() || tax->IsLong()))
         throw CustomError("Invalid corporation tax value.");
+    // Fourth RPC argument is applicationEnabled (PyInt), as used by
+    // Call_AddCorporation. The database stores this as isRecruiting.
+    if (applicationEnabled == nullptr || (applicationEnabled->value() != 0 && applicationEnabled->value() != 1))
+        throw CustomError("Corporation applications flag must be 0 or 1.");
+
     const double taxRate = PyRep::FloatValue(tax);
     // EVE stores tax as a fraction, e.g. 12.5% = 0.125, not 12.5.
     if (!std::isfinite(taxRate) || taxRate < 0.0 || taxRate > 1.0)
@@ -759,7 +764,8 @@ PyResult CorpRegistryBound::UpdateCorporation(PyCallArgs &call, PyRep* descripti
     notif.data = new PyDict();
 
     if (!m_db.UpdateCorporation(notif.key, PyRep::StringContent(description),
-                                PyRep::StringContent(url), taxRate, notif.data)) {
+                                PyRep::StringContent(url), taxRate,
+                                static_cast<uint32>(applicationEnabled->value()), notif.data)) {
         codelog(SERVICE__ERROR, "%s: Failed to update corporation %u",
                 call.client->GetName(), m_corpID);
         PyDecRef(notif.data);
