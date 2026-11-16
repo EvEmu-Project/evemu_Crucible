@@ -197,6 +197,9 @@ public:
     void                        SendSlimUpdate();
 
 protected:
+    // Restore anchored state if a sovereignty online precondition fails.
+    // The base Process() has already entered Onlining before invoking SetOnline().
+    void                        RejectOnlining();
     void                        SendEffectUpdate(int16 effectID, bool active);
 
     PosMgrDB                    m_db;

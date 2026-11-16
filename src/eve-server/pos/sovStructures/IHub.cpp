@@ -41,9 +41,10 @@ void IHubSE::Init()
     _log(SE__TRACE, "IHubSE %s(%u) is being initialised", m_self->name(), m_self->itemID());
     StructureSE::Init();
 
-    // check for valid bubble
-    if (m_bubble == nullptr)
-        assert(0);
+    if (!IsPOSInitialized() || m_bubble == nullptr) {
+        _log(SOV__ERROR, "IHubSE::Init: missing bubble or POS state for %u.", m_self->itemID());
+        return;
+    }
     m_bubble->SetIHubSE(this);
 
     // set global attribute
@@ -58,13 +59,22 @@ void IHubSE::Process()
 void IHubSE::SetOnline()
 {
     _log(SOV__DEBUG, "Onlining IHub... Updating claim'd hubID.");
+    const SovereigntyData sov = svDataMgr.GetSovereigntyData(m_system->GetID());
+    if (!sov.claimStructureID || !m_allyID || sov.allianceID != m_allyID) {
+        _log(SOV__ERROR, "IHub %u cannot online: alliance %u does not hold sovereignty in %u.",
+             m_self->itemID(), m_allyID, m_system->GetID());
+        RejectOnlining();
+        return;
+    }
     StructureSE::SetOnline();
-    svDataMgr.UpdateSystemHubID(m_self->locationID(), m_self->itemID());
+    svDataMgr.UpdateSystemHubID(m_system->GetID(), m_self->itemID());
 }
 
 void IHubSE::SetOffline()
 {
     _log(SOV__DEBUG, "Offlining IHub... Resetting claim's hubID.");
-    svDataMgr.UpdateSystemHubID(m_self->locationID(), 0);
+    const SovereigntyData sov = svDataMgr.GetSovereigntyData(m_system->GetID());
+    if (sov.hubID == m_self->itemID())
+        svDataMgr.UpdateSystemHubID(m_system->GetID(), 0);
     StructureSE::SetOffline();
 }

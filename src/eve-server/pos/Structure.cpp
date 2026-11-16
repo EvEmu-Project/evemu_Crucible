@@ -973,6 +973,17 @@ void StructureSE::SetOffline()
     }
 }
 
+void StructureSE::RejectOnlining()
+{
+    // Process() sets state to Online before calling a derived SetOnline().
+    // A failed TCU/SBU/IHub claim check must not leave a phantom online POS.
+    m_procState = EVEPOS::ProcState::Invalid;
+    m_data.state = EVEPOS::StructureState::Anchored;
+    m_self->SetFlag(flagStructureInactive);
+    m_db.UpdateBaseData(m_data);
+    SendSlimUpdate();
+}
+
 void StructureSE::SetInvulnerable()
 {
     m_procState = EVEPOS::ProcState::Online;

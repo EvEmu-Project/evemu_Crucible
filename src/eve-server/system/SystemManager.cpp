@@ -1284,9 +1284,8 @@ void SystemManager::DoSpawnForBubble(SystemBubble* pBubble)
     if (!m_spawnMgr->IsInitialized())
         return;
 
-    if (m_beltCount < 1)
-        return;
-
+    // Gate NPCs must remain possible in systems with no asteroid belts.
+    // The belt-cap check below still protects roaming belt spawns.
     if (is_log_enabled(SPAWN__MESSAGE))
         _log(SPAWN__MESSAGE, "Spawn called for bubble %u(%u) in %s(%u)[%.4f], region %u.", \
              pBubble->GetID(), sBubbleMgr.GetBeltID(pBubble->GetID()), m_data.name.c_str(), \
@@ -1316,11 +1315,10 @@ void SystemManager::GetSpawnBubbles(SpawnBubbleMap* bubbleMap)
 
 void SystemManager::RemoveSpawnBubble(SystemBubble* pBubble)
 {
-    if (pBubble->IsBelt()) {
-        m_ratBubbles.erase(pBubble->GetID());
+    const bool wasTracked = m_ratBubbles.erase(pBubble->GetID()) > 0;
+    if (wasTracked && pBubble->IsBelt() && m_activeRatSpawns > 0) {
         --m_activeRatSpawns;
-    } else if (pBubble->IsGate()) {
-        m_ratBubbles.erase(pBubble->GetID());
+    } else if (wasTracked && pBubble->IsGate() && m_activeGateSpawns > 0) {
         --m_activeGateSpawns;
     }
     if (is_log_enabled(SPAWN__MESSAGE))
@@ -1329,7 +1327,9 @@ void SystemManager::RemoveSpawnBubble(SystemBubble* pBubble)
 
 uint32 SystemManager::GetRandBeltID()
 {
-    return m_beltVector.at(MakeRandomInt(0, m_beltCount));
+    if (m_beltVector.empty())
+        return 0;
+    return m_beltVector.at(MakeRandomInt(0, m_beltVector.size() - 1));
 }
 
 void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) const {

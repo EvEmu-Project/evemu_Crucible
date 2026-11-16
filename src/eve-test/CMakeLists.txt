@@ -34,7 +34,8 @@ SET( utils_SOURCE
      "utils/MissionLifecycleTest.cpp"
      "utils/ContainerAssemblyTest.cpp"
      "utils/StationOfficeIntegrityTest.cpp"
-     "utils/ImageCompatibilityTest.cpp" )
+     "utils/ImageCompatibilityTest.cpp"
+     "utils/AsteroidSpawnTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -92,3 +93,5 @@ ADD_TEST( NAME "StationOfficeIntegrityTest"
           COMMAND "${TARGET_NAME}" "utils/StationOfficeIntegrityTest" )
 ADD_TEST( NAME "ImageCompatibilityTest"
           COMMAND "${TARGET_NAME}" "utils/ImageCompatibilityTest" )
+ADD_TEST( NAME "AsteroidSpawnTest"
+          COMMAND "${TARGET_NAME}" "utils/AsteroidSpawnTest" )
