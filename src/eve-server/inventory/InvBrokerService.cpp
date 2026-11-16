@@ -112,7 +112,14 @@ PyResult InvBrokerBound::GetContainerContents(PyCallArgs &call, PyInt* container
          throw UserError ("CantDoThatWithSomeoneElsesStuff");
     }
 
-    return item->GetMyInventory()->List( flagNone );
+    auto* containerInventory = item->GetMyInventory();
+    if (containerInventory == nullptr) {
+        _log(INV__ERROR,
+             "GetContainerContents: item %u has no inventory (group=%u, owner=%u).",
+             item->itemID(), item->groupID(), item->ownerID());
+        return nullptr;
+    }
+    return containerInventory->List(flagNone);
 }
 
 //this is a view into the entire inventory item.  this CAN throw.  find and implement client error msgs here for corp usage

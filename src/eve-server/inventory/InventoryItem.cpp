@@ -796,19 +796,28 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
 }
 
 InventoryItemRef InventoryItem::Split(int32 qty/*0*/, bool notify/*true*/, bool silent/*false*/) {
-    if (qty < 1) {
-        _log(ITEM__ERROR, "II::Split() - %s(%u): Asked to split into a chunk of %i", m_data.name.c_str(), m_itemID, qty);
-        return InventoryItemRef(nullptr);
-    }
-    if (!AlterQuantity(-qty, notify)) {
-        _log(ITEM__ERROR, "II::Split() - %s(%u): Failed to remove quantity of %i during split.", m_data.name.c_str(), m_itemID, qty);
+    if (qty < 1 || m_data.singleton || qty > m_data.quantity) {
+        _log(ITEM__ERROR, "II::Split() - %s(%u): Cannot split qty=%i from stack qty=%i singleton=%u.",
+             m_data.name.c_str(), m_itemID, qty, m_data.quantity, m_data.singleton ? 1u : 0u);
         return InventoryItemRef(nullptr);
     }
 
+    // Reserve the new item FIRST. The old order decremented (and sometimes
+    // deleted) the source stack before SpawnItem; a spawn failure silently
+    // lost cargo, including assembled market containers. If the following
+    // source decrement fails, delete only the newly reserved temporary item.
     ItemData idata(m_type.id(), m_data.ownerID, locTemp, m_data.flag, qty);
     InventoryItemRef iRef = sItemFactory.SpawnItem(idata);
-    if (iRef.get() == nullptr)
-        return InventoryItemRef(nullptr);  // couldnt spawn new item...we'll get over it.
+    if (iRef.get() == nullptr) {
+        _log(ITEM__ERROR, "II::Split() - failed to spawn split item for %u.", m_itemID);
+        return InventoryItemRef(nullptr);
+    }
+    if (!AlterQuantity(-qty, notify)) {
+        _log(ITEM__ERROR, "II::Split() - could not decrement source %u by %i; discarding temporary item %u.",
+             m_itemID, qty, iRef->itemID());
+        iRef->Delete();
+        return InventoryItemRef(nullptr);
+    }
 
     if (silent)
         return iRef;
@@ -931,8 +940,8 @@ bool InventoryItem::AlterQuantity(int32 qty, bool notify/*false*/) {
     if (new_qty < 0) {
         codelog(ITEM__ERROR, "II::AlterQuantity() - %s(%u): Tried to remove %i from stack of %i for ownerID %u.", \
                 m_data.name.c_str(), m_itemID, qty, m_data.quantity, m_data.ownerID);
-        // make player error msg here.....
-        Delete();
+        // Reject invalid reductions without destroying the player's stack.
+        // The caller can report the invalid request to the client.
         return false;
     }
 
