@@ -91,7 +91,7 @@ jobs:
           cp -a tools stage/share/evemu/
           cp -a utils stage/share/evemu/
           cp -a config stage/share/evemu/ 2>/dev/null || true
-          printf 'Commit: %s\nBranch: %s\nPlatform: Linux x86_64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
+          printf 'Server Version: 0.8.7-Rizonx\nCommit: %s\nBranch: %s\nPlatform: Linux x86_64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
           tar -czf evemu-crucible-linux-x86_64.tar.gz -C stage .
           sha256sum evemu-crucible-linux-x86_64.tar.gz > evemu-crucible-linux-x86_64.tar.gz.sha256
       - uses: actions/upload-artifact@v7
@@ -210,7 +210,7 @@ jobs:
           cp -a tools stage/share/evemu/
           cp -a utils stage/share/evemu/
           if [[ -d config ]]; then cp -a config stage/share/evemu/; fi
-          printf 'Commit: %s\nBranch: %s\nPlatform: Windows x86_64 UCRT64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
+          printf 'Server Version: 0.8.7-Rizonx\nCommit: %s\nBranch: %s\nPlatform: Windows x86_64 UCRT64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
 
           # Use the active UCRT64 prefix explicitly. Do not resolve objdump
           # from the Windows PATH, which can select an unrelated MINGW64 tool.
