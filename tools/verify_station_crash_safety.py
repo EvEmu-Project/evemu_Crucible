@@ -35,6 +35,6 @@ thread = src("src/eve-core/threading/Threading.cpp")
 assert '"Releasing TCPConnection on thread %s"' in tcp
 assert '"Destroying TCPConnection for thread 0x%X"' not in tcp
 assert 'threadID << thread->get_id();' in thread
-assert '"Created thread ID %s"' in thread
+assert 'Created thread ID %s' in thread
 
 print("Station agent and inventory safety source invariants passed")
