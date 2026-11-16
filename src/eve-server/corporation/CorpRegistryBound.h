@@ -53,7 +53,7 @@ protected:
     PyResult UpdateDivisionNames(PyCallArgs& call,
         PyRep* div1, PyRep* div2, PyRep* div3, PyRep* div4, PyRep* div5, PyRep* div6, PyRep* div8,
         PyRep* wal1, PyRep* wal2, PyRep* wal3, PyRep* wal4, PyRep* wal5, PyRep* wal6, PyRep* wal7);
-    PyResult UpdateCorporation(PyCallArgs& call, PyRep* description, PyRep* url, PyRep* tax);
+    PyResult UpdateCorporation(PyCallArgs& call, PyRep* description, PyRep* url, PyRep* tax, PyInt* applicationEnabled);
     PyResult UpdateLogo(PyCallArgs& call,
         PyRep* shape1, PyRep* shape2, PyRep* shape3,
         PyRep* color1, PyRep* color2, PyRep* color3,
