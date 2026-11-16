@@ -121,7 +121,7 @@ void MarketBotMgr::Process(bool overrideTimer) {
     codelog(MARKET__TRACE, ">> Entered MarketBotMgr::Process()");
 
     if (!m_initalized) {
-        sLog.Error("     MarketBotMgr", "MarketBotMgr not initialized — skipping run\n");
+        sLog.Error("     MarketBotMgr", "MarketBotMgr not initialized â€” skipping run\n");
         codelog(MARKET__ERROR, "Process() called but MarketBotMgr is not initialized.");
         return;
     }
@@ -130,7 +130,7 @@ void MarketBotMgr::Process(bool overrideTimer) {
         auto timeLeft = std::chrono::duration_cast<std::chrono::milliseconds>(m_nextRunTime - now).count();
         if (timeLeft > 0) {
             sLog.Green("     Trader Joe", "Update timer not ready yet. Next run in %lld seconds.", timeLeft / 1000);
-            codelog(MARKET__TRACE, "Trader Joe waiting — next run in %lld seconds.", timeLeft);
+            codelog(MARKET__TRACE, "Trader Joe waiting â€” next run in %lld seconds.", timeLeft);
             return;
         }
     }
@@ -171,7 +171,7 @@ void MarketBotMgr::ForceRun(bool resetTimer) {
     sLog.Warning("     ForceRun", "Manually starting Trader Joe.");
 
     if (!m_initalized) {
-        sLog.Yellow("     Trader Joe", "MarketBotMgr not initialized — skipping run.");
+        sLog.Yellow("     Trader Joe", "MarketBotMgr not initialized â€” skipping run.");
         return;
     }
 
@@ -303,7 +303,7 @@ int MarketBotMgr::PlaceSellOrders(uint32 systemID) {
     std::vector<uint32> availableStations;
 
     if (!sDataMgr.GetStationListForSystem(systemID, availableStations)) {
-        codelog(MARKET__ERROR, "Trader Joe: No stations found for system %u — skipping order creation.", systemID);
+        codelog(MARKET__ERROR, "Trader Joe: No stations found for system %u â€” skipping order creation.", systemID);
         return 0;
     } else {
         codelog(MARKET__TRACE, "Trader Joe: Found %zu stations in system %u", availableStations.size(), systemID);
@@ -451,5 +451,9 @@ double MarketBotMgr::CalculateBuyPrice(uint32 itemID) {
 
 double MarketBotMgr::CalculateSellPrice(uint32 itemID) {
     const ItemType* type = sItemFactory.GetType(itemID);
-    return type ? type->basePrice() * GetRandomFloat(1.0f, 1.3f) : 1000.0;
+    // NPC sell orders use 100% of the static item reference value.
+    // A zero/negative base price cannot define a percentage; use the same
+    // explicit 100 ISK fallback as EVEDBTool's market seeder.
+    return (type && type->basePrice() > 0.0)
+        ? type->basePrice() : 100.0;
 }
