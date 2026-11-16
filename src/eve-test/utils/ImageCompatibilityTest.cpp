@@ -20,7 +20,7 @@ int utils_ImageCompatibilityTest(int argc, char* argv[]) {
     // A 50px station agent now uses operator-supplied on-disk JPEGs.
     // No compiled-in 322-byte image is allowed to intercept local files.
     const bool valid =
-        && EvEImage::IsLegacyAgentThumbnail50("Character", 3011918u, 50u)
+        EvEImage::IsLegacyAgentThumbnail50("Character", 3011918u, 50u)
         && EvEImage::IsLegacyAgentThumbnail50("Character", 3000000u, 50u)
         && EvEImage::IsLegacyAgentThumbnail50("Character", 3999999u, 50u)
         && !EvEImage::IsLegacyAgentThumbnail50("Character", 90000000u, 50u)
