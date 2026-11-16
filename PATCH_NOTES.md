@@ -1,5 +1,16 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-16 — Exact 50x50 baseline agent HTTP image and crash-safety audit
+
+- Operator confirms **HTTP 404 for `Character/3011918_50` immediately before Crucible client disconnect**, despite replacing newest .exe and DLLs. A preceding 301 and an oversized embedded fallback also coincided with crashes; no actual client minidump or exception has been supplied.
+- The Crucible 2012 50px NPC portrait loader now receives **200 OK with an actual 50×50 baseline JPEG**, not 301/404 or the old incorrectly sized placeholder. Deterministic neutral 322-byte image is compiled into server for NPC IDs 3000000–3999999 at size 50 only; no file-system or external CDN dependency, no real NPC likenesses reintroduced.
+- Image server 200 replies now include explicit `Content-Length`, `Content-Type`, `Connection: close` and `Cache-Control: no-store`, with a connection-owned async header buffer. The older split header/body response had no content length. Other Character IDs/sizes and non-Character image fallbacks retain prior behavior.
+- CTest `ImageCompatibilityTest` verifies the actual compiled JPEG byte count, baseline SOF0 50×50 dimensions, JPEG markers and tight NPC request matching.
+- Agent services: prevent null bind parameter and null mission-bookmark dereferences in agent manager and bound journal.
+- Inventory: guard missing container `GetMyInventory()`; `Split` reserves the new item *before* decrementing the original, compensates if decrement fails, and refuses full/singleton splits; `AlterQuantity` no longer deletes whole stacks on quantity underflow.
+- Added Linux/Windows source-safety invariants for these fixes. Maintains PR #20 container assembly, PR #23 station-office fix, mission/Blockade rewards, drones, weapons, market and warp.
+- **Important:** automated tests confirm code safety only; the original station-load client crash has not been proven fixed. Validate HTTP 200 with exactly 322 bytes and 50×50 dimensions before loading the same station; if crash continues, obtain client minidump/fault module. [Runbook](docs/CRUCIBLE_STATION_AGENT_50PX_CLIENT_CRASH_TRIAGE_2026-11-16.md).
+
 ## 2026-11-16 — Prevent modern portrait redirects during Crucible station loading
 
 - Operator verified that even after PR #22 fully removed experimental portraits and PR #23 fixed station offices, the 2012 Crucible client requested `Character/90000000_256` and `Character/3011918_50`; the latter **still received a 301 redirect** to `images.evetech.net` immediately before logout.
