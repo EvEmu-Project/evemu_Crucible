@@ -84,7 +84,9 @@ int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID,
 
     // escape it to not break the query with special characters
     std::string bodyEscaped;
+    std::string titleEscaped;
     sDatabase.DoEscapeString(bodyEscaped, bodyCompressedStr);
+    sDatabase.DoEscapeString(titleEscaped, title);
 
     // default label is 1 = Inbox
     const int defaultLabel = 1;
@@ -92,18 +94,18 @@ int MailDB::SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID,
     // TODO(groove): Maybe do checks to see if we're allowed to send mails to
     // whereever it's going
     DBerror err;
-    uint32 messageID;
+    uint32 messageID = 0;
 
     if (!sDatabase.RunQueryLID(err, messageID,
                                " INSERT INTO mailMessage "
                                " (senderID, toCharacterIDs, toListID, toCorpOrAllianceID, "
                                " title, body, sentDate) "
                                " VALUES (%u, '%s', %d, %d, '%s', '%s', %"  PRIu64 " )" ,
-                               sender, toStr.c_str(), toListID, toCorpOrAllianceID, title.c_str(),
+                               sender, toStr.c_str(), toListID, toCorpOrAllianceID, titleEscaped.c_str(),
                                bodyEscaped.c_str(), Win32TimeNow()))
     {
-        codelog(DATABASE__ERROR, " Failed to insert mailMessage" );
-        // TODO: Why returning false always?
+        codelog(DATABASE__ERROR, "Failed to insert mailMessage: %s", err.c_str());
+        return 0; // never create mailStatus rows with an invalid ID
     }
 
     if (toCharacterIDs.size() > 0) {
@@ -283,7 +285,9 @@ bool MailDB::CreateLabel(int characterID, const std::string& name, int32 color, 
     }
 
     DBerror error;
-    if (!sDatabase.RunQuery(error, " INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, '%s', %u, %u)" , bit, name.c_str(), color, characterID))
+    std::string safeName;
+    sDatabase.DoEscapeString(safeName, name);
+    if (!sDatabase.RunQuery(error, " INSERT INTO mailLabel (bit, name, color, ownerID) VALUES (%u, '%s', %u, %u)" , bit, safeName.c_str(), color, characterID))
     {
         codelog(DATABASE__ERROR, " Failed to insert new mail label into database" );
         // since this is an out parameter, make sure we assign this even in case of an error
@@ -315,14 +319,18 @@ void MailDB::DeleteLabel(int characterID, int labelID) const
 void MailDB::EditLabel(int characterID, int labelID, const std::string& name, int32 color) const
 {
     int bit = BitFromLabelID(labelID);
+    if (bit < 0 || bit > 30)
+        return;
+    std::string safeName;
+    sDatabase.DoEscapeString(safeName, name);
 
     DBerror error;
     if (name.length() == 0) {
         sDatabase.RunQuery(error, " UPDATE mailLabel SET color = %u WHERE bit = %u AND ownerID = %u" , color, bit, characterID);
     } else if (color == -1) {
-        sDatabase.RunQuery(error, " UPDATE mailLabel SET name = '%s' WHERE bit = %u AND ownerID = %u" , name.c_str(), bit, characterID);
+        sDatabase.RunQuery(error, " UPDATE mailLabel SET name = '%s' WHERE bit = %u AND ownerID = %u" , safeName.c_str(), bit, characterID);
     } else {
-        sDatabase.RunQuery(error, " UPDATE mailLabel SET name = '%s', color = %u WHERE bit = %u AND ownerID = %u" , name.c_str(), color, bit, characterID);
+        sDatabase.RunQuery(error, " UPDATE mailLabel SET name = '%s', color = %u WHERE bit = %u AND ownerID = %u" , safeName.c_str(), color, bit, characterID);
     }
 }
 
@@ -562,10 +570,12 @@ uint32 MailDB::CreateMailingList(uint32 creator, std::string name, int32 default
     uint32 id = 0;
     uint32& idr = id;
 
+    std::string safeName;
+    sDatabase.DoEscapeString(safeName, name);
     if (!sDatabase.RunQueryLID(err, idr,
                             " INSERT INTO mailList "
                             " (displayName, defaultAccess, defaultMemberAccess, cost) "
-                            " VALUES( '%s', %u, %u, %u) " , name.c_str(), defaultAccess,
+                            " VALUES( '%s', %u, %u, %u) " , safeName.c_str(), defaultAccess,
                                defaultMemberAccess, cost))
     {
         codelog(DATABASE__ERROR, " Failed to create mailing list" );
