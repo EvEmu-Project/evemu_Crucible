@@ -284,10 +284,12 @@ void ItemDB::SaveItems(std::vector<Inv::SaveData>& data)
         } else {
             Inserts << ", ";
         }
+        std::string customInfoEsc;
+        sDatabase.DoEscapeString(customInfoEsc, cur.customInfo);
         Inserts << "(" << cur.itemID << ", " << cur.typeID << ", " << cur.ownerID << ", " << cur.locationID << ", ";
         Inserts << cur.flag << ", " << cur.contraband << ", " << (cur.singleton ? 1 : 0) << ", ";
         Inserts << cur.quantity << ", " << std::to_string(cur.position.x) << ", " << std::to_string(cur.position.y) << ", " << std::to_string(cur.position.z);
-        Inserts << ", '" << cur.customInfo << "')";
+        Inserts << ", '" << customInfoEsc << "')";
     }
 
     if (!first) {
