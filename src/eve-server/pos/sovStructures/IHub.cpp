@@ -63,6 +63,7 @@ void IHubSE::SetOnline()
     if (!sov.claimStructureID || !m_allyID || sov.allianceID != m_allyID) {
         _log(SOV__ERROR, "IHub %u cannot online: alliance %u does not hold sovereignty in %u.",
              m_self->itemID(), m_allyID, m_system->GetID());
+        RejectOnlining();
         return;
     }
     StructureSE::SetOnline();
