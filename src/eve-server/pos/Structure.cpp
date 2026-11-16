@@ -445,6 +445,7 @@ void StructureSE::Init()
         {
             //iRef->Delete(); // really delete this?
             _log(POS__ERROR, "StructureSE::Init MoonSE for %s(%u) is invalid.", m_self->name(), m_data.itemID);
+            m_loaded = false;
             return;
         }
         GVector dir(m_self->position(), m_moonSE->GetPosition());
@@ -456,6 +457,7 @@ void StructureSE::Init()
         if (pSE == nullptr)
         {
             _log(POS__ERROR, "StructureSE::Init %s(%u) is invalid.  why are we here?", m_self->name(), m_data.itemID);
+            m_loaded = false;
             return;
         }
         m_duration = 60000; //cargo default to 60 seconds
@@ -471,6 +473,7 @@ void StructureSE::Init()
         if (pSE == nullptr)
         {
             _log(POS__ERROR, "StructureSE::Init %s(%u) is invalid.  why are we here?", m_self->name(), m_data.itemID);
+            m_loaded = false;
             return;
         }
         m_towerSE = pSE->GetTowerSE();
