@@ -455,5 +455,6 @@ double MarketBotMgr::CalculateSellPrice(uint32 itemID) {
     // A zero/negative base price cannot define a percentage; use the same
     // explicit 100 ISK fallback as EVEDBTool's market seeder.
     return (type && type->basePrice() > 0.0)
-        ? type->basePrice() : 100.0;
+        ? std::max(0.01, static_cast<double>(type->basePrice()))
+        : 100.0;
 }
