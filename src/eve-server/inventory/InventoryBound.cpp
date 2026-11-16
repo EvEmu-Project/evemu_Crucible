@@ -220,6 +220,10 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
             continue;
 
         PyTuple* tuple1 = (*itr)->AsTuple();
+        if (tuple1 == nullptr || tuple1->size() < 3) {
+            _log(INV__WARNING, "IB::MultiMerge - malformed merge tuple; skipping.");
+            continue;
+        }
 
         int32 sourceID = PyRep::IntegerValue(tuple1->GetItem(0));
         int32 destID = PyRep::IntegerValue(tuple1->GetItem(1));
@@ -228,6 +232,14 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
         InventoryItemRef srcItem = sItemFactory.GetItemRef( sourceID );
         if (srcItem.get() == nullptr) {
             _log(INV__WARNING, "Failed to load source item %u. Skipping.", sourceID);
+            continue;
+        }
+
+        // A zero quantity means merge the entire source stack.
+        if (qty == 0)
+            qty = srcItem->quantity();
+        if (qty < 1 || qty > srcItem->quantity()) {
+            _log(INV__WARNING, "IB::MultiMerge - invalid qty %d for source %u.", qty, srcItem->itemID());
             continue;
         }
 
@@ -489,6 +501,11 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             // will need to add checks on from container to verify donating flag here.
             //donating = true;
         } break;
+    }
+
+    if (ship && (pShip == nullptr || m_self->GetShipItem() == nullptr)) {
+        _log(INV__ERROR, "IB::MoveItems: ship destination %u has no usable ship entity.", m_itemID);
+        return nullptr;
     }
 
     EVEItemFlags fromFlag(flagNone);
