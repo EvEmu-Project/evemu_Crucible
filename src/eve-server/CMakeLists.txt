@@ -772,8 +772,3 @@ INSTALL( TARGETS "${TARGET_NAME}"
          RUNTIME DESTINATION "bin" )
 INSTALL( FILES "${TARGET_UTILS_DIR}/config/devtools.raw"
          DESTINATION "etc" )
-
-# Original generic NPC fallback, intentionally packaged outside image_cache:
-# existing Docker volumes mask image_cache and must not hide the fallback.
-INSTALL( FILES "${PROJECT_SOURCE_DIR}/assets/agent_portraits/agent_missing_512.jpg"
-         DESTINATION "share/evemu/agent_portraits" )

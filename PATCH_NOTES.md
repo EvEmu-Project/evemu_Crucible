@@ -1,5 +1,13 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-16 — Disable crash-prone station NPC portrait delivery
+
+- Reported **immediate Crucible client crash when entering a station** after PR #20 embedded a generic agent JPEG. The client-side decoder root cause is not yet proven; this is a conservative compatibility rollback.
+- Image server now returns local **404** for every NPC agent portrait ID in **3,000,000–3,999,999** *before loading a cached, custom or generic JPEG*, so stale image_cache files cannot reactivate the fault. No HTTP redirect is sent for these IDs; agent pictures intentionally remain blank.
+- Restored pre-offline-portrait `ImageServer.cpp` and `ImageServer.h`, dropped installation of fallback JPEG and removed its runtime usage; player portraits and unrelated image categories retain earlier behavior.
+- **Preserved PR #20 cargo container assembly**, all agent station metadata and mission lifecycle fixes, Blockade reward/market seeding, drones, weapons and warp tunnel behavior.
+- Added source-level regression for the early image block and new [station-load rollback guide](docs/AGENT_STATION_PORTRAIT_ROLLBACK_2026-11-16.md); live Crucible client confirmation still required.
+
 ## 2026-11-16 — Fix container assembly and working-directory-dependent agent portrait fallback
 
 - Implemented the existing Crucible `invbroker.AssembleCargoContainer(itemID, None, 0.0)` RPC. Previously it only logged a warning and returned without assembling. Restricts operations to personally owned station containers in historical groups **12/340/448/649**, splitting **one** item from multi-item packaged stacks, setting the singleton state and updated volume, notifying inventory and explicitly saving to DB.

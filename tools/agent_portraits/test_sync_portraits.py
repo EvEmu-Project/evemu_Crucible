@@ -1,7 +1,5 @@
 """Offline regression tests; no portrait downloads or database required."""
-import base64
 import gzip
-import re
 import tempfile
 import unittest
 import zipfile
@@ -68,25 +66,20 @@ class AgentPortraitCacheTest(unittest.TestCase):
         self.assertTrue(image.is_file(), str(image))
         self.assertTrue(is_jpeg(image.read_bytes()))
 
-    def test_embedded_fallback_exactly_matches_packaged_jpeg(self):
-        # A missing image_cache and a nonstandard current working directory
-        # must still give a valid, original, local JPEG through the server.
+    def test_agent_portrait_requests_are_blocked_before_cache_reads(self):
+        # Even an old local agent JPEG must not bypass the station-crash guard.
         root = Path(__file__).resolve().parents[2]
-        cpp = (root / "src/eve-server/imageserver/ImageServer.cpp").read_text(encoding="utf-8")
-        match = re.search(
-            r'const char\* encoded\s*=\s*((?:"[A-Za-z0-9+/=]+"\s*)+);',
-            cpp,
-        )
-        self.assertIsNotNone(match, "Compiled-in agent JPEG is missing")
-        chunks = re.findall(r'"([A-Za-z0-9+/=]+)"', match.group(1))
-        decoded = base64.b64decode("".join(chunks), validate=True)
-        original = (root / "assets/agent_portraits/agent_missing_512.jpg").read_bytes()
-        self.assertEqual(decoded, original)
-        self.assertTrue(is_jpeg(decoded))
-        # The code must serve embedded bytes, not assume ../share resolves
-        # from whatever directory the operator launches eve-server in.
-        self.assertIn("return GetOfflineAgentPortrait();", cpp)
-        self.assertNotIn('path = "../share/evemu/agent_portraits/', cpp)
+        connection = (root / "src/eve-server/imageserver/ImageServerConnection.cpp").read_text(
+            encoding="utf-8")
+        image = (root / "src/eve-server/imageserver/ImageServer.cpp").read_text(
+            encoding="utf-8")
+        pos = connection.index("if (EvEAgent::IsStationAgentPortraitRequest(_category, _id))")
+        read_pos = connection.index("_imageData = sImageServer.GetImage(_category, _id, _size);")
+        self.assertLess(pos, read_pos)
+        self.assertIn("NotFound();", connection[pos:read_pos])
+        self.assertIn("return;", connection[pos:read_pos])
+        self.assertNotIn("GetOfflineAgentPortrait", image)
+        self.assertNotIn("agent_missing_512.jpg", image)
 
     def test_source_root(self):
         source, cache = source_and_cache_roots(Path(__file__))
