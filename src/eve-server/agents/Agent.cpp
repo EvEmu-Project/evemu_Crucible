@@ -794,11 +794,12 @@ void Agent::SendMissionUpdate(Client* pClient, std::string action)
 
 bool Agent::CanUseAgent(Client* pClient)
 {
-    /** @todo this needs work!!  */
+    if (pClient == nullptr)
+        return false;
     if (m_agentData.typeID == Agents::Type::Aura)
         return true;
 
-    Character* pChar = (pClient != nullptr ? pClient->GetChar().get() : nullptr);
+    Character* pChar = pClient->GetChar().get();
     if (pChar == nullptr)
         return false;
 

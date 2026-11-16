@@ -54,6 +54,8 @@ jobs:
         run: python3 tools/verify_station_crash_safety.py
       - name: Verify NPC market prices are exactly 100 percent of base value
         run: python3 tools/verify_npc_market_baseprice.py
+      - name: Verify gameplay subsystem source invariants
+        run: python3 tools/verify_subsystems_audit.py
       - name: Test
         run: |
           ctest --test-dir build -N | tee test-list.txt
@@ -163,6 +165,11 @@ jobs:
         run: |
           python tools/verify_npc_market_baseprice.py
           if ($LASTEXITCODE -ne 0) { throw "NPC market base price regression" }
+      - name: Verify gameplay subsystem source invariants
+        shell: pwsh
+        run: |
+          python tools/verify_subsystems_audit.py
+          if ($LASTEXITCODE -ne 0) { throw "Gameplay subsystem audit regression" }
       - name: Test
         shell: msys2 {0}
         run: |

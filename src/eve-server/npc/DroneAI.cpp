@@ -546,14 +546,18 @@ void DroneAIMgr::TargetAcquired(SystemEntity* pTarget) {
 }
 
 void DroneAIMgr::Target(SystemEntity* pTarget) {
+    if (m_pDrone == nullptr)
+        return;
     if (IsMiningDrone(m_pDrone)) {
-        // The mining cycle is not implemented; do not emit fake laser combat or
-        // deplete combat targets with this non-weapon group.
+        // Unsupported extraction must not turn into combat damage or a
+        // silently accepted mining target order.
         _log(DRONE__WARNING, "Drone %u: Mining drone extraction is not implemented; target order ignored.",
              m_pDrone->GetID());
+        if (m_pDrone->GetOwner() != nullptr)
+            m_pDrone->GetOwner()->SendNotifyMsg("Mining drone extraction is not yet available on this server.");
         return;
     }
-    if (pTarget == nullptr || m_pDrone == nullptr || m_pDrone->GetSelf().get() == nullptr
+    if (pTarget == nullptr || m_pDrone->GetSelf().get() == nullptr
         || m_pDrone->TargetMgr() == nullptr || m_pDrone->DestinyMgr() == nullptr
         || pTarget->DestinyMgr() == nullptr || pTarget->SysBubble() == nullptr
         || pTarget->SysBubble() != m_pDrone->SysBubble()) {
