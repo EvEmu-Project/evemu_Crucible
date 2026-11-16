@@ -14,9 +14,20 @@ all_image_code = image_cpp + image_h + connection + agent_helpers
 assert "IsStationAgentPortraitRequest" not in all_image_code
 assert "GetOfflineAgentPortrait" not in all_image_code
 assert "agent_missing_512.jpg" not in all_image_code
-assert "if (_category == \"Character\")" not in connection, "Do not introduce new Character guards"
+# The removed experimental agent-portrait feature must stay absent, but the
+# Crucible client compatibility fix intentionally denies missing Character
+# images with HTTP 404. Validate the guard rather than forbidding it.
+lookup = connection.index("_imageData = sImageServer.GetImage(_category, _id, _size);")
+guard = connection.index('if (_category == "Character") {', lookup)
+redirect = connection.index("Redirect();", guard)
+guard_code = connection[guard:redirect]
+assert lookup < guard < redirect
+assert "NotFound();" in guard_code and "return;" in guard_code, "Missing character images must not redirect"
+assert "returning 404 without redirect" in guard_code
+assert 'if (category == "Character")' in agent_helpers
+assert "EvEImage::HasJpegSignature(*ret)" in image_cpp
 assert "_imageData = sImageServer.GetImage(_category, _id, _size);" in connection
 assert "EvEAgent::ModernImageUrl(_category, _id, _size)" in connection
 assert not (root / "tools/agent_portraits").exists()
 assert not (root / "assets/agent_portraits").exists()
-print("Experimental agent image code and assets are fully removed")
+print("Experimental NPC portrait assets remain removed; missing Character images are denied locally")
