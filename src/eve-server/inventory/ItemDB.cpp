@@ -264,6 +264,9 @@ bool ItemDB::SaveItem(uint32 itemID, const ItemData &data) {
 
 void ItemDB::SaveItems(std::vector<Inv::SaveData>& data)
 {
+    if (data.empty())
+        return;
+
     std::ostringstream Inserts;
     // start the insert into command.
     Inserts << "INSERT INTO entity";
@@ -293,8 +296,7 @@ void ItemDB::SaveItems(std::vector<Inv::SaveData>& data)
     }
 
     if (!first) {
-        Inserts << "ON DUPLICATE KEY UPDATE ";
-        Inserts << "quantity=VALUES(quantity), ";
+        Inserts << " ON DUPLICATE KEY UPDATE ";
         Inserts << "ownerID=VALUES(ownerID), ";
         Inserts << "locationID=VALUES(locationID), ";
         Inserts << "flag=VALUES(flag), ";
@@ -305,13 +307,18 @@ void ItemDB::SaveItems(std::vector<Inv::SaveData>& data)
         Inserts << "z=VALUES(z), ";
         Inserts << "customInfo=VALUES(customInfo) ";
         DBerror err;
-        if (!sDatabase.RunQuery(err, Inserts.str().c_str()))
+        // RunQuery treats its first argument as a printf format.
+        // Escaped item text can contain a literal '%'; pass it as data.
+        if (!sDatabase.RunQuery(err, "%s", Inserts.str().c_str()))
             _log(DATABASE__ERROR, "SaveItems - unable to save data - %s", err.c_str());
     }
 }
 
 void ItemDB::SaveAttributes(bool isChar, std::vector<Inv::AttrData>& data)
 {
+    if (data.empty())
+        return;
+
     std::ostringstream Inserts;
     // start the insert into command.
     if (isChar) {
@@ -341,12 +348,12 @@ void ItemDB::SaveAttributes(bool isChar, std::vector<Inv::AttrData>& data)
     }
 
     if (!first) {
-        Inserts << "ON DUPLICATE KEY UPDATE ";
+        Inserts << " ON DUPLICATE KEY UPDATE ";
         Inserts << "valueInt=VALUES(valueInt), ";
         Inserts << "valueFloat=VALUES(valueFloat)";
         DBerror err;
-        if (!sDatabase.RunQuery(err, Inserts.str().c_str()))
-            _log(DATABASE__ERROR, "SaveItems - unable to save data - %s", err.c_str());
+        if (!sDatabase.RunQuery(err, "%s", Inserts.str().c_str()))
+            _log(DATABASE__ERROR, "SaveAttributes - unable to save data - %s", err.c_str());
     }
 }
 
