@@ -173,6 +173,13 @@ assert "m_db.GetCorporationCEO(m_corpID)" in corp_edit
 assert "Corp::Role::Director" in corp_edit
 assert "PyRep::FloatValue(tax)" in corp_edit
 assert "taxRate < 0.0 || taxRate > 1.0" in corp_edit
+assert "PyInt* applicationEnabled" in src("src/eve-server/corporation/CorpRegistryBound.h")
+assert "PyInt* applicationEnabled)" in corp_bound
+assert "applicationEnabled->value() != 0 && applicationEnabled->value() != 1" in corp_edit
+assert "static_cast<uint32>(applicationEnabled->value()), notif.data" in corp_edit
+assert 'SELECT description, url, taxRate, isRecruiting' in corp_db
+assert 'ProcessIntChange("isRecruiting", row.GetUInt(3), applicationEnabled, notif, dbQ);' in corp_db
+assert 'uint32 applicationEnabled, PyDict* notif' in src("src/eve-server/corporation/CorporationDB.h")
 assert "UpdateCorpTaxRate(" in corp_edit
 assert "sEntityList.CorpNotify(" in corp_edit
 assert "sEntityList.Multicast(" not in corp_edit
