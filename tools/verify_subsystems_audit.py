@@ -57,9 +57,11 @@ assert "if (quantity == 0)\n            continue;" in ram
 assert "if (!FactoryDB::CompleteJob(args.jobID," in ram
 assert "if (installedItem.get() == nullptr)" in ram
 assert "if (!args.cancel && data.activity == EvERam::Activity::Invention)" in ram
-assert "throw UserError(\"RamActivityInvalid\");\n            if (!bpRef->copy()" in activity
+assert "Do not consume datacores, runs or ISK" in activity
+assert 'throw UserError("RamActivityInvalid");' in activity
 
 drone = source("src/eve-server/npc/DroneAI.cpp")
+assert "if (m_pDrone == nullptr)" in drone
 assert "Mining drone extraction is not implemented" in drone, (
     "Do not misrepresent placeholder mining-drone combat as actual extraction"
 )
