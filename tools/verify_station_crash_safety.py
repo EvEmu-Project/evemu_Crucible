@@ -146,4 +146,42 @@ assert '"Destroying TCPConnection for thread 0x%X"' not in tcp
 assert 'threadID << thread->get_id();' in thread
 assert 'Created thread ID %s' in thread
 
+# Regression guards for MariaDB #1064 truncated bulk entity INSERTs and
+# corporation tax updates (the Windows server log ended at customInfo '').
+dbcore = src("src/eve-core/database/dbcore.cpp")
+escape = dbcore.split("void DBcore::DoEscapeString(std::string &to, const std::string &from)", 1)[1].split(
+    "bool DBcore::IsSafeString", 1)[0]
+assert "to.resize(static_cast<size_t>(len) * 2 + 1);" in escape
+assert "to.resize(esc_len);" in escape
+assert "to.resize(esc_len + 1)" not in escape
+item_db = src("src/eve-server/inventory/ItemDB.cpp")
+assert item_db.count('sDatabase.RunQuery(err, "%s", Inserts.str().c_str())') == 2
+assert item_db.count('Inserts << " ON DUPLICATE KEY UPDATE "') == 2
+assert "if (data.empty())" in item_db
+service_db = src("src/eve-server/ServiceDB.cpp")
+assert "std::setprecision(6) << newValue;" in service_db
+corp_db = src("src/eve-server/corporation/CorporationDB.cpp")
+corp_update = corp_db.split("bool CorporationDB::UpdateCorporation(", 1)[1].split(
+    "bool CorporationDB::UpdateLogo(", 1)[0]
+assert 'sDatabase.RunQuery(res.error, "%s", query.c_str())' in corp_update
+assert 'query += std::to_string(corpID);' in corp_update
+corp_bound = src("src/eve-server/corporation/CorpRegistryBound.cpp")
+corp_edit = corp_bound.split("PyResult CorpRegistryBound::UpdateCorporation(", 1)[1].split(
+    "PyResult CorpRegistryBound::UpdateLogo(", 1)[0]
+assert "call.client->GetCorporationID() != m_corpID" in corp_edit
+assert "m_db.GetCorporationCEO(m_corpID)" in corp_edit
+assert "Corp::Role::Director" in corp_edit
+assert "PyRep::FloatValue(tax)" in corp_edit
+assert "taxRate < 0.0 || taxRate > 1.0" in corp_edit
+assert "PyInt* applicationEnabled" in src("src/eve-server/corporation/CorpRegistryBound.h")
+assert "PyInt* applicationEnabled)" in corp_bound
+assert "applicationEnabled->value() != 0 && applicationEnabled->value() != 1" in corp_edit
+assert "static_cast<uint32>(applicationEnabled->value()), notif.data" in corp_edit
+assert 'SELECT description, url, taxRate, isRecruiting' in corp_db
+assert 'ProcessIntChange("isRecruiting", row.GetUInt(3), applicationEnabled, notif, dbQ);' in corp_db
+assert 'uint32 applicationEnabled, PyDict* notif' in src("src/eve-server/corporation/CorporationDB.h")
+assert "UpdateCorpTaxRate(" in corp_edit
+assert "sEntityList.CorpNotify(" in corp_edit
+assert "sEntityList.Multicast(" not in corp_edit
+
 print("Station agent and inventory safety source invariants passed")
