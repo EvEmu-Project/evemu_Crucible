@@ -264,6 +264,14 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
     }
 
     InventoryItemRef iRef = sItemFactory.GetItemRef(itemID->value());
+    if (iRef.get() == nullptr) {
+        _log(INV__ERROR, "IB::Add: source item %u could not be loaded.", itemID->value());
+        return nullptr;
+    }
+    if (pInventory == nullptr) {
+        _log(INV__ERROR, "IB::Add: destination %u has no inventory.", m_itemID);
+        return nullptr;
+    }
 
     bool moveStack = false;
     int32 quantity = 0;
@@ -374,6 +382,10 @@ PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* cont
 
 PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, EVEItemFlags toFlag, int32 quantity, bool moveStack, float capacity)
 {   // complete method rewrite -allan 21Dec17
+    if (pClient == nullptr || m_self.get() == nullptr || pInventory == nullptr) {
+        _log(INV__ERROR, "IB::MoveItems: invalid client or destination inventory %u.", m_itemID);
+        return nullptr;
+    }
     ShipItem* pShip = pClient->GetShip().get();
     bool donating = false, ship = false, customs = false;
     int32 origQty = quantity;
@@ -589,7 +601,10 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             if (IsModuleSlot(toFlag)) {
                 m_self->GetShipItem()->TryModuleLimitChecks(toFlag, iRef); // this will throw if it fails
             } else if (IsCargoHoldFlag(toFlag) or IsHangarFlag(toFlag) or (toFlag == flagDroneBay)) {
-                pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
+                if (!pInventory->ValidateAddItem(toFlag, iRef)) {
+                    _log(INV__WARNING, "IB::MoveItems: item %u rejected by ship capacity validation.", iRef->itemID());
+                    continue;
+                }
             }
 
             // check adding item to ship...if it fails, return to previous container
@@ -604,11 +619,18 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
                 continue;
             }
         } else if (customs) {
-            pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
+            if (!pInventory->ValidateAddItem(toFlag, iRef)) {
+                _log(INV__WARNING, "IB::MoveItems: item %u rejected by customs capacity validation.", iRef->itemID());
+                continue;
+            }
             StructureItemRef sRef = StructureItemRef::StaticCast(m_self);
             sRef->AddItem(iRef);// this will throw if it fails
         } else {
-            pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
+            if (!pInventory->ValidateAddItem(toFlag, iRef)) {
+                _log(INV__WARNING, "IB::MoveItems: item %u rejected by destination %u capacity validation.",
+                     iRef->itemID(), m_itemID);
+                continue;
+            }
             iRef->Donate(m_ownerID, m_itemID, toFlag);
         }
     }
