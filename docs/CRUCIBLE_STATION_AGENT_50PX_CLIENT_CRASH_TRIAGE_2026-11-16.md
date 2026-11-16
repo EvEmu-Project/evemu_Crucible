@@ -1,3 +1,5 @@
+> **16 November 2026, follow-up after client still crashed:** the 322-byte embedded image approach documented below is **superseded**. The active PR #25 now loads exact 50px NPC JPEGs from `image_cache/Character` first, with optional `agent_fallback_50.jpg`, and no embedded JPEG override. Follow the [current local-file A/B test](CRUCIBLE_LOCAL_AGENT_PORTRAIT_TEST_2026-11-16.md) instead of the old 322-byte verification steps below.
+
 # Crucible station crash triage: exact 50px agent image + safe agent/inventory paths
 
 **Date:** 16 November 2026  
