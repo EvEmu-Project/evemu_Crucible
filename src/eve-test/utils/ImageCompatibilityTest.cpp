@@ -17,25 +17,9 @@ int utils_ImageCompatibilityTest(int argc, char* argv[]) {
         static_cast<char>(0xFF), static_cast<char>(0xD8),
         static_cast<char>(0xFF), static_cast<char>(0xE1) };
 
-    // Validate actual production response bytes, rather than just a
-    // 50px filename or a loosely checked Start-of-Image signature.
-    const unsigned char* art = EvEImage::kLegacyAgentThumbnail50;
-    const std::size_t artSize = EvEImage::kLegacyAgentThumbnail50Bytes;
-    std::vector<char> thumbnail(art, art + artSize);
-    bool baseline50 = false;
-    for (std::size_t i = 0; i + 10 < artSize; ++i) {
-        if (art[i] == 0xFF && art[i + 1] == 0xC0 &&
-            art[i + 2] == 0x00 && art[i + 3] == 0x11 &&
-            art[i + 4] == 0x08 && art[i + 5] == 0x00 &&
-            art[i + 6] == 50 && art[i + 7] == 0x00 &&
-            art[i + 8] == 50 && art[i + 9] == 0x03)
-            baseline50 = true;
-    }
+    // A 50px station agent now uses operator-supplied on-disk JPEGs.
+    // No compiled-in 322-byte image is allowed to intercept local files.
     const bool valid =
-        artSize == 322
-        && baseline50
-        && EvEImage::HasJpegSignature(thumbnail)
-        && art[artSize - 2] == 0xFF && art[artSize - 1] == 0xD9
         && EvEImage::IsLegacyAgentThumbnail50("Character", 3011918u, 50u)
         && EvEImage::IsLegacyAgentThumbnail50("Character", 3000000u, 50u)
         && EvEImage::IsLegacyAgentThumbnail50("Character", 3999999u, 50u)
