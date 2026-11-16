@@ -25,6 +25,7 @@
 
 #include "EVE_AgentHelpers.h"
 #include "imageserver/ImageServerConnection.h"
+#include <sstream>
 
 boost::asio::const_buffer ImageServerConnection::_responseOK = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
 boost::asio::const_buffer ImageServerConnection::_responseOKPNG = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/png\r\n\r\n", 44);
@@ -140,13 +141,25 @@ void ImageServerConnection::ProcessHeaders()
         return;
     }
 
-    // JPEG portraits, PNG logos/icons/renders: do not advertise PNG as JPEG.
+    // An HTTP/1.0 response without Content-Length was previously sent
+    // before writing JPEG bytes in a separate async operation. Crucible 2012
+    // picture-loading is sensitive to incomplete/ambiguous HTTP bodies.
+    // Retain the header in this connection object for the entire async write.
+    const char* mime = (_category == "Character" ? "image/jpeg" : "image/png");
+    std::ostringstream header;
+    header << "HTTP/1.0 200 OK\r\n"
+           << "Content-Type: " << mime << "\r\n"
+           << "Content-Length: " << _imageData->size() << "\r\n"
+           << "Connection: close\r\n"
+           << "Cache-Control: no-store\r\n\r\n";
+    _responseHeaders = header.str();
+
     if (_category == "Character")
         sLog.Debug("     Image Server",
-                   "Serving local JPEG Character/%u_%u (%lu bytes).",
+                   "Serving JPEG Character/%u_%u (%lu bytes, Content-Length specified).",
                    _id, _size, static_cast<unsigned long>(_imageData->size()));
-    boost::asio::async_write(_socket,
-        (_category == "Character" ? _responseOK : _responseOKPNG),
+
+    boost::asio::async_write(_socket, boost::asio::buffer(_responseHeaders),
         boost::asio::transfer_all(), std::bind(&ImageServerConnection::SendImage, shared_from_this()));
 }
 

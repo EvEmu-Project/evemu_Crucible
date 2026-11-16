@@ -730,7 +730,7 @@ PyResult AgentBound::GetMyJournalDetails(PyCallArgs &call) {
                 mData->SetItem(3, new PyString(offer.name)); //missionName
                 mData->SetItem(4, new PyInt(offer.agentID)); //agentID
                 mData->SetItem(5, new PyLong(offer.expiryTime)); //expirationTime
-                mData->SetItem(6, offer.bookmarks->Clone()); //bookmarks -- if populated, this is PyList of PyDicts as defined below...
+                mData->SetItem(6, offer.bookmarks != nullptr ? offer.bookmarks->Clone() : new PyList()); //bookmarks -- if populated, this is PyList of PyDicts as defined below...
                 mData->SetItem(7, new PyBool(offer.remoteOfferable)); //remoteOfferable
                 mData->SetItem(8, new PyBool(offer.remoteCompletable)); //remoteCompletable
             missions->AddItem(mData);

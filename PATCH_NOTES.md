@@ -1,4 +1,51 @@
+## 16 Nov 2026 — PR #25 runtime-confirmed station container fix and 0.8.7-Rizonx server revision
+
+- **Operator runtime-confirmed:** assembled Giant Secure Container **140002461** (named `Test`) can be renamed, loaded with items, and emptied into the station hangar without crashing the server or the Crucible client. Stack splitting works and contents persist over server restarts.
+- **SQL evidence:** eight valid-looking mineral stacks with owner **90000000** and container location **140002461**; an indexed inventory lookup uses existing `idx_entity_location_item` (`ref` access), so no duplicate index or data repair is indicated.
+- Set the human-readable `EVEMU_REVISION` display to **0.8.7-Rizonx**; EVE Crucible client version **7.31**, build **360229** and MachoNet **320** remain unchanged. Windows/Linux packages label their `BUILD-INFO.txt` accordingly.
+- **Still pending:** POS tower/module lifecycle, inventory edge cases and nested-container rejections, customs-office persistence, multi-character permissions, end-to-end Windows packaging, and CI verification for the new version-bump head. Full operator-checkable list: [PR #25 in-game QA acceptance checklist](docs/PR25_INGAME_VALIDATION_CHECKLIST.md).
+- Do not conflate a tested in-station container fix with blanket approval of all POS/ship/corp inventory systems. The earlier source/audit notes below are historical and were written before the user confirmed the in-game fix.
+
+---
+
+## 16 Nov 2026 — Maurasi station assembled container transfer crash triage
+
+The operator confirms station entry now works with locally served character portraits, but moving items into an assembled container crashes the **server**. The 209-line attached log shows sixteen identical unsymbolized stack traces during initial station load (before subsequent normal services); the actual fatal instruction cannot be established from those traces alone.
+
+Source audit and defensive fixes on PR #25:
+- Fix `Mission_Container` group mismatch in `CargoContainer::_LoadItem` that could emit `traceStack()` when this group is loaded.
+- Protect `Inventory::ValidateAddItem` from null source inventory references and missing in-space ship sessions; refuse self-insertion.
+- Stop ignoring failed capacity checks in `InventoryBound::MoveItems`, reject missing source items/destination inventories, and skip null/empty multi-add sort entries.
+- Prevent dereference of a missing parent cache entry in `ItemFactory::GetItemContainerRef` and `GetItemContainerInventory`.
+- Fix undefined uninitialized `std::pair` use and duplicate flag entries in `Inventory::AddItem`.
+- Reject `InventoryBound` creation for objects without an inventory; preserve assembled hangar containers when empty instead of auto-deleting them.
+- Emit `StationContainerTransfer BEGIN/END` logs around the destination capacity check and item donation; extend CI source safety checks.
+- Step-by-step QA and dump guidance: [Station assembled container transfer runbook](docs/CRUCIBLE_STATION_CONTAINER_TRANSFER_CRASH_TRIAGE_2026-11-16.md).
+
+**Caution:** These are real source defects and defensive corrections, but without a symbolized crash dump and live reproduction we cannot claim a confirmed fix for the fatal exception. No schema changes or reseeding.
+
+---
+
+## 16 Nov 2026 update — file-backed 50px agent portraits (PR #25 follow-up)
+
+- The initial PR #25 embedded 322-byte 50x50 JPEG did not prevent the user's Crucible client crash. It also intercepted every NPC agent 50px request **before filesystem access**.
+- Replaced that forced placeholder with a **local-file-first** lookup: `image_cache/Character/<agentID>_50.jpg` then optional `image_cache/Character/agent_fallback_50.jpg`. No external redirects or 512px substitution for NPC agent 50px requests. Valid player portraits and other image categories continue to work as before.
+- Kept the explicit HTTP Content-Length fix; added the Windows JPEG generation utility `tools/prepare-crucible-agent-portrait.ps1` and [file-backed station-agent A/B test](docs/CRUCIBLE_LOCAL_AGENT_PORTRAIT_TEST_2026-11-16.md).
+- This latest item **supersedes the previous embedded-322-byte test description below**. There is still no client exception dump or evidence of a successful in-game station load.
+
 # Live Patch Notes — xrizonx/evemu_Crucible
+
+## 2026-11-16 — Exact 50x50 baseline agent HTTP image and crash-safety audit
+
+- Operator confirms **HTTP 404 for `Character/3011918_50` immediately before Crucible client disconnect**, despite replacing newest .exe and DLLs. A preceding 301 and an oversized embedded fallback also coincided with crashes; no actual client minidump or exception has been supplied.
+- The Crucible 2012 50px NPC portrait loader now receives **200 OK with an actual 50×50 baseline JPEG**, not 301/404 or the old incorrectly sized placeholder. Deterministic neutral 322-byte image is compiled into server for NPC IDs 3000000–3999999 at size 50 only; no file-system or external CDN dependency, no real NPC likenesses reintroduced.
+- Image server 200 replies now include explicit `Content-Length`, `Content-Type`, `Connection: close` and `Cache-Control: no-store`, with a connection-owned async header buffer. The older split header/body response had no content length. Other Character IDs/sizes and non-Character image fallbacks retain prior behavior.
+- CTest `ImageCompatibilityTest` verifies the actual compiled JPEG byte count, baseline SOF0 50×50 dimensions, JPEG markers and tight NPC request matching.
+- Agent services: prevent null bind parameter and null mission-bookmark dereferences in agent manager and bound journal.
+- Inventory: guard missing container `GetMyInventory()`; `Split` reserves the new item *before* decrementing the original, compensates if decrement fails, and refuses full/singleton splits; `AlterQuantity` no longer deletes whole stacks on quantity underflow.
+- Added Linux/Windows source-safety invariants for these fixes. Maintains PR #20 container assembly, PR #23 station-office fix, mission/Blockade rewards, drones, weapons, market and warp.
+- Reclassified the unconditional `TCPConnection` destructor warning as trace, formatted `std::thread::id` safely instead of passing it to `%X`, preserved true thread ID before detach, and corrected pointer formatting to `%p` in the thread manager. The operator's `[ThreadWarning]` line was normal teardown logging, not proof of a client crash.
+- **Important:** automated tests confirm code safety only; the original station-load client crash has not been proven fixed. Validate HTTP 200 with exactly 322 bytes and 50×50 dimensions before loading the same station; if crash continues, obtain client minidump/fault module. [Runbook](docs/CRUCIBLE_STATION_AGENT_50PX_CLIENT_CRASH_TRIAGE_2026-11-16.md).
 
 ## 2026-11-16 — Prevent modern portrait redirects during Crucible station loading
 

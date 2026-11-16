@@ -36,7 +36,7 @@ public:
 
     /* virtual functions default to base class and overridden as needed */
     virtual void Init();
-    virtual void InitData();
+    virtual bool InitData();
 
 protected:
     void SendSlimUpdate();

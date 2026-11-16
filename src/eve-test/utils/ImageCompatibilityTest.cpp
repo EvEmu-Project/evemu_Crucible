@@ -1,6 +1,7 @@
 #include "eve-test.h"
 #include "EVE_AgentHelpers.h"
 #include "EVE_ImageHelpers.h"
+#include "EVE_LegacyAgentThumbnail.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -16,8 +17,16 @@ int utils_ImageCompatibilityTest(int argc, char* argv[]) {
         static_cast<char>(0xFF), static_cast<char>(0xD8),
         static_cast<char>(0xFF), static_cast<char>(0xE1) };
 
+    // A 50px station agent now uses operator-supplied on-disk JPEGs.
+    // No compiled-in 322-byte image is allowed to intercept local files.
     const bool valid =
-        EvEImage::HasJpegSignature(jpeg)
+        EvEImage::IsLegacyAgentThumbnail50("Character", 3011918u, 50u)
+        && EvEImage::IsLegacyAgentThumbnail50("Character", 3000000u, 50u)
+        && EvEImage::IsLegacyAgentThumbnail50("Character", 3999999u, 50u)
+        && !EvEImage::IsLegacyAgentThumbnail50("Character", 90000000u, 50u)
+        && !EvEImage::IsLegacyAgentThumbnail50("Character", 3011918u, 64u)
+        && !EvEImage::IsLegacyAgentThumbnail50("Corporation", 3011918u, 50u)
+        && EvEImage::HasJpegSignature(jpeg)
         && EvEImage::HasJpegSignature(signedJpeg)
         && !EvEImage::HasJpegSignature(png)
         && !EvEImage::HasJpegSignature(empty)

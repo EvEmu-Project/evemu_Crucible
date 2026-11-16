@@ -112,7 +112,14 @@ PyResult InvBrokerBound::GetContainerContents(PyCallArgs &call, PyInt* container
          throw UserError ("CantDoThatWithSomeoneElsesStuff");
     }
 
-    return item->GetMyInventory()->List( flagNone );
+    auto* containerInventory = item->GetMyInventory();
+    if (containerInventory == nullptr) {
+        _log(INV__ERROR,
+             "GetContainerContents: item %u has no inventory (group=%u, owner=%u).",
+             item->itemID(), item->groupID(), item->ownerID());
+        return nullptr;
+    }
+    return containerInventory->List(flagNone);
 }
 
 //this is a view into the entire inventory item.  this CAN throw.  find and implement client error msgs here for corp usage
@@ -241,6 +248,10 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
         }
     }
 
+    if (iRef->GetMyInventory() == nullptr) {
+        _log(INV__ERROR, "GetInventoryFromId: item %u (group %u) cannot hold inventory; refusing binding.", iRef->itemID(), iRef->groupID());
+        return nullptr;
+    }
     InventoryBound* ib = new InventoryBound(this->GetServiceManager(), reinterpret_cast <BoundServiceParent<InventoryBound>&> (this->GetParent ()), iRef, flag, ownerID, passive->value());
 
     ib->NewReference(call.client);
@@ -334,6 +345,10 @@ PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std:
             return nullptr;
     }
 
+    if (item->GetMyInventory() == nullptr) {
+        _log(INV__ERROR, "GetInventory: item %u (group %u) cannot hold inventory; refusing binding.", item->itemID(), item->groupID());
+        return nullptr;
+    }
     InventoryBound* ib = new InventoryBound(this->GetServiceManager(), reinterpret_cast <BoundServiceParent<InventoryBound>&> (this->GetParent ()), item, flag, ownerID, false);
 
     ib->NewReference(call.client);
@@ -343,11 +358,15 @@ PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std:
 
 // this cannot throw, returns nothing.
 PyResult InvBrokerBound::SetLabel(PyCallArgs &call, PyInt* itemID, PyRep* itemName) {
-    sItemFactory.SetUsingClient( call.client );
+    sItemFactory.SetUsingClient(call.client);
+    // Rename can throw a POS anchoring error. Always clear the client marker
+    // even if the service dispatcher unwinds with an exception.
+    struct ScopedRenameClient {
+        ~ScopedRenameClient() { sItemFactory.UnsetUsingClient(); }
+    } renameClient;
     InventoryItemRef iRef = sItemFactory.GetItemRef(itemID->value());
     if (iRef.get() == nullptr) {
         codelog(INV__ERROR, "%s: Unable to load item %u", call.client->GetName(), itemID->value());
-        sItemFactory.UnsetUsingClient();
         return nullptr;
     }
 
@@ -360,14 +379,14 @@ PyResult InvBrokerBound::SetLabel(PyCallArgs &call, PyInt* itemID, PyRep* itemNa
     /** @todo if owner is corp, make sure char has permissions to rename corp items  */
     if (IsPlayerCorp(iRef->ownerID())) {
         if (iRef->ownerID() != call.client->GetCorporationID()) {
-            _log(INV__ERROR, "%u(%u) tried to rename CorpItem %s(%u) owned by %u.", \
+            _log(INV__ERROR, "%s(%u) tried to rename CorpItem %s(%u) owned by %u.", \
                     call.client->GetName(), call.client->GetCharacterID(), iRef->name(), \
                     iRef->itemID(), iRef->ownerID());
             error = true;
         }
     } else if (IsCharacterID(iRef->ownerID())) {
         if (iRef->ownerID() != call.client->GetCharacterID()) {
-            _log(INV__ERROR, "%u(%u) tried to rename PlayerItem %s(%u) owned by %u.", \
+            _log(INV__ERROR, "%s(%u) tried to rename PlayerItem %s(%u) owned by %u.", \
                     call.client->GetName(), call.client->GetCharacterID(), iRef->name(), \
                     iRef->itemID(), iRef->ownerID());
             error = true;
@@ -383,8 +402,7 @@ PyResult InvBrokerBound::SetLabel(PyCallArgs &call, PyInt* itemID, PyRep* itemNa
         iRef->Rename(PyRep::StringContent(itemName));
     }
 
-    // Release the ItemFactory
-    sItemFactory.UnsetUsingClient();
+    // The scoped client guard releases ItemFactory on every exit path.
 
     //OnItemNameChange
     // need to also check pos rename code.

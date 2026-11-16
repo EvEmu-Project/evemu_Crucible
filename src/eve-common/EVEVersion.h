@@ -51,7 +51,10 @@ static const std::string GIT_COMMIT_HASH_STRING(GIT_COMMIT_HASH);
 static std::string GIT_SHORT_HASH = GIT_COMMIT_HASH_STRING.empty()
     ? std::string("unknown")
     : GIT_COMMIT_HASH_STRING.substr(0, 7);
-static std::string REVISION_STRING = std::string("0.8.6-") + std::string(GIT_BRANCH) + std::string("-") + GIT_SHORT_HASH;
+// Human-readable emulator server revision; deliberately independent of the
+// Crucible client protocol version and build identifiers above.
+// Git commit/branch remain available separately for deployment provenance.
+static std::string REVISION_STRING = std::string("0.8.7-Rizonx");
 
 static const char* const EVEMU_REVISION = REVISION_STRING.c_str();
 static const char* const EVEMU_BUILD_DATE = __DATE__;

@@ -62,6 +62,7 @@ private:
     uint32 _id;
     uint32 _size;
     std::string _redirectUrl;
+    std::string _responseHeaders; // own buffer until async HTTP header write completes
 
     boost::asio::streambuf _buffer;
     boost::asio::ip::tcp::socket _socket;

@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include <set>
 
 #include "Client.h"
 #include "ConsoleCommands.h"
@@ -205,17 +206,16 @@ void Inventory::AddItem(InventoryItemRef iRef) {
     if (iRef.get() == nullptr)
         return;
 
-    std::map<uint32, InventoryItemRef>::iterator itr = mContents.find(iRef->itemID());
-    std::pair <std::map<uint32, InventoryItemRef>::iterator, bool > test;
-    if (itr == mContents.end())
-        test = mContents.emplace(iRef->itemID(), iRef);
-
+    // Always initialize insertion status. Previously test.second was
+    // uninitialized when the inventory already contained this item.
+    const auto test = mContents.emplace(iRef->itemID(), iRef);
     if (test.second) {
         _log(INV__TRACE, "Inventory::AddItem() - Updated %s(%u) to contain (%u) %s(%u) in %s.", \
                 m_self->name(), m_myID, iRef->quantity(), iRef->name(), iRef->itemID(), sDataMgr.GetFlagName(iRef->flag()));
     } else {
         _log(INV__TRACE, "Inventory::AddItem() - %s(%u) already contains %s(%u) in %s.", \
                 m_self->name(), m_myID, iRef->name(), iRef->itemID(), sDataMgr.GetFlagName(iRef->flag()));
+        return;  // already indexed in mContents and m_contentsByFlag
     }
 
     // need to find and remove skill in training flag here for proper skill search
@@ -766,8 +766,45 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
     return true;
 }
 
+bool Inventory::WouldCreateContainmentCycle(InventoryItemRef item) const
+{
+    if (item.get() == nullptr)
+        return true;
+
+    // Cached ancestry is enough for ordinary station/ship/container moves.
+    // Stop at unloaded or static roots; a separate SQL audit detects any
+    // pre-existing cycles whose ancestors are not present in the item cache.
+    uint32 location = m_myID;
+    std::set<uint32> visited;
+    for (uint32 depth = 0; depth < 64 && IsValidLocationID(location); ++depth) {
+        if (location == item->itemID())
+            return true;
+        if (!visited.insert(location).second)
+            return true;
+        InventoryItemRef parent = sItemFactory.GetItemRefFromID(location, false);
+        if (parent.get() == nullptr)
+            return false;
+        if (parent->locationID() == location)
+            return true;
+        location = parent->locationID();
+    }
+    return visited.size() == 64;
+}
+
 bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 {
+    if (iRef.get() == nullptr || m_self.get() == nullptr) {
+        _log(INV__ERROR, "Inventory::ValidateAddItem: null item or destination inventory.");
+        return false;
+    }
+    // Never place a container inside itself. This also prevents an item
+    // loading recursion when a malformed client sends its own ID as cargo.
+    if (iRef->itemID() == m_myID || WouldCreateContainmentCycle(iRef)) {
+        _log(INV__WARNING, "Inventory::ValidateAddItem: rejecting item %u into %u (containment cycle).",
+             iRef->itemID(), m_myID);
+        return false;
+    }
+
     if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub)
         if (iRef->categoryID() == EVEDB::invCategories::StructureUpgrade)
             return ValidateIHubUpgrade(iRef);
@@ -780,6 +817,10 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 
     // check that we're close enough if a container in space
     if (m_self->groupID() == EVEDB::invGroups::Cargo_Container && sDataMgr.IsSolarSystem(m_self->locationID())) {
+        if (pClient == nullptr || pClient->GetShip().get() == nullptr) {
+            _log(INV__WARNING, "Inventory::ValidateAddItem: cannot validate in-space container %u without a ship.", m_myID);
+            return false;
+        }
         GVector direction (m_self->position(), pClient->GetShip()->position());
         float maxDistance = 2500.0f;
 
@@ -793,7 +834,12 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 
     // check if where the item is coming from was a cargo container
     InventoryItemRef cRef = sItemFactory.GetItemRef(iRef->locationID());
-    if (cRef->groupID() == EVEDB::invGroups::Cargo_Container && sDataMgr.IsSolarSystem(cRef->locationID())) {
+    if (cRef.get() != nullptr && cRef->groupID() == EVEDB::invGroups::Cargo_Container
+            && sDataMgr.IsSolarSystem(cRef->locationID())) {
+        if (pClient == nullptr || pClient->GetShip().get() == nullptr) {
+            _log(INV__WARNING, "Inventory::ValidateAddItem: cannot validate in-space source container %u without a ship.", cRef->itemID());
+            return false;
+        }
         GVector direction (cRef->position(), pClient->GetShip()->position());
         float maxDistance(2500.0f);
         if (cRef->HasAttribute (AttrMaxOperationalDistance) == true)
