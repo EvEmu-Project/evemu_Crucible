@@ -268,6 +268,13 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
         codelog(SERVICE__ERROR, "forCorp value is of invalid type");
         return nullptr;
     }
+    // Rejected/empty contracts must never charge courier rewards or create
+    // database records. All monetary values are nonnegative quantities.
+    if (price->value() < 0 || reward->value() < 0 || collateral->value() < 0
+        || (itemArg->second->AsList()->empty() && requestedArg->second->AsList()->empty())) {
+        codelog(SERVICE__ERROR, "CreateContract: negative ISK values or no contract items.");
+        return nullptr;
+    }
     if (sDataMgr.IsStation(startStationID->value())) {
         startSystemId = sDataMgr.GetStationSystem(startStationID->value());
         startRegionId = sDataMgr.GetStationRegion(startStationID->value());
@@ -304,6 +311,9 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
      */
     uint32 contractId = 0;
     DBerror err;
+    std::string titleEscaped, descriptionEscaped;
+    sDatabase.DoEscapeString(titleEscaped, title->content());
+    sDatabase.DoEscapeString(descriptionEscaped, description->content());
     if (!sDatabase.RunQueryLID(err, contractId,
         "INSERT INTO ctrContracts "
         "(contractType, issuerID, issuerCorpID, forCorp, isPrivate, assigneeID, "
@@ -318,7 +328,7 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
         contractType->value(), call.client->GetCharacterID(), call.client->GetCorporationID(), forCorp, isPrivate->value()?1:0, assigneeID.has_value() ? assigneeID.value()->value() : 0,
         int64(GetFileTimeNow()), int64(GetRelativeFileTime(0, 0, expireTime->value())), expireTime->value(), duration->value(), expireTime->value() / 1440,
         startStationID->value(), startSystemId, startRegionId, endStationID.has_value() ? endStationID.value()->value() : 0, endSystemId, endRegionId,
-        price->value(), reward->value(), collateral->value(), title->content().c_str(), description->content().c_str(), call.client->GetAllianceID(), startStationDivision))
+        price->value(), reward->value(), collateral->value(), titleEscaped.c_str(), descriptionEscaped.c_str(), call.client->GetAllianceID(), startStationDivision))
     {
         codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
         return nullptr;
@@ -685,6 +695,8 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
             return nullptr;
         }
+        if (res.GetRowCount() == 0)
+            return nullptr;
 
         // DBResultToCRowset return doesn't work, for some reason (fails at unmarshalling on client's side), so making it a KeyVal dict
         res.GetRow(row);
