@@ -46,6 +46,17 @@
 #include "station/StationDataMgr.h"
 #include "manufacturing/FactoryDB.h"
 
+// Ensure a throwing validation or early RPC return cannot leave a stale
+// global client pointer in ItemFactory for the next inventory operation.
+class ScopedInventoryClient
+{
+public:
+    explicit ScopedInventoryClient(Client* client) { sItemFactory.SetUsingClient(client); }
+    ~ScopedInventoryClient() { sItemFactory.UnsetUsingClient(); }
+    ScopedInventoryClient(const ScopedInventoryClient&) = delete;
+    ScopedInventoryClient& operator=(const ScopedInventoryClient&) = delete;
+};
+
 InventoryBound::InventoryBound(EVEServiceManager &mgr, BoundServiceParent<InventoryBound>& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID, bool passive) :
     EVEBoundObject(mgr, parent),
     pInventory(item->GetMyInventory()),
@@ -194,7 +205,7 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
     _log(INV__MESSAGE, "IB::MultiMerge() called by %s(%u)", m_self->name(), m_itemID);
     call.Dump(INV__DUMP);
 
-    sItemFactory.SetUsingClient(call.client);
+    ScopedInventoryClient factoryClient(call.client);
     Inventory* pInv(nullptr); // = sItemFactory.GetInventoryFromId(args.locationID);
     /* args.locationID is NOT the destination...it is the source, and NOT what we're looking for here.
     if (pInv == nullptr) {
@@ -237,7 +248,7 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
             destItem->Merge( srcItem, qty, true );
         // if false, error is thrown in ValidateAddItem() call
     }
-    sItemFactory.UnsetUsingClient();
+
 
     return nullptr;
 }
@@ -483,7 +494,7 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
     EVEItemFlags fromFlag(flagNone);
     EVEItemFlags origFlag(toFlag);
     InventoryItemRef iRef(nullptr);
-    sItemFactory.SetUsingClient(pClient);
+    ScopedInventoryClient factoryClient(pClient);
 
     std::vector<int32>::const_iterator itr = items.begin();
     for (; itr != items.end(); ++itr) {
@@ -662,7 +673,7 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         }
     }
 
-    sItemFactory.UnsetUsingClient();
+
 
     if (iRef.get() == nullptr)
         return nullptr;
