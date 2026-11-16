@@ -193,50 +193,24 @@ InventoryItemRef ItemFactory::GetItemRefFromID(uint32 itemID, bool load /*true*/
 
 InventoryItemRef ItemFactory::GetItemContainerRef(uint32 itemID, bool load/*true*/)
 {
-    InventoryItemRef iRef(nullptr);
-    std::map<uint32, InventoryItemRef>::iterator itr = m_items.find(itemID);
-    if (itr != m_items.end()) {
-        iRef = itr->second;
-        itr = m_items.find(iRef->locationID());
-        iRef = itr->second;
-    } else if (load) {
-        iRef = GetItemRef(itemID);
-        itr = m_items.find(itemID);
-        if (itr != m_items.end()) {
-            iRef = itr->second;
-            itr = m_items.find(iRef->locationID());
-            iRef = itr->second;
-        }
-    }
-
-    if (iRef.get() == nullptr)
+    // Both the item and its parent inventory may be evicted from the cache.
+    // The previous implementation dereferenced m_items.end() when the parent
+    // was missing, crashing cargo moves and failed ship fittings.
+    InventoryItemRef item = GetItemRefFromID(itemID, load);
+    if (item.get() == nullptr)
         return InventoryItemRef(nullptr);
 
-    return iRef;
+    const uint32 parentID = item->locationID();
+    if (parentID == itemID || !IsValidLocationID(parentID))
+        return InventoryItemRef(nullptr);
+
+    return GetItemRefFromID(parentID, load);
 }
 
 Inventory* ItemFactory::GetItemContainerInventory(uint32 itemID, bool load/*true*/)
 {
-    InventoryItemRef iRef(nullptr);
-    std::map<uint32, InventoryItemRef>::iterator itr = m_items.find(itemID);
-    if (itr != m_items.end()) {
-        iRef = itr->second;
-        itr = m_items.find(iRef->locationID());
-        iRef = itr->second;
-    } else if (load) {
-        iRef = GetItemRef(itemID);
-        itr = m_items.find(itemID);
-        if (itr != m_items.end()) {
-            iRef = itr->second;
-            itr = m_items.find(iRef->locationID());
-            iRef = itr->second;
-        }
-    }
-
-    if (iRef.get() == nullptr)
-        return nullptr;
-
-    return iRef->GetMyInventory();
+    InventoryItemRef parent = GetItemContainerRef(itemID, load);
+    return parent.get() != nullptr ? parent->GetMyInventory() : nullptr;
 }
 
 template<class _Ty>
