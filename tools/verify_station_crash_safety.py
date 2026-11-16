@@ -30,4 +30,11 @@ assert "IsLegacyAgentThumbnail50(category, id, size)" in img
 assert "Content-Length: " in connection
 assert "baseline50" in image_test
 assert not (root / "tools/agent_portraits").exists()
+tcp = src("src/eve-core/network/TCPConnection.cpp")
+thread = src("src/eve-core/threading/Threading.cpp")
+assert '"Releasing TCPConnection on thread %s"' in tcp
+assert '"Destroying TCPConnection for thread 0x%X"' not in tcp
+assert 'threadID << thread->get_id();' in thread
+assert '"Created thread ID %s"' in thread
+
 print("Station agent and inventory safety source invariants passed")
