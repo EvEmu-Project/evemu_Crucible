@@ -135,7 +135,7 @@ m_pShieldSE(nullptr)
 void TowerSE::Init()
 {
     StructureSE::Init();
-    if (!m_loaded)
+    if (!IsPOSInitialized())
         return;
 
     if (!m_db.GetTowerData(m_tdata, m_data)) {
