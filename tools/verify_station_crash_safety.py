@@ -131,6 +131,13 @@ assert 'SELECT itemID, itemName, typeID' in sql_audit
 assert 'SHOW INDEX FROM entity;' in sql_audit
 assert 'DELETE FROM ENTITY' not in sql_audit.upper(), "SQL audit must be read-only"
 
+# Server branding is independent of the 2012 Crucible wire protocol.
+server_version = src("src/eve-common/EVEVersion.h")
+assert 'REVISION_STRING = std::string("0.8.7-Rizonx");' in server_version
+assert 'static const double EVEVersionNumber = 7.31;' in server_version
+assert 'static const uint16 MachoNetVersion = 320;' in server_version
+assert 'static const int32 EVEBuildVersion = 360229;' in server_version
+
 assert not (root / "tools/agent_portraits").exists()
 tcp = src("src/eve-core/network/TCPConnection.cpp")
 thread = src("src/eve-core/threading/Threading.cpp")
