@@ -314,10 +314,12 @@ SELECT
     stations.corporationID,
     stations.regionID,
     stations.stationId,
+    -- NPC market prices are exactly 100% of invTypes.basePrice.
+    -- No security-based multiplier: 0.5 security used to double prices.
+    -- Types with no positive basePrice use the existing 100 ISK fallback.
     CASE
         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100
-        WHEN stations.security <= 0 THEN it.basePrice
-        ELSE it.basePrice / stations.security
+        ELSE it.basePrice
     END,
     CASE WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END,
     CASE WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END,
@@ -359,10 +361,12 @@ SELECT
     stations.corporationID,
     stations.regionID,
     stations.stationId,
+    -- NPC market prices are exactly 100% of invTypes.basePrice.
+    -- No security-based multiplier: 0.5 security used to double prices.
+    -- Types with no positive basePrice use the existing 100 ISK fallback.
     CASE
         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100
-        WHEN stations.security <= 0 THEN it.basePrice
-        ELSE it.basePrice / stations.security
+        ELSE it.basePrice
     END,
     10,
     10,
