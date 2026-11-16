@@ -5,6 +5,7 @@
  */
 
 #include <string>
+#include <cmath>
 
 #include "EVE_Corp.h"
 #include "EVE_Mail.h"
@@ -727,27 +728,71 @@ PyResult CorpRegistryBound::UpdateTitles(PyCallArgs &call, PyObject* titles) {
     return nullptr;
 }
 
-PyResult CorpRegistryBound::UpdateCorporation(PyCallArgs &call, PyRep* description, PyRep* url, PyFloat* tax) {
-    _log(CORP__CALL, "CorpRegistryBound::Handle_UpdateCorporation() size=%lli", call.tuple->size());
+PyResult CorpRegistryBound::UpdateCorporation(PyCallArgs &call, PyRep* description, PyRep* url, PyRep* tax, PyInt* applicationEnabled)
+{
+    _log(CORP__CALL, "CorpRegistryBound::UpdateCorporation() for corp %u", m_corpID);
     call.Dump(CORP__CALL_DUMP);
+
+    // Bound corporation IDs are supplied by the client. Validate both corp
+    // membership and management rights before writing to crpCorporation.
+    if (call.client == nullptr || call.client->GetCorporationID() != m_corpID
+        || !IsPlayerCorp(m_corpID)) {
+        throw CustomError("You cannot edit another corporation's details.");
+    }
+    const uint32 ceoID = m_db.GetCorporationCEO(m_corpID);
+    const bool isCEO = ceoID != 0 && ceoID == call.client->GetCharacterID();
+    const bool isDirector = (call.client->GetCorpRole() & Corp::Role::Director) != 0;
+    if (!isCEO && !isDirector)
+        throw CustomError("Only your corporation's CEO or directors may change its details.");
+
+    // The Crucible client can encode a numeric tax as PyFloat, PyInt or
+    // PyLong. Do not dereference a null PyFloat* or silently coerce None.
+    if (tax == nullptr || !(tax->IsFloat() || tax->IsInt() || tax->IsLong()))
+        throw CustomError("Invalid corporation tax value.");
+    // Fourth RPC argument is applicationEnabled (PyInt), as used by
+    // Call_AddCorporation. The database stores this as isRecruiting.
+    if (applicationEnabled == nullptr || (applicationEnabled->value() != 0 && applicationEnabled->value() != 1))
+        throw CustomError("Corporation applications flag must be 0 or 1.");
+
+    const double taxRate = PyRep::FloatValue(tax);
+    // EVE stores tax as a fraction, e.g. 12.5% = 0.125, not 12.5.
+    if (!std::isfinite(taxRate) || taxRate < 0.0 || taxRate > 1.0)
+        throw CustomError("Corporation tax must be between 0% and 100%.");
+
     Notify_IntRaw notif;
     notif.key = m_corpID;
     notif.data = new PyDict();
 
-    if (!m_db.UpdateCorporation(notif.key, PyRep::StringContent(description), PyRep::StringContent (url), tax->value(), notif.data)) {
-        codelog(SERVICE__ERROR, "%s: Failed to update corporation data for corp %u", call.client->GetName(), notif.key);
-        PyDecRef( notif.data );
+    if (!m_db.UpdateCorporation(notif.key, PyRep::StringContent(description),
+                                PyRep::StringContent(url), taxRate,
+                                static_cast<uint32>(applicationEnabled->value()), notif.data)) {
+        codelog(SERVICE__ERROR, "%s: Failed to update corporation %u",
+                call.client->GetName(), m_corpID);
+        PyDecRef(notif.data);
         return PyStatic.NewNone();
     }
 
-    // Only send notification if it is needed...
     if (notif.data->items.size()) {
-        /** @todo update this to use CorpNotify() */
-        MulticastTarget mct;
-        mct.corporations.insert(notif.key);
-        PyTuple * answer = notif.Encode();
-        sEntityList.Multicast("OnCorporationChanged", "corpid", &answer, mct);
-        call.client->SendNotification("OnCorporationChanged", "clientID", &answer);
+        // GetCorpTaxRate reads Character's in-memory CorpData. A successful
+        // SQL update alone would leave all online members paying the old rate
+        // until their next login.
+        std::vector<Client*> members;
+        sEntityList.GetCorpClients(members, m_corpID);
+        for (Client* member : members) {
+            if (member == nullptr || member->GetChar().get() == nullptr)
+                continue;
+            member->GetChar()->UpdateCorpTaxRate(static_cast<float>(taxRate));
+        }
+
+        // The old code used a corporation MulticastTarget (which logs an
+        // unsupported route), then reused a payload already decref'd by
+        // Multicast, risking an invalid/double notification. CorpNotify
+        // consumes this tuple and sends one valid event to each member.
+        PyTuple* answer = notif.Encode();
+        sEntityList.CorpNotify(m_corpID, Notify::Types::CorpNews,
+                               "OnCorporationChanged", "corpid", answer);
+    } else {
+        PyDecRef(notif.data);
     }
 
     return PyStatic.NewNone();

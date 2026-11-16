@@ -166,7 +166,7 @@ public:
     static std::string GetCorpName(uint32 corpID);
     static std::string GetDivisionName(uint32 corpID, uint16 acctKey);
     bool UpdateDivisionNames(uint32 corpID, const Call_UpdateDivisionNames & divs, PyDict * notif);
-    bool UpdateCorporation(uint32 corpID, const std::string& description, const std::string& url, double taxRate, PyDict* notif);
+    bool UpdateCorporation(uint32 corpID, const std::string& description, const std::string& url, double taxRate, uint32 applicationEnabled, PyDict* notif);
     bool UpdateLogo(uint32 corpID, const Call_UpdateLogo & upd, PyDict * notif);
 
     PyRep* GetAssetInventory(uint32 corpID, EVEItemFlags locFlag, const char* flags);

@@ -304,6 +304,9 @@ public:
     int32                   warFactionID() const                { return m_corpData.warFactionID; }
     int32                   corpAccountKey() const              { return m_corpData.corpAccountKey; }
     float                   corpTaxRate() const                 { return m_corpData.taxRate; }
+    // Keep the current session's bounty/tax calculation in sync with a
+    // corporation update without needlessly changing the entire session.
+    void                    UpdateCorpTaxRate(float rate)        { m_corpData.taxRate = rate; }
     float                   corpSecRating() const               { return m_corpData.secRating; }
     void                    SetCorpHQ(uint32 stationID)         { m_corpData.corpHQ = stationID; UpdateCorpData(m_corpData);}
 

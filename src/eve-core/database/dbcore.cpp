@@ -366,10 +366,15 @@ int32 DBcore::DoEscapeString(char* tobuf, const char* frombuf, int32 fromlen)
 void DBcore::DoEscapeString(std::string &to, const std::string &from)
 {
     assert(mysql);
-    uint32 len = (uint32)from.length();
-    to.resize(len * 2);   // make enough room
-    uint32 esc_len = mysql_real_escape_string(mysql, &to[0], from.c_str(), len);
-    to.resize(esc_len + 1); // optional.
+    const uint32 len = static_cast<uint32>(from.size());
+    // mysql_real_escape_string writes a trailing C-string terminator, so
+    // allocate 2*len+1 bytes even for an empty input string.
+    to.resize(static_cast<size_t>(len) * 2 + 1);
+    const uint32 esc_len = mysql_real_escape_string(mysql, &to[0], from.c_str(), len);
+    // The terminating NUL belongs to the MySQL C API, not the std::string.
+    // Keeping it in .size() makes streamed SQL contain an embedded NUL, which
+    // truncates vasprintf/RunQuery and yields malformed INSERT statements.
+    to.resize(esc_len);
 }
 
 //look for things in the string which might cause SQL problems
