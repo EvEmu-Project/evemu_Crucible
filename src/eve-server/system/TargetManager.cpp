@@ -934,22 +934,36 @@ float TargetManager::TimeToLock ( ShipItemRef sRef, SystemEntity* tSE ) const {
         return time;
 }
 
-void TargetManager::QueueEvent( PyTuple** event ) const
+void TargetManager::QueueEvent(PyTuple** event) const
 {
-    for (auto cur : m_targetedBy)
-        if (cur.first->HasPilot()) {
+    if (mySE == nullptr || mySE->SystemMgr() == nullptr || event == nullptr || *event == nullptr)
+        return;
+    SystemManager* system = mySE->SystemMgr();
+    for (const auto& entry : m_targetedBy) {
+        if (entry.second == nullptr)
+            continue;
+        SystemEntity* targeter = system->GetSE(entry.second->targetID);
+        if (targeter == entry.first && targeter != nullptr && targeter->HasPilot()) {
             PyIncRef(*event);
-            cur.first->GetPilot()->QueueDestinyEvent(event);
+            targeter->GetPilot()->QueueDestinyEvent(event);
         }
+    }
 }
 
-void TargetManager::QueueUpdate( PyTuple** update ) const
+void TargetManager::QueueUpdate(PyTuple** update) const
 {
-    for (auto cur : m_targetedBy)
-        if (cur.first->HasPilot()) {
+    if (mySE == nullptr || mySE->SystemMgr() == nullptr || update == nullptr || *update == nullptr)
+        return;
+    SystemManager* system = mySE->SystemMgr();
+    for (const auto& entry : m_targetedBy) {
+        if (entry.second == nullptr)
+            continue;
+        SystemEntity* targeter = system->GetSE(entry.second->targetID);
+        if (targeter == entry.first && targeter != nullptr && targeter->HasPilot()) {
             PyIncRef(*update);
-            cur.first->GetPilot()->QueueDestinyUpdate(update);
+            targeter->GetPilot()->QueueDestinyUpdate(update);
         }
+    }
 }
 
 /* debugging methods */
