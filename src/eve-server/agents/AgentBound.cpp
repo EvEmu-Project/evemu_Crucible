@@ -405,6 +405,8 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                     call.client->RemoveEncounterMissionSite(offer);
 
                 m_agent->UpdateStandings(call.client, Standings::MissionCompleted, offer.important);
+                // Keep completed missions in history rather than the active index.
+                sMissionDataMgr.ArchiveMissionOffer(pchar->itemID(), offer);
                 m_agent->RemoveOffer(pchar->itemID());
                 // Tell the Crucible client that this conversation completed
                 // its mission (the existing response flag was always false).

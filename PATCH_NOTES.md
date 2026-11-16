@@ -9,6 +9,17 @@
 - Expanded Windows and Linux EVEDBTool dry-run CI checks to verify both container insertion and force-cleanup SQL. Added a Blockade reward assertion to `AgentHelpersTest` and [rollout/audit instructions](docs/BLOCKADE_REWARD_AND_CONTAINER_MARKET_SEED_2026-11-15.md).
 - **Verification:** build and live market/client gameplay tests must be checked on this branch. Run `evedbtool seed -force -dryrun` before applying a `-force` reseed; existing NPC orders may be replaced.
 
+## 2026-11-15 — Mission offer lifecycle and offline-item integrity
+
+- Fixed periodic expired-offer crashes when agent lookup fails; persistent state cleanup continues without client notifications.
+- Fixed shared-agent cache invalidation by matching persistent offer IDs and character IDs rather than erasing an arbitrary entry for the same agent.
+- Deferred (`Allocated`) offers now expire correctly; stale previous offers no longer remove a newly issued same-agent mission.
+- Completed offers are immediately archived to mission history instead of lingering in active indexes. Mission cache update/remove paths now match offer IDs.
+- A failed `agtOffers` insert no longer produces a non-persistent zero-ID mission.
+- Offline mission item cleanup now preserves the unconsumed stack remainder, supports 32-bit quantities and stops on SQL errors.
+- Added `MissionLifecycleTest` and [dedicated source audit](docs/MISSION_EXPIRY_AND_OFFLINE_STACK_AUDIT_2026-11-15.md).
+- **Verification:** new branch CI and live client/DB verification pending. Earlier successful master CI does not verify this patch.
+
 ## 2026-11-15 — Agent data, station portraits and mission safety
 
 - Agent station listing no longer relies exclusively on optional `chrNPCCharacters.stationID`: `ManagerDB::GetAgents` and `AgentDB::LoadAgentData` use `agtAgents.locationID` when it resolves to `staStations`, while preserving the legacy result columns.

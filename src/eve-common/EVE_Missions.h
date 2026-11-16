@@ -110,6 +110,21 @@ namespace Mission {
         };
     }
 
+    // Deferred (Allocated) and newly Offered missions both await acceptance.
+    inline bool IsAwaitingAcceptance(uint8 stateID) {
+        return stateID == State::Offered || stateID == State::Allocated;
+    }
+
+    // An agent can serve multiple characters, and an old offer can coexist
+    // briefly with a new one: compare persistent offer identity.
+    inline bool MatchesOffer(const MissionOffer& offer, uint32 characterID, uint32 offerID) {
+        return offer.characterID == characterID && offer.offerID == offerID;
+    }
+
+    inline uint32 RemainingItemQuantity(uint32 stackQuantity, uint32 amountToRemove) {
+        return amountToRemove >= stackQuantity ? 0u : stackQuantity - amountToRemove;
+    }
+
     namespace Status {
         enum {
             Incomplete  = 0,
