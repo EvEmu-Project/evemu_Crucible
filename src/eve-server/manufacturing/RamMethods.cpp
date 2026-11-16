@@ -78,6 +78,10 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
             pType = &bpRef->type();
         } break;
         case EvERam::Activity::Invention: {
+            // The current completion path returns a hard-coded success with
+            // outputTypeID/outputItemID = 0. Reject installation rather than
+            // taking datacores and runs for an impossible output.
+            throw UserError("RamActivityInvalid");
             if (!bpRef->copy() or bpRef->infinite())
                 throw UserError ("RamCannotInventABlueprintOriginal");
 
