@@ -74,6 +74,23 @@ assert 'InventoryItemRef parent = GetItemContainerRef(itemID, load);' in factory
 assert 'if (iRef->GetMyInventory() == nullptr)' in broker
 assert 'if (item->GetMyInventory() == nullptr)' in broker
 
+# Assembled CargoContainer inherits StructureItem, but has no POS system
+# entity while in a station. Both inherited AddItem and Rename previously
+# dereferenced an uninitialized StructureItem::mySE and could terminate the
+# Windows process on drag/drop or rename. Keep these cases covered in CI.
+structure = src("src/eve-server/pos/Structure.cpp")
+assert 'mySE(nullptr)' in structure.split('StructureItem::~StructureItem', 1)[0]
+assert 'mySE != nullptr && mySE->IsCOSE()' in structure
+assert 'if (mySE == nullptr || mySE->GetPOSSE() == nullptr)' in structure
+assert 'virtual void Rename(std::string name) override;' in container_h
+assert 'void CargoContainer::Rename(std::string name)' in container_cpp
+cargo_rename = container_cpp.split('void CargoContainer::Rename(std::string name)', 1)[1].split('CargoContainerRef CargoContainer::Load(', 1)[0]
+assert 'InventoryItem::Rename(name);' in cargo_rename
+assert 'if (sDataMgr.IsSolarSystem(locationID()) && !m_isAnchored)' in cargo_rename
+cargo_ctor = container_cpp.split('CargoContainer::CargoContainer(', 1)[1].split('CargoContainer::~CargoContainer', 1)[0]
+assert 'pInventory = new Inventory(' not in cargo_ctor, (
+    "StructureItem already allocates the inventory; do not leak a second one")
+
 assert not (root / "tools/agent_portraits").exists()
 tcp = src("src/eve-core/network/TCPConnection.cpp")
 thread = src("src/eve-core/threading/Threading.cpp")
