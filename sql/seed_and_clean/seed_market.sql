@@ -18,7 +18,7 @@ insert into tStations
 INSERT INTO mktOrders (typeID, ownerID, regionID, stationID, price, volEntered, volRemaining, issued,
 minVolume, duration, solarSystemID, jumps)
   SELECT typeID, corporationID, regionID, stationID,
-         CASE WHEN basePrice IS NULL OR basePrice <= 0 THEN 100 ELSE basePrice END,
+         CASE WHEN basePrice IS NULL OR basePrice <= 0 THEN 100 ELSE GREATEST(0.01, ROUND(basePrice, 2)) END,
          CASE WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
          CASE WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
          132478179209572976, 1, 250, solarSystemID, 1
