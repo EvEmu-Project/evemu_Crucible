@@ -1,5 +1,7 @@
 """Offline regression tests; no portrait downloads or database required."""
+import base64
 import gzip
+import re
 import tempfile
 import unittest
 import zipfile
@@ -65,6 +67,26 @@ class AgentPortraitCacheTest(unittest.TestCase):
         image = root / "assets/agent_portraits/agent_missing_512.jpg"
         self.assertTrue(image.is_file(), str(image))
         self.assertTrue(is_jpeg(image.read_bytes()))
+
+    def test_embedded_fallback_exactly_matches_packaged_jpeg(self):
+        # A missing image_cache and a nonstandard current working directory
+        # must still give a valid, original, local JPEG through the server.
+        root = Path(__file__).resolve().parents[2]
+        cpp = (root / "src/eve-server/imageserver/ImageServer.cpp").read_text(encoding="utf-8")
+        match = re.search(
+            r'const char\* encoded\s*=\s*((?:"[A-Za-z0-9+/=]+"\s*)+);',
+            cpp,
+        )
+        self.assertIsNotNone(match, "Compiled-in agent JPEG is missing")
+        chunks = re.findall(r'"([A-Za-z0-9+/=]+)"', match.group(1))
+        decoded = base64.b64decode("".join(chunks), validate=True)
+        original = (root / "assets/agent_portraits/agent_missing_512.jpg").read_bytes()
+        self.assertEqual(decoded, original)
+        self.assertTrue(is_jpeg(decoded))
+        # The code must serve embedded bytes, not assume ../share resolves
+        # from whatever directory the operator launches eve-server in.
+        self.assertIn("return GetOfflineAgentPortrait();", cpp)
+        self.assertNotIn('path = "../share/evemu/agent_portraits/', cpp)
 
     def test_source_root(self):
         source, cache = source_and_cache_roots(Path(__file__))
