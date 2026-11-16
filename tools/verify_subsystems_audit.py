@@ -50,6 +50,13 @@ assert "flagArg == call.byname.end()" in contracts
 assert "requestedArg == call.byname.end()" in contracts
 assert "sDatabase.DoEscapeString(titleEscaped, title->content());" in contracts
 assert "if (plasticWrap.get() == nullptr)" in contracts
+assert "SELECT issuerID, status FROM ctrContracts" in contracts
+assert "ownerRow.GetUInt(0) != call.client->GetCharacterID()" in contracts
+assert "ownerRow.GetInt(1) != 0" in contracts
+assert "const bool isPrivate = row.GetBool(11);" in contracts
+assert "const uint32 assigneeID = row.GetUInt(12);" in contracts
+assert "const uint32 acceptorID = row.GetUInt(11);" in contracts
+assert "contractType != 3 || status != 1 || acceptorID != call.client->GetCharacterID()" in contracts
 
 ram = source("src/eve-server/manufacturing/RamProxyService.cpp")
 activity = source("src/eve-server/manufacturing/RamMethods.cpp")
