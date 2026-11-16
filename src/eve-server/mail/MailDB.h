@@ -36,12 +36,13 @@ class MailDB : public ServiceDB
 public:
     PyRep* GetLabels(int characterID) const;
 
+    bool IsMailRecipient(int32 messageID, uint32 characterID) const;
     PyString* GetMailBody(int id) const;
 
     void SetMailUnread(int id);
     void SetMailRead(int id);
-    void SetMailsUnread(std::vector<int32> ids);
-    void SetMailsRead(std::vector<int32> ids);
+    void SetMailsUnread(std::vector<int32> ids, uint32 characterID);
+    void SetMailsRead(std::vector<int32> ids, uint32 characterID);
     void MarkAllAsRead(uint32 characterID);
     void MarkAllAsUnread(uint32 characterID);
 
@@ -49,13 +50,13 @@ public:
     void DeleteLabel(int characterID, int labelID) const;
     void EditLabel(int characterID, int labelID, const std::string& name, int32 color) const;
     void ApplyLabel(int32 messageID, int labelID);
-    void ApplyLabels(std::vector<int32> messageIDs, int labelID);
+    void ApplyLabels(std::vector<int32> messageIDs, int labelID, uint32 characterID);
 
     void MarkAllAsReadByLabel(uint32 characterID, int labelID);
     void MarkAllAsUnreadByLabel(uint32 characterID, int labelID);
-    void RemoveLabels(std::vector<int32> messageIDs, int labelID);
+    void RemoveLabels(std::vector<int32> messageIDs, int labelID, uint32 characterID);
     
-    void DeleteMail(int32 messageID);
+    void DeleteMail(int32 messageID, uint32 characterID);
 
     void EmptyTrash(uint32 characterID);
     void MoveAllFromTrash(uint32 characterID);
@@ -97,15 +98,15 @@ public:
 
     // Helpers
 
-    void ApplyStatusMasks(std::vector<int32> messageIDs, int mask);
-    void RemoveStatusMasks(std::vector<int32> messageIDs, int mask);
+    void ApplyStatusMasks(std::vector<int32> messageIDs, int mask, uint32 characterID);
+    void RemoveStatusMasks(std::vector<int32> messageIDs, int mask, uint32 characterID);
     void ApplyStatusMask(int32 messageID, int mask);
     void RemoveStatusMask(int32 messageID, int mask);
 
     void ApplyLabelMask(int32 messageID, int mask);
-    void ApplyLabelMasks(std::vector<int32> messageIDs, int mask);
+    void ApplyLabelMasks(std::vector<int32> messageIDs, int mask, uint32 characterID);
     void RemoveLabelMask(int32 messageID, int mask);
-    void RemoveLabelMasks(std::vector<int32> messageIDs, int mask);
+    void RemoveLabelMasks(std::vector<int32> messageIDs, int mask, uint32 characterID);
 
     int SendMail(int sender, std::vector<int>& toCharacterIDs, int toListID, int toCorpOrAllianceID, const std::string& title, const std::string& body, int isReplyTo, int isForwardedFrom);
     PyRep* GetNewMail(int charId);
