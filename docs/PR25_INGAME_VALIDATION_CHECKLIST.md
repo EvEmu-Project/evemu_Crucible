@@ -3,8 +3,7 @@
 **Project:** EVEmu Crucible 1.6.5, client build 360229  
 **PR:** https://github.com/xrizonx/evemu_Crucible/pull/25  
 **Updated:** 2026-11-16  
-**Status:** Assembled station-container crash fixed and operator-tested. The rest of
-this PR has not been exhaustively verified in-game.
+**Status:** Original assembled station-container crash and the nine station/ship/container inventory checks (B1–B9) are reported working by the operator. POS, customs-office and broader regression checks remain open.
 
 Only check a box after running it with the final PR-head server binary and
 recording the result. A green GitHub Action is **not** an in-game pass.
@@ -33,30 +32,32 @@ recording the result. A green GitHub Action is **not** an in-game pass.
 are operator-reported SQL query results. These tests verify that particular
 workflows, not all possible container/POS paths, succeed.
 
-## B. Outstanding station/ship/container inventory testing
+## B. Operator-reported working — station/ship/container inventory (9/9)
 
-- [ ] **B1.** Remove **the final item** from an assembled station container.
+**Operator update (16 November 2026):** All nine B-series checks marked working in-game. This is an operator-reported **section-level pass**; item-by-item logs, build SHA and boundary-value evidence were not independently provided. Record a more detailed test report if one of these flows later regresses.
+
+- [x] **B1.** Remove **the final item** from an assembled station container.
   It must remain in the hangar when empty, with its original item ID.
-- [ ] **B2.** Merge compatible mineral stacks inside a container, including a
+- [x] **B2.** Merge compatible mineral stacks inside a container, including a
   partial merge; sums must be conserved and no item duplicated/lost.
-- [ ] **B3.** Transfer **partial stacks** station → container → station →
+- [x] **B3.** Transfer **partial stacks** station → container → station →
   ship cargo hold (Ferox example: **140000640**). Verify quantities,
   ownership, location flags and persistence after restart.
-- [ ] **B4.** Move assembled containers between station hangar and ship cargo
+- [x] **B4.** Move assembled containers between station hangar and ship cargo
   where allowed by capacity; rejected moves must leave both items intact.
-- [ ] **B5.** Attempt to put a container **inside itself**, then try creating
+- [x] **B5.** Attempt to put a container **inside itself**, then try creating
   a two- or three-level container cycle. The server must reject the move,
   preserve the original contents, and remain responsive.
-- [ ] **B6.** Test a full-capacity container, oversized stack and invalid
+- [x] **B6.** Test a full-capacity container, oversized stack and invalid
   quantity/malformed move request using disposable items. No crash or
   duplicated/lost stacks. (Malformed RPC tests may require a test harness.)
-- [ ] **B7.** Merge two extremely large test stacks near the `int32`
+- [x] **B7.** Merge two extremely large test stacks near the `int32`
   quantity ceiling only on a disposable test character/DB. Overflow must
   be refused without deleting or decrementing the source.
-- [ ] **B8.** Exercise jetcan, anchored secure-container and wreck loot:
+- [x] **B8.** Exercise jetcan, anchored secure-container and wreck loot:
   remove some/all items, close/reopen inventory, and check expected
   in-space lifetime, cleanup and item ownership after restarting.
-- [ ] **B9.** Confirm split/merge/move between inventories after a previous
+- [x] **B9.** Confirm split/merge/move between inventories after a previous
   validation error; no stale-client context, wrong-client capacity check,
   crash or permission leakage.
 
@@ -122,10 +123,7 @@ workflows, not all possible container/POS paths, succeed.
 
 ## Sign-off criteria / test evidence
 
-PR #25 is **not ready for full POS/container QA sign-off** until B–E are
-resolved or explicitly marked *unsupported/out of scope* in the PR review.
-The original assembled station-container failure can be called
-**runtime-confirmed fixed** based on A1–A6.
+PR #25 has **17 of 37 checks marked passed** based on the operator's completed A/B testing and supplied SQL results. **20 remain open** across POS (C1–C9), customs offices (D1–D3), and database/regression/release checks (E1–E8). The remaining C–E tests must be completed or explicitly marked *unsupported/out of scope* for full PR sign-off. The B-series result is a grouped operator report, not independently archived per-case evidence.
 
 For each remaining test, record: date and client/server binary SHA, character
 and item IDs, before/after SQL location/owner/quantity, what was clicked,
