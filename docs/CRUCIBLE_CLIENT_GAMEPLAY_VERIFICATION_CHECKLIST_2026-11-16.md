@@ -2,20 +2,20 @@
 
 **Prepared:** 16 November 2026  
 **Repository:** [xrizonx/evemu_Crucible](https://github.com/xrizonx/evemu_Crucible)  
-**Merged source baseline:** \`master\` commit \`b1122ea35f0ccb150997d58cad54e28e199e23f7\` (PRs #15, #16, #17).  
+**Merged source baseline:** `master` commit `b1122ea35f0ccb150997d58cad54e28e199e23f7` (PRs #15, #16, #17).  
 **Final master CI run to inspect:** [43808049188](https://github.com/xrizonx/evemu_Crucible/actions/runs/43808049188).  
 **Scope:** Crucible-era EVE client gameplay and MariaDB persistence. **All gameplay cases begin as NOT RUN.** CI success alone must not be recorded as a gameplay pass.
 
 ## 0. Test discipline and environment
 
-- [ ] **P0-GATE-01** Record the actual installed \`BUILD-INFO.txt\` SHA, GitHub artifact name, EVE client build/version, platform (Windows 11 UCRT64/Linux/Docker), database schema version, config overrides and UTC start time. Do not test an older extracted ZIP by mistake.
-- [ ] **P0-GATE-02** Back up the EVEmu MariaDB database plus \`etc/eve-server.xml\`, \`sql/evedb.yaml\`, \`image_cache\`, \`server_cache\` and available logs. Test on a private/staging server, not a public economy.
-- [ ] **P0-GATE-03** Verify TCP game port 26000 and HTTP image port 26001 are client-reachable. When the client is on a second machine, \`imageServer=127.0.0.1\` is **not** an appropriate advertised address.
+- [ ] **P0-GATE-01** Record the actual installed `BUILD-INFO.txt` SHA, GitHub artifact name, EVE client build/version, platform (Windows 11 UCRT64/Linux/Docker), database schema version, config overrides and UTC start time. Do not test an older extracted ZIP by mistake.
+- [ ] **P0-GATE-02** Back up the EVEmu MariaDB database plus `etc/eve-server.xml`, `sql/evedb.yaml`, `image_cache`, `server_cache` and available logs. Test on a private/staging server, not a public economy.
+- [ ] **P0-GATE-03** Verify TCP game port 26000 and HTTP image port 26001 are client-reachable. When the client is on a second machine, `imageServer=127.0.0.1` is **not** an appropriate advertised address.
 - [ ] **P0-GATE-04** Collect server startup logs, DB errors and any crash dump. Configure detailed logging only for relevant subsystems and restore normal logging after reproduction; sensitive login/authentication fields must not be posted publicly.
 - [ ] **P0-GATE-05** Prepare two distinct characters (A and B), two clients where possible, two stations with agents, a high-/low-security system, a mission-capable combat ship, a second test target, 1 and 5 light drones, launchers/turrets/ammunition, and adequate ISK for market transactions. Keep ships, skill levels, fittings and target signatures recorded.
-- [ ] **P0-GATE-06** Run the normal packaged test gates (where source build is available): \`ctest --test-dir build --output-on-failure\`; \`python -m unittest discover -s tools/agent_portraits -p "test_*.py"\`. Verify CTests include WeaponFormulaTest, MovementFormulaTest, DroneControlRangeTest, AgentHelpersTest and MissionLifecycleTest.
+- [ ] **P0-GATE-06** Run the normal packaged test gates (where source build is available): `ctest --test-dir build --output-on-failure`; `python -m unittest discover -s tools/agent_portraits -p "test_*.py"`. Verify CTests include WeaponFormulaTest, MovementFormulaTest, DroneControlRangeTest, AgentHelpersTest and MissionLifecycleTest.
 
-**Record each row** as \`PASS / FAIL / BLOCKED / NOT RUN / KNOWN LIMITATION\` with: client build, server SHA, UTC timestamp, character/agent/system/station IDs, actual versus expected, video/screenshot or packet/HTTP sample, relevant server log excerpts, and before/after DB or wallet state. If a crash occurs, stop testing that build until triaged.
+**Record each row** as `PASS / FAIL / BLOCKED / NOT RUN / KNOWN LIMITATION` with: client build, server SHA, UTC timestamp, character/agent/system/station IDs, actual versus expected, video/screenshot or packet/HTTP sample, relevant server log excerpts, and before/after DB or wallet state. If a crash occurs, stop testing that build until triaged.
 
 **Suggested release gate:** All P0 cases that exercise supported features must pass before considering this build gameplay-validated. P1 features may be tracked as defects; documented unsupported systems must be marked KNOWN LIMITATION rather than silently counted as successful.
 
@@ -23,12 +23,12 @@
 
 | ID / priority | Reproduction | Expected pass condition / evidence |
 |---|---|---|
-| AG-01 · P0 | Dock in a station with a valid agent; open the station Agents tab, agent conversation and journal. Repeat with an agent lacking optional \`chrNPCCharacters\` metadata. | Correct agent name, division/level/location, journal listing and interaction; no empty/broken row caused by missing optional portrait/bloodline row. Capture station and agent IDs. |
-| AG-02 · P0 | With outward HTTPS disabled, request \`http://<server>:26001/Character/<agentID>_50.jpg\` using **GET**. First test no local JPEG, then place a valid \`image_cache/Character/<agentID>_256.jpg\` or \`_50.jpg\`. | Both respond HTTP **200**, \`Content-Type: image/jpeg\`, no external \`Location\` redirect. Missing genuine portraits use bundled neutral JPEG; per-ID local portraits override it. Restart and repeat. The image server does **not** support treating HEAD as a valid GET test. |
+| AG-01 · P0 | Dock in a station with a valid agent; open the station Agents tab, agent conversation and journal. Repeat with an agent lacking optional `chrNPCCharacters` metadata. | Correct agent name, division/level/location, journal listing and interaction; no empty/broken row caused by missing optional portrait/bloodline row. Capture station and agent IDs. |
+| AG-02 · P0 | With outward HTTPS disabled, request `http://<server>:26001/Character/<agentID>_50.jpg` using **GET**. First test no local JPEG, then place a valid `image_cache/Character/<agentID>_256.jpg` or `_50.jpg`. | Both respond HTTP **200**, `Content-Type: image/jpeg`, no external `Location` redirect. Missing genuine portraits use bundled neutral JPEG; per-ID local portraits override it. Restart and repeat. The image server does **not** support treating HEAD as a valid GET test. |
 | AG-03 · P1 | Request an uncached *player character* portrait and unrelated icon/logo image; create/upload a player portrait if supported. | Agent placeholder never appears for player IDs; no unintended changes to other image categories or player portrait writes. |
 | AG-04 · P0 | Character A requests and accepts a normal offer; inspect offered, accepted, deferred (when enabled), rejected/quit, completed and expired journal/dialog states. Repeat after server restart. | No phantom offers, valid state transitions and no action on a nonexistent/invalid state. Offer persistence survives restart and the journal reflects the server state. |
 | AG-05 · P0 | A and B each request missions from the **same agent**; complete A's mission, decline/expire B's offer and immediately request another offer on A. | Agent/character/**offerID** identity is preserved; B's mission is not deleted or overwritten by A's cleanup. No stale completed offer blocks the next one. |
-| AG-06 · P0 | Accept an encounter; attempt Complete before objectives; then complete legitimately, reopen dialogue repeatedly and reconnect/restart. | Early completion cannot pay or remove objectives; successful completion pays **once**, closes active offer and never pays again on repeated Complete calls. Cross-check wallet journal and \`agtOffers\` state. |
+| AG-06 · P0 | Accept an encounter; attempt Complete before objectives; then complete legitimately, reopen dialogue repeatedly and reconnect/restart. | Early completion cannot pay or remove objectives; successful completion pays **once**, closes active offer and never pays again on repeated Complete calls. Cross-check wallet journal and `agtOffers` state. |
 | AG-07 · P1 | Defer an offered mission and test expiry in a disposable DB at the boundary; repeat while the character is offline and restart around expiry. | Both offered/deferred states become expired once; the wrong character's mission is not removed and server never dereferences a missing agent. Do not modify expiry timestamps on the live DB. |
 | AG-08 · P1 | Test courier mission item cleanup on an offline character with multiple stacks, including a partial stack and another unrelated stack of the same type. | Correct quantities and persisted inventory; no negative values or deletion of unrelated belongings. **Known remaining risk:** offline cleanup currently filters owner/type without strong mission provenance/location; treat unexpected deletion as a release blocker. |
 | AG-09 · P1 | Complete a timed bonus mission once just inside its acceptance-based bonus window, once outside, on separate test offers. | Correct bonus payout exactly once only when eligible; base reward is correct in both cases. Capture wallet before/after and accepted/complete timestamps. |
@@ -36,10 +36,10 @@
 
 **Example Windows 11 HTTP verification (use a real agent ID and the configured image host):**
 
-\`\`\`powershell
+```powershell
 curl.exe -sS -D agent-headers.txt -o agent-portrait.jpg "http://127.0.0.1:26001/Character/3010819_50.jpg"
 Get-Content .\agent-headers.txt
-\`\`\`
+```
 
 ## 2. Synthetic Blockade mission, ISK reward and persistence
 
@@ -56,19 +56,19 @@ Get-Content .\agent-headers.txt
 
 ## 3. Market seed and buyable containers
 
-**Caution:** \`evedbtool seed -force\` replaces eligible **NPC corporation** sell orders in the configured regions. Preview and take a backup; do not reseed a production market solely for this test.
+**Caution:** `evedbtool seed -force` replaces eligible **NPC corporation** sell orders in the configured regions. Preview and take a backup; do not reseed a production market solely for this test.
 
 | ID / priority | Reproduction | Expected pass condition / evidence |
 |---|---|---|
-| MK-01 · P0 | Check \`sql/evedb.yaml\` for test region and saturation; use \`evedbtool[.exe] seed -force -dryrun\`. Apply \`-force\` only on disposable staging DB. | Generated insert + cleanup SQL permits published market-listed container groups **12 cargo, 340 secure, 448 audit-log secure, 649 freight**, without permitting every Celestial type. |
+| MK-01 · P0 | Check `sql/evedb.yaml` for test region and saturation; use `evedbtool[.exe] seed -force -dryrun`. Apply `-force` only on disposable staging DB. | Generated insert + cleanup SQL permits published market-listed container groups **12 cargo, 340 secure, 448 audit-log secure, 649 freight**, without permitting every Celestial type. |
 | MK-02 · P0 | Open the Crucible Market UI in a seeded region; search each available container family. Review best sell order and selected station. | Published, market-group-assigned items have buyable NPC sell orders in seeded stations. A particular station is **not guaranteed** when saturation is below 100%. |
-| MK-03 · P0 | Purchase 1 of each available family with sufficient ISK; inspect station item hangar and wallet; undock/redock where appropriate. | Exactly one item of correct \`typeID\` arrives in purchaser inventory; ISK is debited once at the displayed price; order remaining volume updates consistently. |
+| MK-03 · P0 | Purchase 1 of each available family with sufficient ISK; inspect station item hangar and wallet; undock/redock where appropriate. | Exactly one item of correct `typeID` arrives in purchaser inventory; ISK is debited once at the displayed price; order remaining volume updates consistently. |
 | MK-04 · P1 | Place a separate player sell order in the test region, then reseed under backup/staging only. | Player-owned orders are preserved; appropriate NPC station-corporation orders refresh. |
 | MK-05 · P1 | Search station/debris/wreck/other nonmarket Celestial items. | Unrelated celestial items are **not** added to the NPC sell seed by the container change. |
 
 **Safe catalog query to identify candidates in MariaDB:**
 
-\`\`\`sql
+```sql
 SELECT it.typeID, it.typeName, ig.groupID, it.marketGroupID
 FROM invTypes AS it
 JOIN invGroups AS ig ON it.groupID = ig.groupID
@@ -76,9 +76,9 @@ WHERE it.published = 1
   AND it.marketGroupID IS NOT NULL
   AND ig.groupID IN (12, 340, 448, 649)
 ORDER BY ig.groupID, it.typeName;
-\`\`\`
+```
 
-For seeded sell orders, cross-check \`mktOrders\` by \`typeID\`, \`regionID\`, \`stationID\`, \`bid=0\` and \`volRemaining>0\`, and compare station owner corporation with \`staStations\`. Do not assume the seed succeeded just because a market category exists.
+For seeded sell orders, cross-check `mktOrders` by `typeID`, `regionID`, `stationID`, `bid=0` and `volRemaining>0`, and compare station owner corporation with `staStations`. Do not assume the seed succeeded just because a market category exists.
 
 ## 4. Combat drones: range, repeated attacks, return and persistence
 
@@ -86,7 +86,7 @@ Control-range rule intended by this fork: **20 km base + 5 km per Scout Drone Op
 
 | ID / priority | Reproduction | Expected pass condition / evidence |
 |---|---|---|
-| DR-01 · P0 | Without fitted range bonuses, test Scout/EW levels \`0/0\`, \`3/0\`, \`5/0\`, \`5/5\`. Order a new attack just inside/outside command range. | Command thresholds approximately **20/35/45/60 km**, allowing only rounding/distance presentation tolerances; outside commands are rejected without changing return orders. |
+| DR-01 · P0 | Without fitted range bonuses, test Scout/EW levels `0/0`, `3/0`, `5/0`, `5/5`. Order a new attack just inside/outside command range. | Command thresholds approximately **20/35/45/60 km**, allowing only rounding/distance presentation tolerances; outside commands are rejected without changing return orders. |
 | DR-02 · P0 | Deploy 1 light combat drone and then 5; assign stationary and moving NPC targets for 60+ seconds. | Repeated attack effects **and repeated shield/armor/hull changes** over multiple cycles; no first-shot-only bug or frozen shot timer. |
 | DR-03 · P0 | Issue attack while inside command range; let assigned NPC move outside that range while it remains locked, in the same bubble. Try a new command to a second distant NPC. | Existing assigned drone pursuit/fire continues while feasible; fresh out-of-range command is rejected. No accidental target reset to arbitrary nearby NPC. |
 | DR-04 · P0 | Toggle Passive/Aggressive and Focus Fire independently; order Return to Orbit and Return to Drone Bay while drones are attacking; issue an invalid attack command mid-return. | Independent settings remain unchanged unless explicitly toggled. Return is not cancelled by invalid attack; drone scoops when within roughly **2,500 m** subject to capacity. |
@@ -127,7 +127,7 @@ Use the original Crucible-era data/attributes and configured server combat multi
 
 ## 7. Exit criteria and defect template
 
-- [ ] **P0-CI** Final merged \`master\` CI at the actual deployed SHA is green for **Windows UCRT64, Linux GCC, CTest, EVEDBTool seed smoke checks, Docker**. Link the precise run; do not use earlier standalone PR runs as proof of combined master.
+- [ ] **P0-CI** Final merged `master` CI at the actual deployed SHA is green for **Windows UCRT64, Linux GCC, CTest, EVEDBTool seed smoke checks, Docker**. Link the precise run; do not use earlier standalone PR runs as proof of combined master.
 - [ ] **P0-CLIENT** Complete AG-01/02/04/05/06; BL-01/02/03/04; MK-01/02/03; DR-01/02/03/04; WP-01/02/03/07; WA-01/02/03/07 with two characters where applicable.
 - [ ] **P0-INTEGRITY** Confirm no double payouts, negative wallet or inventory quantities, unintended player-market order removal, bad cross-character mission cache effects, or warp client/server desynchronization.
 - [ ] **P1-REGRESSION** Run the remaining P1 cases as time permits; open separately scoped issues for non-blocking defects and mark unsupported systems as known limitations.
@@ -135,7 +135,7 @@ Use the original Crucible-era data/attributes and configured server combat multi
 
 **Issue template:**
 
-\`\`\`text
+```text
 Title: [Crucible QA][P0/P1] <subsystem> — <observed failure>
 Test ID:
 Deployed BUILD-INFO.txt SHA:
@@ -150,7 +150,7 @@ Server log excerpt / CTest / SQL result:
 Client video/screenshot / HTTP trace:
 Frequency (e.g. 3 of 3):
 Regression compared with which build:
-\`\`\`
+```
 
 ## Reference audits in this repository
 
