@@ -139,7 +139,7 @@ public:
     /* virtual functions default to base class and overridden as needed */
     virtual void                Killed(Damage &damage);
     virtual void                Init();
-    virtual void                InitData();
+    virtual bool                InitData();
     virtual void                Scoop();
 
     /* virtual functions to be overridden in derived classes */
