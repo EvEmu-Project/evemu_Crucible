@@ -1,3 +1,21 @@
+## 16 Nov 2026 — Maurasi station assembled container transfer crash triage
+
+The operator confirms station entry now works with locally served character portraits, but moving items into an assembled container crashes the **server**. The 209-line attached log shows sixteen identical unsymbolized stack traces during initial station load (before subsequent normal services); the actual fatal instruction cannot be established from those traces alone.
+
+Source audit and defensive fixes on PR #25:
+- Fix `Mission_Container` group mismatch in `CargoContainer::_LoadItem` that could emit `traceStack()` when this group is loaded.
+- Protect `Inventory::ValidateAddItem` from null source inventory references and missing in-space ship sessions; refuse self-insertion.
+- Stop ignoring failed capacity checks in `InventoryBound::MoveItems`, reject missing source items/destination inventories, and skip null/empty multi-add sort entries.
+- Prevent dereference of a missing parent cache entry in `ItemFactory::GetItemContainerRef` and `GetItemContainerInventory`.
+- Fix undefined uninitialized `std::pair` use and duplicate flag entries in `Inventory::AddItem`.
+- Reject `InventoryBound` creation for objects without an inventory; preserve assembled hangar containers when empty instead of auto-deleting them.
+- Emit `StationContainerTransfer BEGIN/END` logs around the destination capacity check and item donation; extend CI source safety checks.
+- Step-by-step QA and dump guidance: [Station assembled container transfer runbook](docs/CRUCIBLE_STATION_CONTAINER_TRANSFER_CRASH_TRIAGE_2026-11-16.md).
+
+**Caution:** These are real source defects and defensive corrections, but without a symbolized crash dump and live reproduction we cannot claim a confirmed fix for the fatal exception. No schema changes or reseeding.
+
+---
+
 ## 16 Nov 2026 update — file-backed 50px agent portraits (PR #25 follow-up)
 
 - The initial PR #25 embedded 322-byte 50x50 JPEG did not prevent the user's Crucible client crash. It also intercepted every NPC agent 50px request **before filesystem access**.
