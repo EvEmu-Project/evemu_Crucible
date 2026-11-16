@@ -328,7 +328,9 @@ void MailDB::EditLabel(int characterID, int labelID, const std::string& name, in
 
 void MailDB::ApplyLabel(int32 messageID, int labelID)
 {
-    int bit = BitFromLabelID(labelID);
+    const int bit = BitFromLabelID(labelID);
+    if (bit < 0 || bit > 30)
+        return;
     ApplyLabelMask(messageID, (1 << bit));
 }
 
@@ -493,14 +495,14 @@ void MailDB::RemoveLabelMasks(std::vector<int32> messageIDs, int mask, uint32 ch
 
 int MailDB::BitFromLabelID(int id)
 {
-    // lets hope the compiler can do this better; I guess it still beats a floating point log, though
-    for (int i = 0; i < (sizeof(int)*8); i++)
-        if ((id & (1 << i)) > 0)
+    // Label IDs are one-hot bit masks. Reject zero/negative or multi-bit
+    // values so a malformed client request cannot affect the Inbox bit.
+    if (id <= 0 || (id & (id - 1)) != 0)
+        return -1;
+    for (int i = 0; i <= 30; ++i)
+        if (id == (1 << i))
             return i;
-
-    // This just gets rid of a warning, code execution should never reach here.
-    sLog.Error(" MailDB::BitFromLabelID" , " ERROR: Could not get bit." );
-    return 0;
+    return -1;
 }
 
 PyDict *MailDB::GetJoinedMailingLists(uint32 characterID)
