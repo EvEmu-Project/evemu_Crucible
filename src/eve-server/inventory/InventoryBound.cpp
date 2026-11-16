@@ -658,8 +658,17 @@ std::vector< int32 > InventoryBound::CatSortItems(std::vector< InventoryItemRef 
      *   -allan
      */
     std::vector<int32> items;
-    if (itemVec.size() < 2) {
-        items.push_back(itemVec.at(0)->itemID());
+    // Invalid item IDs in a MultiAdd request must not crash CatSortItems.
+    std::vector<InventoryItemRef> validItems;
+    for (const auto& item : itemVec) {
+        if (item.get() != nullptr)
+            validItems.push_back(item);
+    }
+    itemVec.swap(validItems);
+    if (itemVec.empty())
+        return items;
+    if (itemVec.size() == 1) {
+        items.push_back(itemVec.front()->itemID());
         return items;
     }
 
