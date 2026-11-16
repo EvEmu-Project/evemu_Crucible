@@ -1,5 +1,7 @@
 # Offline station-agent portraits — implementation and rollout (15 November 2026)
 
+> **DISABLED after Crucible station-load crash (16 November 2026):** Serving NPC station-agent JPEGs was rolled back for client compatibility. Current server builds return **HTTP 404** for all agent portrait requests before reading the image cache. **Do not follow historical portrait-import instructions below** until a client-verified fix is available. See [safety rollback](AGENT_STATION_PORTRAIT_ROLLBACK_2026-11-16.md).
+
 ## Goal
 
 A Crucible client requesting `GET /Character/{agentID}_50.jpg` from the **local** EVEmu image server must never need to follow an external HTTP or HTTPS redirect for NPC agents. The server must work with Windows 11, Linux GCC and Docker while preserving existing player portraits and non-agent image behavior.
