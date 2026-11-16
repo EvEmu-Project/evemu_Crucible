@@ -1851,11 +1851,14 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const std::string& descript
         if (i < N - 1) query += ", ";
     }
 
-    query += " WHERE corporationID = %u";
+    query += " WHERE corporationID = ";
+    query += std::to_string(corpID);
 
-    // only update if there is anything to update
-    if ((N > 0) && (!sDatabase.RunQuery(res.error, query.c_str(), corpID))) {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
+    // Do not use dynamically generated SQL as a printf format. Corporation
+    // descriptions/URLs can legitimately contain '%', which would otherwise
+    // be treated as a format directive by DBcore::RunQuery.
+    if ((N > 0) && (!sDatabase.RunQuery(res.error, "%s", query.c_str()))) {
+        codelog(CORP__DB_ERROR, "Error updating corporation %u: %s", corpID, res.error.c_str());
         return false;
     }
 
