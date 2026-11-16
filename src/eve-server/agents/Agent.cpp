@@ -46,7 +46,12 @@ bool NormalizeBlockadeTestOffer(MissionOffer& offer)
         offer.rewardISK = Mission::kBlockadeSecurityTestRewardISK;
         changed = true;
     }
-    if (offer.courierAmount == 0) {
+    // Upgrade pending legacy offers to the 12-ship target. Accepted
+    // 24-ship sites may still exist, so preserve their active kill target.
+    if (offer.courierAmount == 0
+        || (offer.courierAmount == 24
+            && (offer.stateID == Mission::State::Allocated
+                || offer.stateID == Mission::State::Offered))) {
         offer.courierAmount = Mission::kBlockadeSecurityTestRequiredKills;
         changed = true;
     }

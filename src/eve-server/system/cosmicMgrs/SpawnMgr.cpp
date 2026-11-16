@@ -12,6 +12,7 @@
 #include <algorithm>
 
 #include "StaticDataMgr.h"
+#include "EVE_Missions.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 #include "system/DestinyManager.h"
@@ -33,7 +34,7 @@ static bool IsMissionNPCGroup(const Inv::GrpData& group)
             && group.name.compare(0, 9, "Asteroid ") == 0);
 }
 
-// Synthetic Blockade mission 65535 uses a 24-ship Angel Cartel fleet.
+// Synthetic Blockade mission 65535 uses 12 Angel Cartel cruisers and battlecruisers.
 // These are the verified Angel Cartel NPC group IDs. In particular, group
 // 552 is Battleships (not Cruisers), while group 576 is BattleCruisers.
 // Keep the expected group name alongside each ID so a mismatched static-data
@@ -53,9 +54,7 @@ struct BlockadeTestShip
 };
 
 static const BlockadeTestShipClass kAngelCartelBlockadeTestMix[] = {
-    {550, "Asteroid Angel Cartel Frigate", 12},
-    {575, "Asteroid Angel Cartel Destroyer", 4},
-    {551, "Asteroid Angel Cartel Cruiser", 4},
+    {551, "Asteroid Angel Cartel Cruiser", 8},
     {576, "Asteroid Angel Cartel BattleCruiser", 4}
 };
 
@@ -572,7 +571,7 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
     // Mission 65535 is a synthetic test encounter. Spawn the supplied Angel
     // Cartel inventory types directly so it is independent of incomplete or
     // unrelated imported mission-dungeon room data.
-    if (missionID == 65535) {
+    if (missionID == Mission::kBlockadeSecurityTestMissionID) {
         const uint32 angelCartelFactionID = 500011;
         const uint32 angelCartelCorporationID = 1000138;
         FactionData factionData = FactionData();
@@ -622,7 +621,7 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
             }
         }
 
-        const uint32 fleetSize = 24;
+        const uint32 fleetSize = Mission::kBlockadeSecurityTestRequiredKills;
         if (selectedFleet.size() != fleetSize) {
             _log(SPAWN__ERROR,
                 "Blockade test fleet composition incomplete: selected %u of %u ships (%u group errors).",
@@ -726,7 +725,7 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
         return true;
     }
 
-    const bool blockadeTestMission = (missionID == 65535);
+    const bool blockadeTestMission = (missionID == Mission::kBlockadeSecurityTestMissionID);
 
     // Mission dungeon metadata is more authoritative than the agent's faction:
     // the dungeon template identifies the actual opposing NPC faction and its
