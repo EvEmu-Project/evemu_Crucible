@@ -26,6 +26,7 @@
 /** @todo  boost is the only system in this code that does NOT leak */
 
 #include "EVE_ImageHelpers.h"
+#include "EVE_LegacyAgentThumbnail.h"
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerListener.h"
 
@@ -120,6 +121,20 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
 
     if (!ValidateCategory(category) || !ValidateSize(category, size))
         return std::shared_ptr<std::vector<char> >();
+
+    // Crucible-era station agents need a usable *50x50 baseline JPEG*.
+    // Earlier implementations returned 301/404 or a 128px JPEG for a 50px
+    // request, all correlated with a client exit while opening a station.
+    // This tiny compiled-in neutral JPEG is not an NPC likeness. It cannot be
+    // replaced by a stale cache entry or hidden by the working directory.
+    if (EvEImage::IsLegacyAgentThumbnail50(category, id, size)) {
+        sLog.Debug("      ImageServer",
+                   "Serving exact 50x50 baseline JPEG placeholder for agent %u.",
+                   id);
+        return std::make_shared<std::vector<char>>(
+            EvEImage::kLegacyAgentThumbnail50,
+            EvEImage::kLegacyAgentThumbnail50 + EvEImage::kLegacyAgentThumbnail50Bytes);
+    }
 
     //std::ifstream stream;
     std::string path(GetFilePath(category, id, size));
