@@ -17,7 +17,8 @@ insert into tStations
 -- actual seeding
 INSERT INTO mktOrders (typeID, ownerID, regionID, stationID, price, volEntered, volRemaining, issued,
 minVolume, duration, solarSystemID, jumps)
-  SELECT typeID, corporationID, regionID, stationID, basePrice / security,
+  SELECT typeID, corporationID, regionID, stationID,
+         CASE WHEN basePrice IS NULL OR basePrice <= 0 THEN 100 ELSE basePrice END,
          CASE WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
          CASE WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
          132478179209572976, 1, 250, solarSystemID, 1
@@ -42,8 +43,7 @@ SELECT
     stations.stationId,
     CASE
         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100
-        WHEN stations.security <= 0 THEN it.basePrice
-        ELSE it.basePrice / stations.security
+        ELSE it.basePrice
     END,
     10,
     10,
@@ -66,5 +66,8 @@ WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN
         AND existing.bid = 0
   );
 
-UPDATE mktOrders SET price = 100 WHERE price = 0;
+-- Do not update unrelated/player-created orders. Only this script's new
+-- rows use the 100 ISK fallback for items without a positive reference value.
+-- Existing market prices should be normalized with the separate, scoped SQL
+-- repair in sql/diagnostics rather than a blanket UPDATE.
 
