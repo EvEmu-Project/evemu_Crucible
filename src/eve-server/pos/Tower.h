@@ -35,7 +35,7 @@ public:
 
     /* virtual functions default to base class and overridden as needed */
     virtual void                Init();
-    virtual void                InitData();
+    virtual bool                InitData();
 
     /* virtual functions to be overridden in derived classes */
     virtual void     MissileLaunched(Missile* pMissile) { /* Do nothing here */ }
