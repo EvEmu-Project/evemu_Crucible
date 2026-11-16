@@ -1,3 +1,13 @@
+## 16 Nov 2026 — PR #25 runtime-confirmed station container fix and 0.8.7-Rizonx server revision
+
+- **Operator runtime-confirmed:** assembled Giant Secure Container **140002461** (named `Test`) can be renamed, loaded with items, and emptied into the station hangar without crashing the server or the Crucible client. Stack splitting works and contents persist over server restarts.
+- **SQL evidence:** eight valid-looking mineral stacks with owner **90000000** and container location **140002461**; an indexed inventory lookup uses existing `idx_entity_location_item` (`ref` access), so no duplicate index or data repair is indicated.
+- Set the human-readable `EVEMU_REVISION` display to **0.8.7-Rizonx**; EVE Crucible client version **7.31**, build **360229** and MachoNet **320** remain unchanged. Windows/Linux packages label their `BUILD-INFO.txt` accordingly.
+- **Still pending:** POS tower/module lifecycle, inventory edge cases and nested-container rejections, customs-office persistence, multi-character permissions, end-to-end Windows packaging, and CI verification for the new version-bump head. Full operator-checkable list: [PR #25 in-game QA acceptance checklist](docs/PR25_INGAME_VALIDATION_CHECKLIST.md).
+- Do not conflate a tested in-station container fix with blanket approval of all POS/ship/corp inventory systems. The earlier source/audit notes below are historical and were written before the user confirmed the in-game fix.
+
+---
+
 ## 16 Nov 2026 — Maurasi station assembled container transfer crash triage
 
 The operator confirms station entry now works with locally served character portraits, but moving items into an assembled container crashes the **server**. The 209-line attached log shows sixteen identical unsymbolized stack traces during initial station load (before subsequent normal services); the actual fatal instruction cannot be established from those traces alone.
