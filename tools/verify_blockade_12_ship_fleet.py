@@ -22,7 +22,8 @@ assert "const uint32 fleetSize = Mission::kBlockadeSecurityTestRequiredKills;" i
 assert "if (selectedFleet.size() != fleetSize)" in spawn
 assert briefings.count('"- 8 cruisers\\n"') == 4
 assert briefings.count('"- Destroy 8 cruisers\\n"') == 1
-assert briefings.count('"- 4 battlecruisers\\n\\n"') == 5
+assert briefings.count('"- 4 battlecruisers\\n\\n"') == 4
+assert briefings.count('"- Destroy 4 battlecruisers\\n\\n"') == 1
 assert 'Kills confirmed: 0 / 12' in briefings
 assert '"- 12 frigates\\n"' not in briefings
 assert '"- 4 destroyers\\n"' not in briefings
