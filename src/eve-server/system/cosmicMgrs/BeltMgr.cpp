@@ -266,7 +266,7 @@ bool BeltMgr::Create(CosmicSignature& sig, std::unordered_multimap<float, uint16
 {
     // register this as a belt.
     SystemEntity* pSE = m_system->GetSE(sig.sigItemID);
-    if (pSE == nullptr)
+    if (pSE == nullptr || pSE->SysBubble() == nullptr)
         return false;
     pSE->SysBubble()->SetBelt(pSE->GetSelf());
     SpawnBelt(pSE->SysBubble()->GetID(), roidTypes, 0, true);
@@ -283,7 +283,7 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
         return;
 
     SystemEntity* pSE = m_system->GetSE(beltID);
-    if (pSE == nullptr)
+    if (pSE == nullptr || pSE->SysBubble() == nullptr)
         return;
 
     bool ice = (pSE->GetTypeID() == 17774);
