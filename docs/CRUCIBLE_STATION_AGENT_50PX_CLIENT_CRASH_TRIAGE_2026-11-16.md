@@ -20,6 +20,12 @@ For **`Character` category, 3,000,000–3,999,999 NPC IDs, size exactly 50**:
 - **Other Character image IDs/sizes** keep their existing safe behavior: valid local JPEG if present, otherwise 404 with no modern HTTPS redirect. Corporation, alliance, inventory icon and render images retain their earlier routing; all local 200 images gain explicit HTTP body length and close semantics.
 - The test uses the **actual embedded bytes**, verifying length, JFIF SOI/EOI and baseline SOF0 dimensions of 50 × 50. The original opt-in agent portrait importer remains deleted, and no external agent portrait is restored.
 
+## Normal TCP teardown warning is not crash evidence
+
+The `[ThreadWarning] Destroying TCPConnection for thread 0x1` line came from an **unconditional log statement in the TCPConnection destructor**. It was printed every time a connection object was released. Worse, it passed a `std::thread::id` C++ object directly to a `%X` integer formatter, and `Threading::CreateThread` likewise formatted `get_id()` after the thread had already been detached. This patch changes the destructor line to a trace-level event with an actual stringified thread ID, captures the thread ID before detach, and replaces incorrect `%X` pointer placeholders with `%p`.
+
+These repairs eliminate misleading telemetry and undefined formatting behavior, but **do not explain why the EVE client chose to disconnect**.
+
 ## Independent agent and inventory bugs corrected
 
 The audit of agent mission, inventory and container code found these issues. The provided crash log does *not* show any corresponding agent RPC or AssembleCargoContainer call, so these are preventive reliability repairs, not claimed client crash root causes.
