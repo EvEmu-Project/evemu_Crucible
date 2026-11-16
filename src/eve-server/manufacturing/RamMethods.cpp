@@ -78,20 +78,10 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
             pType = &bpRef->type();
         } break;
         case EvERam::Activity::Invention: {
-            // The current completion path returns a hard-coded success with
-            // outputTypeID/outputItemID = 0. Reject installation rather than
-            // taking datacores and runs for an impossible output.
+            // The completion path still returns placeholder success with
+            // outputTypeID = 0. Do not consume datacores, runs or ISK until
+            // blueprint invention is fully implemented.
             throw UserError("RamActivityInvalid");
-            if (!bpRef->copy() or bpRef->infinite())
-                throw UserError ("RamCannotInventABlueprintOriginal");
-
-            uint32 pTypeID = FactoryDB::GetTech2Blueprint(bpRef->typeID());
-            if (pTypeID == 0)
-                throw UserError ("RamInventionNoOutput");
-            if (bpRef->runs() < 1)
-                throw UserError ("RamTooManyProductionsRuns");
-
-            pType = &bpRef->productType();
         } break;
         case EvERam::Activity::ReverseEngineering:  // RE is ONLY at experimental POS module...cannot do RE in stations.  right now, this will never hit.
         case EvERam::Activity::ResearchTech:    // cannot find any reference to this.  not used?
