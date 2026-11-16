@@ -1,3 +1,37 @@
+## Confirmed underlying source bug — assembled containers inherited POS-only operations
+
+A subsequent live test reported that **both** placing items into assembled
+containers and **renaming** the container terminated the Windows server, even
+though run #43844019748 built cleanly on all platforms. Inspection of
+`src/eve-server/pos/Structure.cpp` established the shared failure mechanism:
+
+- `CargoContainer` derives from `StructureItem`. Its `AddItem()` inherited
+  `StructureItem::AddItem()`, which unconditionally executed
+  `mySE->IsCOSE()` after the inventory insertion.
+- Its inherited `Rename()` unconditionally executed
+  `mySE->GetPOSSE()->GetState()` before applying any name change.
+- `StructureItem::StructureItem()` had not initialized its `mySE` pointer.
+  Station-hangar containers have no in-space system entity, so *both* calls
+  dereferenced an uninitialized/absent pointer (undefined behaviour, likely
+  access violation), exactly matching the two reproducible user actions.
+- The derived `CargoContainer` constructor redundantly allocated
+  `pInventory` a second time despite `StructureItem` already allocating it,
+  leaking the first `Inventory` reference.
+
+**Fixes:** initialize the base POS entity pointer to `nullptr`; require
+a valid customs-office entity for the POS-specific verification in
+`StructureItem::AddItem()`; reject missing entities gracefully in
+`StructureItem::Rename()`; override `CargoContainer::Rename()` to use
+`InventoryItem::Rename()` for normal assembled cargo containers (while
+retaining the unanchored-in-space restriction); eliminate the redundant
+inventory allocation. Extend the CI source invariants to check these conditions.
+
+This is a **directly verifiable source cause**, not a runtime-proven resolution:
+Windows CI and manual tests of drag-in, drag-out, rename, and persistence after
+restart are still required. The previous source hardening below remains useful.
+
+---
+
 # Crucible assembled container crash: local station transfer hardening
 Date: 16 November 2026
 
