@@ -59,6 +59,9 @@ public:
 
     std::string GetFilePath(std::string& category, uint32 id, uint32 size);
     std::shared_ptr<std::vector<char> > GetImage(std::string& category, uint32 id, uint32 size);
+    // Original bundled, license-safe generic agent JPEG decoded once and
+    // served without relying on the server's current working directory.
+    std::shared_ptr<std::vector<char> > GetOfflineAgentPortrait();
 
     static const char *const Categories[];
     static const uint32 CategoryCount;

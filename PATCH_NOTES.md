@@ -1,5 +1,12 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-16 — Fix container assembly and working-directory-dependent agent portrait fallback
+
+- Implemented the existing Crucible `invbroker.AssembleCargoContainer(itemID, None, 0.0)` RPC. Previously it only logged a warning and returned without assembling. Restricts operations to personally owned station containers in historical groups **12/340/448/649**, splitting **one** item from multi-item packaged stacks, setting the singleton state and updated volume, notifying inventory and explicitly saving to DB.
+- Preserved client-owned items and station checks; non-container, already assembled, corp-owned and remote items are not mutated by the new path. Existing generic inventory splitting remains nontransactional on DB failure; run on a backed-up staging server first.
+- Fixed image-server warnings such as agent **3011918** by embedding the exact neutral JPEG `assets/agent_portraits/agent_missing_512.jpg` directly into the executable as the last fallback for uncached NPC agent images, rather than relying on `../share/evemu` relative to the process working directory. Local per-agent portraits and operator-supplied placeholder files still take precedence, with no HTTP redirect.
+- Added `ContainerAssemblyTest` to CTest and exact-byte embedded-JPEG Python regression coverage. Gameplay verification remains pending; see [implementation and operator verification](docs/CONTAINER_ASSEMBLY_AND_AGENT_FALLBACK_FIX_2026-11-16.md).
+
 ## 2026-11-15 — Offline Crucible station-agent portraits
 
 - Removed external HTTPS redirection for missing NPC station-agent character portraits (legacy 3,000,000–3,999,999 IDs); the local image server now serves exact or alternative cached JPEG sizes, or a bundled original generic silhouette when no historic portrait exists.

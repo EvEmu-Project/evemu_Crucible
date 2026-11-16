@@ -31,6 +31,7 @@
 
 #include "EntityList.h"
 
+#include "EVE_ContainerHelpers.h"
 #include "StaticDataMgr.h"
 #include "inventory/InvBrokerService.h"
 #include "inventory/InventoryBound.h"
@@ -434,24 +435,62 @@ PyResult InvBrokerBound::TrashItems(PyCallArgs &call, PyList* itemIDs, PyInt* lo
  */
 
 PyResult InvBrokerBound::AssembleCargoContainer(PyCallArgs &call, PyInt* itemID, PyNone* none, PyFloat* zero) {
-    /* invMgr.AssembleCargoContainer(invItem.itemID, None, 0.0)
-     *
-     * 14:37:46 [BindDump]   Call Arguments:
-     * 14:37:46 [BindDump]       Tuple: 3 elements
-     * 14:37:46 [BindDump]         [ 0] Integer field: 140000489
-     * 14:37:46 [BindDump]         [ 1] (None)
-     * 14:37:46 [BindDump]         [ 2] Real field: 0.000000
-     *
-     * 14:37:46 L InvBrokerBound::Handle_AssembleCargoContainer(): [00msize= 3
-     * 14:37:46 [InvMsg]   Call Arguments:
-     * 14:37:46 [InvMsg]       Tuple: 3 elements
-     * 14:37:46 [InvMsg]         [ 0] Integer field: 140000489
-     * 14:37:46 [InvMsg]         [ 1] (None)
-     * 14:37:46 [InvMsg]         [ 2] Real field: 0.000000
-     */
+    // Crucible client: invMgr.AssembleCargoContainer(invItem.itemID, None, 0.0)
+    // The previous implementation logged this call and always returned without
+    // changing the inventory item's packaged/singleton state.
+    (void)none;
+    (void)zero;
 
-    sLog.Warning( "InvBrokerBound::Handle_AssembleCargoContainer()", "size=%lu", call.tuple->size());
-    call.Dump(INV__DUMP);
+    const uint32 containerID = itemID->value();
+    InventoryItemRef item = sItemFactory.GetItemRef(containerID);
+    if (item.get() == nullptr) {
+        _log(INV__ERROR, "AssembleCargoContainer: cannot load item %u.", containerID);
+        return nullptr;
+    }
+
+    const uint32 characterID = call.client->GetCharacterID();
+    const uint32 stationID = call.client->GetStationID();
+    if (item->ownerID() != characterID) {
+        _log(INV__WARNING, "AssembleCargoContainer: character %u cannot assemble item %u owned by %u.",
+             characterID, containerID, item->ownerID());
+        throw UserError("CantDoThatWithSomeoneElsesStuff");
+    }
+
+    if (!EvEContainer::CanAssembleCargoContainer(item->groupID(), item->isSingleton(),
+                                                  item->quantity(), item->ownerID(),
+                                                  characterID, item->locationID(), stationID,
+                                                  call.client->IsDocked())) {
+        _log(INV__WARNING,
+             "AssembleCargoContainer: rejected item=%u group=%u qty=%d singleton=%u location=%u station=%u docked=%u.",
+             containerID, item->groupID(), item->quantity(), item->isSingleton() ? 1u : 0u,
+             item->locationID(), stationID, call.client->IsDocked() ? 1u : 0u);
+        return nullptr;
+    }
+
+    // Assembling a quantity-one stack changes its own itemID to a singleton.
+    // For a larger purchased stack, split off exactly ONE so other packaged
+    // containers remain in the original stack. Split() notifies both items.
+    InventoryItemRef assembled = item;
+    if (item->quantity() > 1) {
+        assembled = item->Split(1, true, false);
+        if (assembled.get() == nullptr) {
+            _log(INV__ERROR, "AssembleCargoContainer: failed to split one unit from stack %u.", containerID);
+            return nullptr;
+        }
+
+        // Persist original stack quantity even with saveOnUpdate disabled.
+        item->SaveItem();
+    }
+
+    if (!assembled->ChangeSingleton(true, true)) {
+        _log(INV__ERROR, "AssembleCargoContainer: failed to set singleton on item %u.", assembled->itemID());
+        return nullptr;
+    }
+    // Preserve the assembled state across restarts regardless of server
+    // saveOnUpdate setting; ChangeSingleton updates item volume and notifies.
+    assembled->SaveItem();
+    _log(INV__MESSAGE, "AssembleCargoContainer: character=%u source=%u assembled=%u type=%u originalQty=%d.",
+         characterID, containerID, assembled->itemID(), assembled->typeID(), item->quantity());
 
     return nullptr;
 }
