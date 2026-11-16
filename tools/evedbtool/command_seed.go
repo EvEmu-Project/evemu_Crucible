@@ -319,7 +319,7 @@ SELECT
     -- Types with no positive basePrice use the existing 100 ISK fallback.
     CASE
         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100
-        ELSE it.basePrice
+        ELSE GREATEST(0.01, ROUND(it.basePrice, 2))
     END,
     CASE WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END,
     CASE WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END,
@@ -366,7 +366,7 @@ SELECT
     -- Types with no positive basePrice use the existing 100 ISK fallback.
     CASE
         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100
-        ELSE it.basePrice
+        ELSE GREATEST(0.01, ROUND(it.basePrice, 2))
     END,
     10,
     10,
