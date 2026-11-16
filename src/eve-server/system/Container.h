@@ -67,6 +67,7 @@ public:
      * Primary public interface:
      */
     virtual void Delete();
+    virtual void Rename(std::string name) override;
 
     double GetCapacity(EVEItemFlags flag) const;
     /*
