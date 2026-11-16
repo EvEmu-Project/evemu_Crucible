@@ -140,7 +140,7 @@ PyResult MailMgrService::AssignLabels(PyCallArgs &call, PyList* messageIDs, PyIn
         messageIds.push_back(t->value());
     }
 
-    m_db.ApplyLabels(messageIds, labelID->value());
+    m_db.ApplyLabels(messageIds, labelID->value(), call.client->GetCharacterID());
 
     return nullptr;
 }
@@ -177,7 +177,7 @@ PyResult MailMgrService::DeleteMail(PyCallArgs &call, PyList* messageIDs)
 
     for (int i = 0; i < messageIds.size(); i++) {
         int32 messageID = messageIds[i];
-        m_db.DeleteMail(messageID);
+        m_db.DeleteMail(messageID, call.client->GetCharacterID());
     }
 
     return nullptr;
@@ -198,6 +198,10 @@ PyResult MailMgrService::EmptyTrash(PyCallArgs &call)
 
 PyResult MailMgrService::GetBody(PyCallArgs &call, PyInt* messageID, PyBool* isUnread)
 {
+    // Every message is shared by all recipients; mailStatus is the per-user
+    // access control row. Do not expose another character's compressed body.
+    if (!m_db.IsMailRecipient(messageID->value(), call.client->GetCharacterID()))
+        return PyStatic.NewNone();
     if (!isUnread->value()) {
         m_db.SetMailUnread(messageID->value());
     } else {
@@ -247,7 +251,7 @@ PyResult MailMgrService::MarkAsRead(PyCallArgs &call, PyList* messageIDs)
         messageIds.push_back(t->value());
     }
 
-    m_db.SetMailsRead(messageIds);
+    m_db.SetMailsRead(messageIds, call.client->GetCharacterID());
 
     return nullptr;
 }
@@ -279,7 +283,7 @@ PyResult MailMgrService::MarkAsUnread(PyCallArgs &call, PyList* messageIDs)
         messageIds.push_back(t->value());
     }
 
-    m_db.SetMailsUnread(messageIds);
+    m_db.SetMailsUnread(messageIds, call.client->GetCharacterID());
 
     return nullptr;
 }
@@ -336,7 +340,7 @@ PyResult MailMgrService::MoveFromTrash(PyCallArgs &call, PyList* messageIDs)
         messageIds.push_back(t->value());
     }
 
-    m_db.RemoveStatusMasks(messageIds, mailStatusMaskTrashed);
+    m_db.RemoveStatusMasks(messageIds, mailStatusMaskTrashed, call.client->GetCharacterID());
 
     return nullptr;
 }
@@ -356,7 +360,7 @@ PyResult MailMgrService::MoveToTrash(PyCallArgs &call, PyList* messageIDs)
         messageIds.push_back(t->value());
     }
 
-    m_db.ApplyStatusMasks(messageIds, mailStatusMaskTrashed);
+    m_db.ApplyStatusMasks(messageIds, mailStatusMaskTrashed, call.client->GetCharacterID());
 
     return nullptr;
 }
@@ -386,7 +390,7 @@ PyResult MailMgrService::RemoveLabels(PyCallArgs &call, PyList* messageIDs, PyIn
         messageIds.push_back(t->value());
     }
 
-    m_db.RemoveLabels(messageIds, labelID->value());
+    m_db.RemoveLabels(messageIds, labelID->value(), call.client->GetCharacterID());
 
     return nullptr;
 }
