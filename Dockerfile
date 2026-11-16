@@ -31,7 +31,6 @@ COPY cmake/ /src/cmake/
 COPY dep/ /src/dep/
 COPY src/ /src/src/
 COPY utils/ /src/utils/
-COPY assets/ /src/assets/
 
 # Create necessary directories
 RUN mkdir -p /src/build /app /app/logs /app/server_cache /app/image_cache

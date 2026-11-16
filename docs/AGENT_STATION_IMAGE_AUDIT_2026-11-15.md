@@ -1,5 +1,7 @@
 # Agent services and station portraits — source audit (15 November 2026)
 
+> **DISABLED after Crucible station-load crash (16 November 2026):** Serving NPC station-agent JPEGs was rolled back for client compatibility. Current server builds return **HTTP 404** for all agent portrait requests before reading the image cache. **Do not follow historical portrait-import instructions below** until a client-verified fix is available. See [safety rollback](AGENT_STATION_PORTRAIT_ROLLBACK_2026-11-16.md).
+
 ## Scope and observed problem
 
 The user reported missing portraits for agents in stations. The audit reviewed `AgentMgrService`, `AgentDB`, `ManagerDB::GetAgents`, `AgentBound`, `Agent`, and the legacy HTTP image server. This is a source audit; no live client HTTP capture or MariaDB runtime query was available during this pass.

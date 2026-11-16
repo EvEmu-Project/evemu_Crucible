@@ -60,7 +60,7 @@ class AgentPortraitCacheTest(unittest.TestCase):
             self.assertEqual(
                 import_offline_portraits(archive, [3010819, 3999999], target), 0)
 
-    def test_bundled_fallback_is_a_real_jpeg(self):
+    def test_archived_source_jpeg_remains_valid_but_is_not_served(self):
         root = Path(__file__).resolve().parents[2]
         image = root / "assets/agent_portraits/agent_missing_512.jpg"
         self.assertTrue(image.is_file(), str(image))

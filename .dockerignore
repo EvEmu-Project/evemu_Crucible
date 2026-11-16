@@ -22,7 +22,5 @@ cmake-build-*/
 !src/**
 !utils/
 !utils/**
-!assets/
-!assets/**
 !sql/
 !sql/**

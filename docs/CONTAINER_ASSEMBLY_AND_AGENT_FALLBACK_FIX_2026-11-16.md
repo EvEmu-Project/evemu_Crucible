@@ -1,5 +1,7 @@
 # Crucible regression repair: cargo container assembly and station-agent portrait fallback
 
+> **DISABLED after Crucible station-load crash (16 November 2026):** Serving NPC station-agent JPEGs was rolled back for client compatibility. Current server builds return **HTTP 404** for all agent portrait requests before reading the image cache. **Do not follow historical portrait-import instructions below** until a client-verified fix is available. See [safety rollback](AGENT_STATION_PORTRAIT_ROLLBACK_2026-11-16.md).
+
 **Date:** 16 November 2026  
 **Reports from running Crucible client:**
 - `07:19:18 W Image Server: Local agent portrait and fallback missing for agent 3011918.`
