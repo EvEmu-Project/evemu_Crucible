@@ -1,12 +1,12 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
-## 2026-11-16 — Remove offline agent portrait feature; isolate all Character images
+## 2026-11-16 — Completely remove experimental agent image feature and restore original HTTP handler
 
-- Operator reports **Crucible station-load crash persists after PR #21** disabled NPC agent images. New log shows 16 identical repeated server stack traces during initialization of Maurasi (30000140), then station service RPCs and client logout; **there are no Image Server requests in that excerpt**, so portraits are not established as the root cause.
-- Deleted the experimental offline NPC agent portrait importer scripts and the generic fallback JPEG asset, and removed the agent-ID-specific image helper/test. ImageServer.cpp and .h were already restored to their pre-portrait versions.
-- For a definitive image-isolation test, **all `Character` image requests now return HTTP 404 before cache reads or redirects**, including player portraits (temporarily blank). Non-Character image types remain unchanged. This avoids replacing one incompatible JPEG or redirect with another.
-- Retains the complete PR #20 **Assemble Container** implementation, all agent mission and inventory logic, 50 million ISK test Blockade reward, market seeding, drones, weapons and warp tunnel work.
-- Added a source regression to CI and documented the exact diagnostic procedure. Client crash remains **unresolved pending a clean rebuild/deploy and captured client crash dump**; the repeated `eve-server.exe` stack traces should be investigated independently. [Diagnostic instructions](docs/CHARACTER_IMAGE_ISOLATION_2026-11-16.md).
+- The 2012 Crucible client still crashes on station load even after PR #21 blocked all NPC agent JPEGs. The attached 08:11 log shows **repeated unsymbolized server-side stacks** while initializing Maurasi, then station-service RPCs and client logout; it contains no Image Server request. **No image-related root cause is proven.**
+- **Fully restored** `ImageServerConnection.cpp`, `ImageServer.cpp` and `ImageServer.h` to the pre-offline-agent-portrait implementation. Removed the agent-ID-specific helper and its tests, the external portrait import scripts and the generic JPEG fallback asset. No new 404 guard or other new image response behavior remains; the original image handler's cached images and external redirects are unchanged.
+- **Preserved** PR #20 cargo container assembly, the existing agent lifecycle/missions, 50 million ISK Blockade test reward, market containers, drones, weapons and warp tunnel.
+- CI asserts the absence of experimental portrait code and files. This is a **full rollback**, not an assertion that the client crash is fixed; the repeat `traceStack` pattern may indicate a stale executable, as a related `DynamicEntityFactory::BuildEntity` stack-print loop was removed in commit `9a3a317068cf` on 15 November.
+- See [Windows deployment and server/client crash evidence checklist](docs/AGENT_PORTRAIT_FULL_REMOVAL_2026-11-16.md).
 
 ## 2026-11-16 — Disable crash-prone station NPC portrait delivery
 

@@ -48,8 +48,8 @@ jobs:
         run: |
           cmake --build build --parallel 2
           ccache --show-stats
-      - name: Verify no character portraits are served
-        run: python3 tools/verify_character_image_isolation.py
+      - name: Verify experimental agent portraits are fully removed
+        run: python3 tools/verify_agent_portraits_removed.py
       - name: Test
         run: |
           ctest --test-dir build -N | tee test-list.txt
@@ -144,11 +144,11 @@ jobs:
         run: |
           cmake --build build --parallel 2
           ccache --show-stats
-      - name: Verify no character portraits are served
+      - name: Verify experimental agent portraits are fully removed
         shell: pwsh
         run: |
-          python tools/verify_character_image_isolation.py
-          if ($LASTEXITCODE -ne 0) { throw "Character image isolation regression" }
+          python tools/verify_agent_portraits_removed.py
+          if ($LASTEXITCODE -ne 0) { throw "Experimental agent portrait rollback regression" }
       - name: Test
         shell: msys2 {0}
         run: |

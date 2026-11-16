@@ -106,17 +106,6 @@ void ImageServerConnection::ProcessHeaders()
         return;
     }
 
-    // Temporary compatibility isolation (16 Nov 2026): the station crash
-    // persists with all NPC-agent portraits already refused. To rule out
-    // *every* portrait payload, disable the entire Character image category
-    // before any disk read or external redirect. Corporation logos, type
-    // icons and renders still follow the original image-server behavior.
-    // Player portraits will also be blank until the client crash is solved.
-    if (_category == "Character") {
-        NotFound();
-        return;
-    }
-
     _imageData = sImageServer.GetImage(_category, _id, _size);
     if (!_imageData) {
         if (IsPlayerItem(_id)) {
