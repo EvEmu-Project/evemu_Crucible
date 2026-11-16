@@ -30,7 +30,8 @@ SET( utils_SOURCE
      "utils/WeaponFormulaTest.cpp"
      "utils/MovementFormulaTest.cpp"
      "utils/DroneControlRangeTest.cpp"
-     "utils/AgentHelpersTest.cpp" )
+     "utils/AgentHelpersTest.cpp"
+     "utils/MissionLifecycleTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -80,3 +81,5 @@ ADD_TEST( NAME "DroneControlRangeTest"
           COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )
 ADD_TEST( NAME "AgentHelpersTest"
           COMMAND "${TARGET_NAME}" "utils/AgentHelpersTest" )
+ADD_TEST( NAME "MissionLifecycleTest"
+          COMMAND "${TARGET_NAME}" "utils/MissionLifecycleTest" )
