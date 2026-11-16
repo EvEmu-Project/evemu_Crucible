@@ -1,5 +1,16 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-16 — Fix corporation office selection and station-load null dereferences
+
+- Investigated continuing Crucible station-load disconnects after full removal of experimental agent portraits. Supplied server excerpt contains 16 identical unsymbolized call stacks and station/faction-warfare RPCs; the actual client crash dump is not included, so the client-side root cause remains unconfirmed.
+- Corrected `StationItem::GetOfficeID`: its previous `if (cur.second.corporationID = corpID)` assignment always selected the station's first office for any player corporation. The new shared `EvEStation::OfficeIDForCorporation` helper performs a read-only ID match and returns 0 when the corporation has no office.
+- Prevented `StationItem::LoadStationOffice` from dereferencing a missing office or inventory, and only marks an office as loaded after `LoadContents` actually succeeds.
+- Guarded missing station references while constructing system statics and cleaning up a disconnected/docked character; a partial/failed station load no longer causes an additional null dereference during logout.
+- Guarded missing cached office PyRep before returning office data to the client.
+- Corrected `StationDB::GetStationOfficeIDs` for office-folder locations: `officeFolderID` is already the encoded folder ID, so subtracting `STATION_OFFICE_OFFSET` produced an incorrect SQL filter and hid office rows.
+- Added `StationOfficeIntegrityTest` CTest for multiple corporations, missing offices, empty office indexes and no cross-corporation mutation. No image, market, agents, weapon, drone, warp or container-assembly logic changed.
+- See [station-load failure source audit and client testing](docs/STATION_LOGIN_OFFICE_CRASH_AUDIT_2026-11-16.md). CI success does **not** imply that the live client crash has been reproduced and resolved.
+
 ## 2026-11-16 — Completely remove experimental agent image feature and restore original HTTP handler
 
 - The 2012 Crucible client still crashes on station load even after PR #21 blocked all NPC agent JPEGs. The attached 08:11 log shows **repeated unsymbolized server-side stacks** while initializing Maurasi, then station-service RPCs and client logout; it contains no Image Server request. **No image-related root cause is proven.**

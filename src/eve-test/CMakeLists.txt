@@ -32,7 +32,8 @@ SET( utils_SOURCE
      "utils/DroneControlRangeTest.cpp"
      "utils/AgentHelpersTest.cpp"
      "utils/MissionLifecycleTest.cpp"
-     "utils/ContainerAssemblyTest.cpp" )
+     "utils/ContainerAssemblyTest.cpp"
+     "utils/StationOfficeIntegrityTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -86,3 +87,5 @@ ADD_TEST( NAME "MissionLifecycleTest"
           COMMAND "${TARGET_NAME}" "utils/MissionLifecycleTest" )
 ADD_TEST( NAME "ContainerAssemblyTest"
           COMMAND "${TARGET_NAME}" "utils/ContainerAssemblyTest" )
+ADD_TEST( NAME "StationOfficeIntegrityTest"
+          COMMAND "${TARGET_NAME}" "utils/StationOfficeIntegrityTest" )

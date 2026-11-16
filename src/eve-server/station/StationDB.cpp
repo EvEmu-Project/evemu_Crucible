@@ -111,9 +111,12 @@ PyRep* StationDB::GetStationOfficeIDs(uint32 locationID, uint32 corpID, const ch
         sDatabase.RunQuery(res, "SELECT itemID AS officeID, stationID, officeFolderID"
         " FROM staOffices WHERE stationID = %u", locationID);
     } else if (IsOfficeFolder(locationID)) {
+        // officeFolderID is stored as stationID + STATION_OFFICE_OFFSET.
+        // locationID is *already* the encoded folder ID; subtracting the
+        // offset here queried the wrong ID and hid all matching offices.
         sDatabase.RunQuery(res, "SELECT itemID AS officeID, stationID, officeFolderID"
         " FROM staOffices WHERE officeFolderID = %u",
-            locationID - STATION_OFFICE_OFFSET);
+            locationID);
     } else if (IsOfficeID(locationID)) {
         sDatabase.RunQuery(res, "SELECT itemID AS officeID, stationID, officeFolderID"
         " FROM staOffices WHERE itemID = %u", locationID);

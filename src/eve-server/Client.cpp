@@ -177,8 +177,16 @@ Client::~Client() {
                     this->services().Lookup <TradeService>("trademgr")->CancelTrade(this);
                 }
                 CharNoLongerInStation();
-                // remove char from station
-                sEntityList.GetStationByID(m_locationID)->RemoveItem(m_char);
+                // A partial station boot may leave no station cache entry.
+                // Never dereference a missing station during client logout.
+                StationItemRef stationRef = sEntityList.GetStationByID(m_locationID);
+                if (stationRef.get() != nullptr) {
+                    stationRef->RemoveItem(m_char);
+                } else {
+                    sLog.Warning("Client::Logout",
+                                 "Station %u missing during logout for character %u.",
+                                 m_locationID, m_char->itemID());
+                }
             }
         }
         // remove fleet data, remove char from ItemFactory cache, save SP and set logout time
