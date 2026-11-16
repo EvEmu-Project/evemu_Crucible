@@ -1,3 +1,10 @@
+## 16 Nov 2026 update — file-backed 50px agent portraits (PR #25 follow-up)
+
+- The initial PR #25 embedded 322-byte 50x50 JPEG did not prevent the user's Crucible client crash. It also intercepted every NPC agent 50px request **before filesystem access**.
+- Replaced that forced placeholder with a **local-file-first** lookup: `image_cache/Character/<agentID>_50.jpg` then optional `image_cache/Character/agent_fallback_50.jpg`. No external redirects or 512px substitution for NPC agent 50px requests. Valid player portraits and other image categories continue to work as before.
+- Kept the explicit HTTP Content-Length fix; added the Windows JPEG generation utility `tools/prepare-crucible-agent-portrait.ps1` and [file-backed station-agent A/B test](docs/CRUCIBLE_LOCAL_AGENT_PORTRAIT_TEST_2026-11-16.md).
+- This latest item **supersedes the previous embedded-322-byte test description below**. There is still no client exception dump or evidence of a successful in-game station load.
+
 # Live Patch Notes — xrizonx/evemu_Crucible
 
 ## 2026-11-16 — Exact 50x50 baseline agent HTTP image and crash-safety audit
