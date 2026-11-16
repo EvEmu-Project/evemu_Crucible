@@ -177,6 +177,11 @@ void CargoContainer::RemoveItem(InventoryItemRef iRef)
     if (m_isAnchored)
         return;
 
+    // Never automatically delete an assembled station/ship-hangar container
+    // when the last item is taken out; empty jetcans may be removed in space.
+    if (!sDataMgr.IsSolarSystem(locationID()))
+        return;
+
     if (pInventory->IsEmpty()) {
         switch (typeID()) {
         case EVEDB::invTypes::CargoContainer:
