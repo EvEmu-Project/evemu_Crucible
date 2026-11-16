@@ -1,5 +1,13 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-16 — Remove offline agent portrait feature; isolate all Character images
+
+- Operator reports **Crucible station-load crash persists after PR #21** disabled NPC agent images. New log shows 16 identical repeated server stack traces during initialization of Maurasi (30000140), then station service RPCs and client logout; **there are no Image Server requests in that excerpt**, so portraits are not established as the root cause.
+- Deleted the experimental offline NPC agent portrait importer scripts and the generic fallback JPEG asset, and removed the agent-ID-specific image helper/test. ImageServer.cpp and .h were already restored to their pre-portrait versions.
+- For a definitive image-isolation test, **all `Character` image requests now return HTTP 404 before cache reads or redirects**, including player portraits (temporarily blank). Non-Character image types remain unchanged. This avoids replacing one incompatible JPEG or redirect with another.
+- Retains the complete PR #20 **Assemble Container** implementation, all agent mission and inventory logic, 50 million ISK test Blockade reward, market seeding, drones, weapons and warp tunnel work.
+- Added a source regression to CI and documented the exact diagnostic procedure. Client crash remains **unresolved pending a clean rebuild/deploy and captured client crash dump**; the repeated `eve-server.exe` stack traces should be investigated independently. [Diagnostic instructions](docs/CHARACTER_IMAGE_ISOLATION_2026-11-16.md).
+
 ## 2026-11-16 — Disable crash-prone station NPC portrait delivery
 
 - Reported **immediate Crucible client crash when entering a station** after PR #20 embedded a generic agent JPEG. The client-side decoder root cause is not yet proven; this is a conservative compatibility rollback.

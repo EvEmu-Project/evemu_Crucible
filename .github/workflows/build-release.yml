@@ -48,10 +48,8 @@ jobs:
         run: |
           cmake --build build --parallel 2
           ccache --show-stats
-      - name: Test disabled agent portrait guard and offline cache parser
-        run: |
-          python3 -m unittest discover -s tools/agent_portraits -p 'test_*.py'
-          python3 tools/agent_portraits/sync_portraits.py --verify-only --limit 10 --output "$RUNNER_TEMP/agent-portrait-test"
+      - name: Verify no character portraits are served
+        run: python3 tools/verify_character_image_isolation.py
       - name: Test
         run: |
           ctest --test-dir build -N | tee test-list.txt
@@ -146,13 +144,11 @@ jobs:
         run: |
           cmake --build build --parallel 2
           ccache --show-stats
-      - name: Test disabled agent portrait guard and offline cache parser
+      - name: Verify no character portraits are served
         shell: pwsh
         run: |
-          python -m unittest discover -s tools/agent_portraits -p "test_*.py"
-          if ($LASTEXITCODE -ne 0) { throw "Agent portrait unit tests failed" }
-          python tools/agent_portraits/sync_portraits.py --verify-only --limit 10 --output "$env:RUNNER_TEMP/agent-portrait-test"
-          if ($LASTEXITCODE -ne 0) { throw "Agent portrait SQL dump verification failed" }
+          python tools/verify_character_image_isolation.py
+          if ($LASTEXITCODE -ne 0) { throw "Character image isolation regression" }
       - name: Test
         shell: msys2 {0}
         run: |

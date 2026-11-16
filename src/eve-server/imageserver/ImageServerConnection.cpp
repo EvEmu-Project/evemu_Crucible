@@ -106,12 +106,13 @@ void ImageServerConnection::ProcessHeaders()
         return;
     }
 
-    // Safety rollback: legacy Crucible client crashes when station agent
-    // portrait JPEG is delivered. Refuse ALL agent images before cache lookup,
-    // including previously imported original and generic fallback portraits.
-    // NPC portraits remain intentionally blank pending client verification.
-    if (EvEAgent::IsStationAgentPortraitRequest(_category, _id)) {
-        sLog.Debug("     Image Server", "NPC station agent portrait disabled for %u.", _id);
+    // Temporary compatibility isolation (16 Nov 2026): the station crash
+    // persists with all NPC-agent portraits already refused. To rule out
+    // *every* portrait payload, disable the entire Character image category
+    // before any disk read or external redirect. Corporation logos, type
+    // icons and renders still follow the original image-server behavior.
+    // Player portraits will also be blank until the client crash is solved.
+    if (_category == "Character") {
         NotFound();
         return;
     }
