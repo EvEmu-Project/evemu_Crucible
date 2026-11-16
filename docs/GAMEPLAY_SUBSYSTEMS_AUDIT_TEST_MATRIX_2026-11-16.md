@@ -86,6 +86,16 @@ positive item quantities, nonnegative price/reward/collateral and at
 least one item; checks courier plastic-wrap creation; SQL-escapes
 title/description and validates response row exists.
 
+**Additional permissions fixes:** A contract's delete operation previously
+could reassign escrowed items to any character that supplied its contract ID.
+The handler now restricts deletion to the issuing character while status=0,
+and restricts the SQL status update by issuer. Private contracts are checked
+against their designated character/corporation before acceptance.
+`CompleteContract` now uses the numeric contract ID and requires the
+contract be an **active courier** (type=3, status=1) whose acceptor is the
+calling character. This rejects straightforward unauthorised and duplicate
+completion attempts, though it does not provide transactional isolation.
+
 **Major remaining risk:** Contract creation debits courier rewards and
 mutates item ownership before all database writes complete, **without
 a transactional rollback**. Contract acceptance also involves a
@@ -112,11 +122,14 @@ invented items from unverified records.
 ## Compatibility and deployment notes
 
 - No destructive SQL migrations or static-data replacements.
-- This is a **stacked PR** based on the sovereignty/belt branch (PR #26).
-  PR #26 does not yet contain the now-merged PR #27 fixes from `master`.
-  Before any production deployment or merge to `master`, reconcile the
-  branch with `master` and re-run the final Windows/Linux/Docker CI. This
-  includes PR #27's database escaping and corporation tax corrections.
+- This is a **stacked code branch** based on the sovereignty/belt branch
+  (PR #26). **PR #28 temporarily targets `master` solely because GitHub
+  Actions only runs pull-request workflows with `base: master`.**
+  Consequently its diff currently includes both PR #26 and its own fixes.
+  PR #26 does not yet contain merged PR #27's database and corporation-tax
+  changes from `master`. Before a production deployment or PR #28 merge,
+  land or reconcile PR #26, incorporate current `master` (including PR #27),
+  and rerun Windows/Linux/Docker CI.
 - Source-invariant checks: `tools/verify_subsystems_audit.py`, wired
   into Linux and Windows CI.
 - No direct game-client tests have been run by the assistant. Record
@@ -189,6 +202,14 @@ invented items from unverified records.
       items and minimal ISK.
 - [ ] C6. **BLOCKED:** high-value contracts and concurrent accept/cancel
       until atomic escrow, rollback and balance/ownership checks exist.
+- [ ] C7. Attempt to delete another character's outstanding contract ID:
+      expect rejection and no ownership change.
+- [ ] C8. Attempt to accept a private contract as the wrong character
+      and unrelated corporation: expect rejection.
+- [ ] C9. Attempt complete courier as a non-acceptor, then repeat after
+      completion: no duplicated reward/ISK or delivered cargo.
+- [ ] C10. Delete own outstanding contract, verify item owner/location
+      restored and no unrelated item affected; no high-value assets.
 
 ### Industry
 - [ ] I1. Manufacture a single-run blueprint, deliver once and confirm
