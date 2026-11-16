@@ -405,6 +405,8 @@ bool TargetManager::StartTargeting(SystemEntity *tSE, float lockTime, uint8 maxL
 }
 
 void TargetManager::RemoveTarget(SystemEntity* tSE) {
+    if (tSE == nullptr || mySE == nullptr)
+        return;
     std::map<SystemEntity*, TargetEntry*>::iterator itr = m_targets.find(tSE);
     if (itr != m_targets.end()) {
         SafeDelete(itr->second);
@@ -415,8 +417,10 @@ void TargetManager::RemoveTarget(SystemEntity* tSE) {
         // no targets to process.  remove from proc map
         sEntityList.DeleteTargMgr(mySE);
     }
-    _log(TARGET__TRACE, "RemoveTarget:  %s(%u) has removed target %s(%u).", \
-            mySE->GetName(), mySE->GetID(), tSE->GetName(), tSE->GetID());
+    // The target key is non-owning and can already be deleted during a
+    // destroy callback. Never read its name/ID after erasing the lock.
+    _log(TARGET__TRACE, "RemoveTarget: %s(%u) removed target pointer %p.",
+         mySE->GetName(), mySE->GetID(), static_cast<void*>(tSE));
 }
 
 void TargetManager::ClearTarget(SystemEntity *tSE) {
@@ -852,6 +856,8 @@ void TargetManager::Destroyed()
 // specific for asteroids; only called by asteroids
 void TargetManager::Depleted(MiningLaser* pMod)
 {
+    if (mySE == nullptr || pMod == nullptr)
+        return;
     if (!mySE->IsAsteroidSE()) {
         codelog(MODULE__ERROR, "Depleted() called by Non Astroid %s", mySE->GetName());
         return;
@@ -863,8 +869,15 @@ void TargetManager::Depleted(MiningLaser* pMod)
     // iterate thru the map of modules and add to map as MiningLasers with their mining volume
     std::map<uint32, ActiveModule*>::iterator itr = m_modules.begin();
     while (itr != m_modules.end()) {
-        mMap.emplace(itr->second->GetMiningModule()->GetMiningVolume(), itr->second->GetMiningModule());
-        itr = m_modules.erase(itr);     //remove module from map here to avoid segfault on rock delete
+        ActiveModule* module = itr->second;
+        itr = m_modules.erase(itr); // callbacks can alter the module list
+        if (module == nullptr)
+            continue;
+        MiningLaser* miningModule = module->GetMiningModule();
+        if (miningModule != nullptr)
+            mMap.emplace(miningModule->GetMiningVolume(), miningModule);
+        else
+            module->AbortCycle(); // tractoring/survey modules can also target rocks
     }
 
     // call Depleted() on master module with map of active modules
@@ -872,12 +885,16 @@ void TargetManager::Depleted(MiningLaser* pMod)
 }
 
 float TargetManager::TimeToLock ( ShipItemRef sRef, SystemEntity* tSE ) const {
+    if (sRef.get() == nullptr || tSE == nullptr)
+        return 0.0f;
     if ((tSE->IsAsteroidSE()) or (tSE->IsDeployableSE()) or (tSE->IsWreckSE())
         or  (tSE->IsContainerSE()) or (tSE->IsInanimateSE()))
         return 2.0f;
 
     //  fixed lock time  -allan 24Dec14  -updated 26May15   -revisited after new effects system implementation 25Mar17
     uint32 scanRes = sRef->GetAttribute(AttrScanResolution).get_uint32();
+    if (scanRes == 0)
+        scanRes = 1; // avoid infinity/NaN lock timers for incomplete static data
     uint32 sigRad = 25; // set base as capsule with 25m signature radius
 
     if ( tSE->GetSelf().get() != nullptr )
