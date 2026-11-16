@@ -22,7 +22,7 @@ assert "offer.bookmarks != nullptr ? offer.bookmarks->Clone() : new PyList()" in
 assert "if (containerInventory == nullptr)" in broker
 split = items[items.index("InventoryItemRef InventoryItem::Split("):items.index("void InventoryItem::Relocate(", items.index("InventoryItemRef InventoryItem::Split("))]
 assert split.index("sItemFactory.SpawnItem(idata)") < split.index("AlterQuantity(-qty, notify)")
-assert "iRef->Delete();" in split and "qty > m_data.quantity" in split
+assert "iRef->Delete();" in split and "qty >= m_data.quantity" in split
 alter = items[items.index("bool InventoryItem::AlterQuantity("):items.index("bool InventoryItem::SetQuantity(", items.index("bool InventoryItem::AlterQuantity("))]
 assert "if (new_qty < 0)" in alter
 assert "Delete();" not in alter, "Invalid quantity must not delete existing stack"
