@@ -12,12 +12,6 @@ int utils_AgentHelpersTest(int argc, char* argv[]) {
     const double tick = 10000000.0;
     const bool passed =
         Mission::kBlockadeSecurityTestRewardISK == 50000000u
-        && EvEAgent::IsStationAgentPortraitRequest("Character", 3010819)
-        && EvEAgent::IsStationAgentPortraitRequest("Character", 3000000)
-        && EvEAgent::IsStationAgentPortraitRequest("Character", 3999999)
-        && !EvEAgent::IsStationAgentPortraitRequest("Character", 4000000)
-        && !EvEAgent::IsStationAgentPortraitRequest("Character", 90000000)
-        && !EvEAgent::IsStationAgentPortraitRequest("Corporation", 3010819)
         && EvEAgent::ModernImageUrl("Character", 3010819, 50)
             == "https://images.evetech.net/characters/3010819/portrait?size=64"
         && EvEAgent::ModernImageUrl("Corporation", 1000012, 64)

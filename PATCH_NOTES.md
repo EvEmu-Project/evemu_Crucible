@@ -1,5 +1,13 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-16 — Completely remove experimental agent image feature and restore original HTTP handler
+
+- The 2012 Crucible client still crashes on station load even after PR #21 blocked all NPC agent JPEGs. The attached 08:11 log shows **repeated unsymbolized server-side stacks** while initializing Maurasi, then station-service RPCs and client logout; it contains no Image Server request. **No image-related root cause is proven.**
+- **Fully restored** `ImageServerConnection.cpp`, `ImageServer.cpp` and `ImageServer.h` to the pre-offline-agent-portrait implementation. Removed the agent-ID-specific helper and its tests, the external portrait import scripts and the generic JPEG fallback asset. No new 404 guard or other new image response behavior remains; the original image handler's cached images and external redirects are unchanged.
+- **Preserved** PR #20 cargo container assembly, the existing agent lifecycle/missions, 50 million ISK Blockade test reward, market containers, drones, weapons and warp tunnel.
+- CI asserts the absence of experimental portrait code and files. This is a **full rollback**, not an assertion that the client crash is fixed; the repeat `traceStack` pattern may indicate a stale executable, as a related `DynamicEntityFactory::BuildEntity` stack-print loop was removed in commit `9a3a317068cf` on 15 November.
+- See [Windows deployment and server/client crash evidence checklist](docs/AGENT_PORTRAIT_FULL_REMOVAL_2026-11-16.md).
+
 ## 2026-11-16 — Disable crash-prone station NPC portrait delivery
 
 - Reported **immediate Crucible client crash when entering a station** after PR #20 embedded a generic agent JPEG. The client-side decoder root cause is not yet proven; this is a conservative compatibility rollback.
