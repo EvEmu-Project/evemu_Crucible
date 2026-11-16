@@ -47,6 +47,33 @@ assert 'EvEImage::HasJpegSignature(png)' in image_test
 assert "baseline50" not in image_test, "Remove outdated embedded JPEG verification"
 assert img.index('FILE * fp = fopen(path.c_str(), "rb");') < img.index('if (fp == NULL && localAgent50)')
 
+# Inventory and assembled-container move crash regression checks.
+container_h = src("src/eve-server/system/Container.h")
+container_cpp = src("src/eve-server/system/Container.cpp")
+inventory = src("src/eve-server/inventory/Inventory.cpp")
+inventory_bound = src("src/eve-server/inventory/InventoryBound.cpp")
+factory = src("src/eve-server/inventory/ItemFactory.cpp")
+assert '&& (type.groupID() != EVEDB::invGroups::Mission_Container)' in container_h, (
+    "Mission_Container loading must agree with InventoryItem's dispatch")
+assert 'if (!sDataMgr.IsSolarSystem(locationID()))' in container_cpp, (
+    "Empty assembled containers in stations or hangars must survive")
+assert 'const auto test = mContents.emplace(iRef->itemID(), iRef);' in inventory, (
+    "Inventory insertion must not inspect an uninitialized pair")
+assert 'return;  // already indexed in mContents and m_contentsByFlag' in inventory
+assert 'if (cRef.get() != nullptr && cRef->groupID()' in inventory, (
+    "Missing source container must not be dereferenced")
+assert 'if (pClient == nullptr || pClient->GetShip().get() == nullptr)' in inventory
+assert 'if (iRef->itemID() == m_myID)' in inventory
+assert 'if (pClient == nullptr || m_self.get() == nullptr || pInventory == nullptr)' in inventory_bound
+assert 'if (!pInventory->ValidateAddItem(toFlag, iRef))' in inventory_bound
+assert 'if (itemVec.empty())' in inventory_bound
+assert 'if (iRef.get() == nullptr)' in inventory_bound
+assert 'return GetItemRefFromID(parentID, load);' in factory, (
+    "A missing parent cache entry must never dereference m_items.end()")
+assert 'InventoryItemRef parent = GetItemContainerRef(itemID, load);' in factory
+assert 'if (iRef->GetMyInventory() == nullptr)' in broker
+assert 'if (item->GetMyInventory() == nullptr)' in broker
+
 assert not (root / "tools/agent_portraits").exists()
 tcp = src("src/eve-core/network/TCPConnection.cpp")
 thread = src("src/eve-core/threading/Threading.cpp")
