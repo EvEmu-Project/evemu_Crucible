@@ -47,7 +47,8 @@ CargoContainer::CargoContainer(uint32 _containerID, const ItemType &_containerTy
 mySE(nullptr),
 m_isAnchored(false)
 {
-    pInventory = new Inventory(InventoryItemRef(this));
+    // StructureItem already creates pInventory. Allocating it again here
+    // leaked the first Inventory and its owning item reference.
     _log(ITEM__TRACE, "Created CargoContainer object for item %s (%u).", name(), m_itemID);
 }
 
@@ -56,6 +57,17 @@ CargoContainer::~CargoContainer()
     if (pInventory != nullptr)
         pInventory->Unload();
     SafeDelete(pInventory);
+}
+
+void CargoContainer::Rename(std::string name)
+{
+    // The POS StructureItem::Rename implementation dereferences a system
+    // entity. Assembled cargo containers in a station have no such entity.
+    // Only an unanchored container directly in space is restricted.
+    if (sDataMgr.IsSolarSystem(locationID()) && !m_isAnchored)
+        throw UserError("SetNameObjectMustBeAnchoredInSpace");
+
+    InventoryItem::Rename(name);
 }
 
 CargoContainerRef CargoContainer::Load( uint32 containerID)
