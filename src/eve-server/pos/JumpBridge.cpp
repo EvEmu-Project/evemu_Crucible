@@ -21,19 +21,28 @@ JumpBridgeSE::JumpBridgeSE(StructureItemRef structure, EVEServiceManager& servic
 void JumpBridgeSE::Init()
 {
     StructureSE::Init();
+    if (!IsPOSInitialized())
+        return;
+
     m_bridgeData.itemID = m_self->itemID();
     if (!m_db.GetBridgeData(m_bridgeData))
     {
         _log(POS__MESSAGE, "Jump Bridge %s(%u) has no saved bridge data.  Initializing default set.", m_self->name(), m_data.itemID);
-        InitData();
+        if (!InitData())
+            return;
         m_db.SaveBridgeData(m_bridgeData);
     }
 }
 
-void JumpBridgeSE::InitData()
+bool JumpBridgeSE::InitData()
 {
-    StructureSE::InitData();
-    m_moonSE = m_system->GetClosestMoonSE(GetPosition())->GetMoonSE();
+    if (!StructureSE::InitData())
+        return false;
+
+    if (m_moonSE == nullptr) {
+        _log(POS__ERROR, "JumpBridgeSE::InitData: no moon for bridge %u.", m_self->itemID());
+        return false;
+    }
     m_data.anchorpointID = m_moonSE->GetID();
 
     m_bridgeData.itemID = m_data.itemID;
@@ -43,6 +52,7 @@ void JumpBridgeSE::InitData()
     m_bridgeData.systemID = m_system->GetID();
     m_bridgeData.allowCorp = false;
     m_bridgeData.allowAlliance = false;
+    return true;
 }
 
 void JumpBridgeSE::Process()
