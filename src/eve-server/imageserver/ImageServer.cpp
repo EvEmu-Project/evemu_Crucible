@@ -25,6 +25,7 @@
 
 /** @todo  boost is the only system in this code that does NOT leak */
 
+#include "EVE_ImageHelpers.h"
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerListener.h"
 
@@ -147,6 +148,18 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     fclose(fp);
     if (bytesRead != length)
         return std::shared_ptr<std::vector<char>>();
+
+    // The legacy client expects JPEG bytes for Character images. The image
+    // cache and portrait-upload path can contain empty or mislabeled PNG
+    // data under a .jpg name. Reject an obviously non-JPEG payload rather
+    // than sending it as image/jpeg during station load. This is a signature
+    // check, not a full JPEG decoder/validity guarantee.
+    if (category == "Character" && !EvEImage::HasJpegSignature(*ret)) {
+        sLog.Warning("      ImageServer",
+                     "Ignoring non-JPEG or empty cached Character image %u_%u.",
+                     id, size);
+        return std::shared_ptr<std::vector<char>>();
+    }
     return ret;
 }
 

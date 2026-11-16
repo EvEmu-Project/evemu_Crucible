@@ -28,7 +28,7 @@
 
 boost::asio::const_buffer ImageServerConnection::_responseOK = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
 boost::asio::const_buffer ImageServerConnection::_responseOKPNG = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/png\r\n\r\n", 44);
-boost::asio::const_buffer ImageServerConnection::_responseNotFound = boost::asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
+boost::asio::const_buffer ImageServerConnection::_responseNotFound = boost::asio::buffer("HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\nCache-Control: no-store\r\n\r\n", 89);
 boost::asio::const_buffer ImageServerConnection::_responseRedirectBegin = boost::asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);
 boost::asio::const_buffer ImageServerConnection::_responseRedirectEnd = boost::asio::buffer("\r\n\r\n", 4);
 
@@ -108,6 +108,18 @@ void ImageServerConnection::ProcessHeaders()
 
     _imageData = sImageServer.GetImage(_category, _id, _size);
     if (!_imageData) {
+        // Never send old Crucible clients a 301 to the modern HTTPS portrait
+        // CDN. The client has already requested our local image server and
+        // may not support the new host, TLS stack or response format.
+        // This applies to *missing* player and NPC portraits only; valid
+        // local character JPEGs are still served normally.
+        if (_category == "Character") {
+            sLog.Warning("     Image Server",
+                         "Missing local Character/%u_%u; returning 404 without redirect.",
+                         _id, _size);
+            NotFound();
+            return;
+        }
         if (IsPlayerItem(_id)) {
             sLog.Error("     Image Server","Image for itemID %u not found.", _id);
             NotFound();
@@ -117,9 +129,8 @@ void ImageServerConnection::ProcessHeaders()
             NotFound();
             return;
         }
-        // Client still requests the original Crucible-era URL, but CCP
-        // retired image.eveonline.com. Redirect to the current API instead.
-        // An NPC agent's old 50px portrait maps to the 64px CDN variant.
+        // Preserve the current external fallback for non-Character images
+        // (corporation/alliance logos, type icons and renders).
         _redirectUrl = EvEAgent::ModernImageUrl(_category, _id, _size);
         if (_redirectUrl.empty()) {
             NotFound();
@@ -130,6 +141,10 @@ void ImageServerConnection::ProcessHeaders()
     }
 
     // JPEG portraits, PNG logos/icons/renders: do not advertise PNG as JPEG.
+    if (_category == "Character")
+        sLog.Debug("     Image Server",
+                   "Serving local JPEG Character/%u_%u (%lu bytes).",
+                   _id, _size, static_cast<unsigned long>(_imageData->size()));
     boost::asio::async_write(_socket,
         (_category == "Character" ? _responseOK : _responseOKPNG),
         boost::asio::transfer_all(), std::bind(&ImageServerConnection::SendImage, shared_from_this()));
