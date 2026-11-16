@@ -64,6 +64,56 @@ recreate missing modules/items from the log alone.
 No database migrations, schema changes, direct tax updates, admin bypasses,
 or data deletion are included.
 
+## Follow-up: Crucible client rejected the prior three-argument tax RPC
+
+The user's server log at 18:32:39 gave a decisive dispatch error:
+
+```text
+Unable to find method to handle call to: ::UpdateCorporation
+UpdateCorporation candidates:
+    (PyRep*,PyRep*,PyRep*)
+Does not match parameters:
+    (PyWString*,PyWString*,PyFloat*,PyInt*)
+```
+
+This proves the prior PR-head server function was never called: the
+`CallHandler` argument-count validation rejects four arguments when the
+registered C++ method accepts three. Therefore the observed Goonswarm
+`corporationID=98000000`, `ceoID=90000000` and `taxRate=0`
+were unchanged, and this is **not** evidence of an invalid CEO role or
+a failed SQL UPDATE.
+
+The **fourth argument is the Crucible `applicationEnabled` flag**, already
+defined in the same codebase's `Call_AddCorporation` packet. Corporation
+records persist the flag as `crpCorporation.isRecruiting`.
+This follow-up:
+
+- changes `CorpRegistryBound::UpdateCorporation` to
+  `(PyRep* description, PyRep* url, PyRep* tax, PyInt* applicationEnabled)`;
+- rejects invalid application flag values (anything but 0 or 1);
+- extends `CorporationDB::UpdateCorporation` to load and update
+  `isRecruiting` using `ProcessIntChange`, sending the normal
+  `OnCorporationChanged` field notification;
+- adds source-level assertions that the fourth RPC argument, database
+  column and validation stay aligned.
+
+**Required new test:** Install the Windows ZIP built from the *new* PR head;
+older Windows binaries still advertise the three-argument method. Change
+Goonswarm's tax while logged in as CEO `90000000`, then check:
+
+```sql
+SELECT corporationID, corporationName, ceoID, taxRate, isRecruiting
+FROM crpCorporation
+WHERE corporationID = 98000000;
+```
+
+Expected `taxRate=0.125` after setting 12.5% through the client, with
+`isRecruiting` matching the client's applications toggle. Do not
+manually edit `crpCorporation` to conceal an RPC dispatch defect.
+
+The same server log showed a missing local agent 50px portrait: that is a
+separate image-cache warning, not a tax-update or SQL-persistence error.
+
 ## Recommended read-only before/after queries
 
 ```sql
