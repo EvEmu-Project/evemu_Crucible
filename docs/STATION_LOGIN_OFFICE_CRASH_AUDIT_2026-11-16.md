@@ -42,6 +42,10 @@ That is an **assignment**, not a comparison. For a nonzero player corporation, i
 
 These guards prevent specific **server-side** crashes; their interaction with any reported **client-side** exception requires gameplay testing.
 
+### 4. Office folder SQL ID mismatch
+
+`StationDB::GetStationOfficeIDs` accepted `locationID` for a station office folder but subtracted `STATION_OFFICE_OFFSET` before comparing it with `staOffices.officeFolderID`. Stored `officeFolderID` values are **already** the station ID plus that offset, so the query searched for the wrong value. The patch uses `locationID` unchanged. The return type and client wire contract are not modified.
+
 ## Preserved features
 
 The patch does **not** modify:
