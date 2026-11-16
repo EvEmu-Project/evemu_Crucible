@@ -154,7 +154,8 @@ bool BeltMgr::Load(uint16 bubbleID) {
     if (!ManagerDB::LoadSystemRoids(m_system->GetID(), beltID, entities))
         return false;
 
-    for (auto entity : entities) {
+    uint32 loadedCount = 0;
+    for (const auto& entity : entities) {
         AsteroidItemRef itemRef = sItemFactory.GetAsteroidRef(entity.itemID);
         if (itemRef.get() == nullptr) {
             _log(COSMIC_MGR__WARNING, "BeltMgr::Load() -  Unable to spawn item #%u:'%s' of type %u.", entity.itemID, entity.itemName.c_str(), entity.typeID);
@@ -175,6 +176,12 @@ bool BeltMgr::Load(uint16 bubbleID) {
         m_system->AddEntity(pASE);
         m_asteroids.emplace(std::pair<uint32, AsteroidSE*>(beltID, pASE));
         pASE->SetMgr(this, beltID);
+        ++loadedCount;
+    }
+    if (loadedCount == 0) {
+        _log(COSMIC_MGR__WARNING, "No valid persisted asteroids for belt %u in system %u.",
+             beltID, m_system->GetID());
+        return false;
     }
     std::map<uint32, bool>::iterator itr = m_spawned.find(beltID);
     if (itr == m_spawned.end()) {
@@ -216,7 +223,12 @@ void BeltMgr::Save() {
         entry.systemID = m_system->GetID();
         entry.beltID = cur.first;
         entry.radius = cur.second->GetRadius();
-        entry.quantity = ((25000 * log(entry.radius)) - 112404.8);   // quantity in m^3
+        // Save actual remaining units after mining. Recomputing from the
+        // radius resurrected mined ore and corrupted ice quantities.
+        entry.quantity = cur.second->GetSelf()->GetAttribute(AttrQuantity).get_double();
+        if (!std::isfinite(entry.quantity) || entry.quantity <= 0.0
+            || !std::isfinite(entry.radius) || entry.radius <= 0.0)
+            continue;
         entry.position = cur.second->GetPosition();
         roids.push_back(entry);
         ++save;
