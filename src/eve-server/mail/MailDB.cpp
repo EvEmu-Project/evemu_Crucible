@@ -298,23 +298,20 @@ bool MailDB::CreateLabel(int characterID, const std::string& name, int32 color, 
 
 void MailDB::DeleteLabel(int characterID, int labelID) const
 {
-    int bit = BitFromLabelID(labelID);
+    const int bit = BitFromLabelID(labelID);
+    if (bit < 0 || bit > 30)
+        return;
     DBerror err;
     if (!sDatabase.RunQuery(err,
-                            " UPDATE mailMessage "
-                            " SET labelMask = labelMask & ~(1 << ~%u) "
-                            " WHERE (labelMask & (1 << %u)) > 0 "
-                            " AND toCharacterIDs LIKE '%%%u%%';" , bit, bit, characterID))
-    {
-        codelog(DATABASE__ERROR, " Failed to delete label" );
+        "UPDATE mailStatus SET labelMask = labelMask & ~(1 << %u) "
+        "WHERE characterID = %u", bit, characterID)) {
+        codelog(DATABASE__ERROR, "MailDB::DeleteLabel failed to remove mask: %s", err.c_str());
         return;
     }
-
-    sDatabase.RunQuery(err,
-                       " DELETE FROM mailLabel "
-                       " WHERE ownerID = %u AND bit = %u;" , characterID, bit);
+    if (!sDatabase.RunQuery(err,
+        "DELETE FROM mailLabel WHERE ownerID = %u AND bit = %u", characterID, bit))
+        codelog(DATABASE__ERROR, "MailDB::DeleteLabel failed: %s", err.c_str());
 }
-
 void MailDB::EditLabel(int characterID, int labelID, const std::string& name, int32 color) const
 {
     int bit = BitFromLabelID(labelID);
@@ -528,29 +525,29 @@ PyDict *MailDB::GetJoinedMailingLists(uint32 characterID)
     {
         PyDict *dict = new PyDict();
 
-        dict->SetItemString(" displayName" , new PyString(row.GetText(1)));
+        dict->SetItemString("displayName" , new PyString(row.GetText(1)));
 
         int32 role = row.GetInt(7);
         switch (role)
         {
         case mailingListMemberMuted: {
-            dict->SetItemString(" isMuted" , new PyBool(true));
-            dict->SetItemString(" isOwner" , new PyBool(false));
-            dict->SetItemString(" isOperator" , new PyBool(false));
+            dict->SetItemString("isMuted" , new PyBool(true));
+            dict->SetItemString("isOwner" , new PyBool(false));
+            dict->SetItemString("isOperator" , new PyBool(false));
         } break;
         case mailingListMemberOperator: {
-            dict->SetItemString(" isMuted" , new PyBool(false));
-            dict->SetItemString(" isOwner" , new PyBool(false));
-            dict->SetItemString(" isOperator" , new PyBool(true));
+            dict->SetItemString("isMuted" , new PyBool(false));
+            dict->SetItemString("isOwner" , new PyBool(false));
+            dict->SetItemString("isOperator" , new PyBool(true));
         } break;
         case mailingListMemberOwner: {
-            dict->SetItemString(" isMuted" , new PyBool(false));
-            dict->SetItemString(" isOwner" , new PyBool(true));
-            dict->SetItemString(" isOperator" , new PyBool(false));
+            dict->SetItemString("isMuted" , new PyBool(false));
+            dict->SetItemString("isOwner" , new PyBool(true));
+            dict->SetItemString("isOperator" , new PyBool(false));
         } break;
         }
 
-        ret->SetItem(new PyInt(row.GetInt(0)), new PyObject(" util.KeyVal" , dict));
+        ret->SetItem(new PyInt(row.GetInt(0)), new PyObject("util.KeyVal" , dict));
     }
 
     return ret;
@@ -631,8 +628,8 @@ PyObject *MailDB::MailingListGetSettings(int32 listID)
     }
 
 
-    ret->SetItemString(" defaultAccess" , new PyInt(row.GetInt(2)));
-    ret->SetItemString(" defaultMemberAccess" , new PyInt(row.GetInt(3)));
+    ret->SetItemString("defaultAccess" , new PyInt(row.GetInt(2)));
+    ret->SetItemString("defaultMemberAccess" , new PyInt(row.GetInt(3)));
 
     DBQueryResult res2;
 
@@ -646,14 +643,14 @@ PyObject *MailDB::MailingListGetSettings(int32 listID)
 
     PyDict *dict = new PyDict();
 
-    ret->SetItemString(" access" , dict);
+    ret->SetItemString("access" , dict);
 
 
     while (res.GetRow(row)) {
         dict->SetItem(new PyInt(row.GetInt(1)), new PyInt(row.GetInt(3)));
     }
 
-    return new PyObject(" util.KeyVal" , ret);
+    return new PyObject("util.KeyVal" , ret);
 }
 
 
