@@ -40,9 +40,12 @@ void SBUSE::Init()
     _log(SE__TRACE, "SBUSE %s(%u) is being initialised", m_self->name(), m_self->itemID());
     StructureSE::Init();
 
-    // check for valid bubble
-    if (m_bubble == nullptr)
-        assert(0);
+    // A missing grid or failed base POS initialization must not crash
+    // the whole solar system during boot.
+    if (!IsPOSInitialized() || m_bubble == nullptr) {
+        _log(SOV__ERROR, "SBUSE::Init: missing bubble or POS state for %u.", m_self->itemID());
+        return;
+    }
     m_bubble->SetSBUSE(this);
 
     // set global attribute
@@ -57,7 +60,10 @@ void SBUSE::SetOnline()
     StructureSE::SetOnline();
 
     // If more than 50 percent of gates have an SBU, the TCU should be vulnerable
-    if ((GetSBUs() / GetGates()) > 0.5)
+    // Count gates once; gate-less systems must not divide by zero.
+    const float gates = GetGates();
+    const float sbus = GetSBUs();
+    if (gates > 0.0f && sbus * 2.0f > gates)
     {
         _log(SOV__DEBUG, "- STATE CHANGE - This system has %u SBUs installed in the total of %u stargates. The TCU is now vulnerable to attack.", (int)GetSBUs(), (int)GetGates());
         // Make the TCU vulnerable
@@ -82,7 +88,9 @@ void SBUSE::SetOffline()
     // Ensure that the SBU is offline before we check ratio
     StructureSE::SetOffline();
 
-    if ((GetSBUs() / GetGates()) <= 0.5)
+    const float gates = GetGates();
+    const float sbus = GetSBUs();
+    if (gates > 0.0f && sbus * 2.0f <= gates)
     {
         _log(SOV__DEBUG, "- STATE CHANGE - This system has %u SBUs installed in the total of %u stargates. The TCU is no longer vulnerable to attack.", (int)GetSBUs(), (int)GetGates());
         // Make the TCU invulnerable
@@ -90,7 +98,9 @@ void SBUSE::SetOffline()
         {
             if (cur.second->IsTCUSE())
             {
-                cur.second->GetTCUSE()->SetOnline();
+                // Restoring invulnerability must not call TCUSE::SetOnline:
+                // that would create a new sovereignty claim and reset claimTime.
+                cur.second->GetTCUSE()->SetInvulnerable();
             }
         }
         // Unmark the system as contested
@@ -135,7 +145,7 @@ void SBUSE::MarkContested(uint32 systemID, bool contested)
     sEntityList.GetClients(list);
     for (auto cur : list)
     {
-        if (cur->GetChar().get() != nullptr)
+        if (cur != nullptr && cur->GetChar().get() != nullptr)
         {
             PyIncRef(data);
             cur->SendNotification("ProcessSovStatusChanged", "clientID", &data);
