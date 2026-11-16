@@ -45,7 +45,8 @@
  * Base Structure Item for all POS types
  */
 StructureItem::StructureItem(uint32 _structureID, const ItemType &_itemType, const ItemData &_data)
-    : InventoryItem(_structureID, _itemType, _data)
+    : InventoryItem(_structureID, _itemType, _data),
+      mySE(nullptr)
 {
     pInventory = new Inventory(InventoryItemRef(this));
     _log(ITEM__TRACE, "Created StructureItem for %s (%u).", name(), itemID());
@@ -166,7 +167,10 @@ void StructureItem::AddItem(InventoryItemRef iRef)
 
     InventoryItem::AddItem(iRef);
 
-    if (mySE->IsCOSE())
+    // Assembled cargo containers inherit StructureItem, but have no POS
+    // system entity when stored in a station/ship hangar. Only an actual
+    // in-space customs-office entity can perform this extra validation.
+    if (mySE != nullptr && mySE->IsCOSE() && mySE->GetCOSE() != nullptr)
         mySE->GetCOSE()->VerifyAddItem(iRef);
 }
 
@@ -180,6 +184,11 @@ void StructureItem::RemoveItem(InventoryItemRef iRef)
 
 void StructureItem::Rename(std::string name)
 {
+    // POS-specific rename requires a live system entity. Cargo containers
+    // override this method and use ordinary inventory-item rename instead.
+    if (mySE == nullptr || mySE->GetPOSSE() == nullptr)
+        throw UserError ("SetNameObjectMustBeAnchoredInSpace");
+
     if (mySE->GetPOSSE()->GetState() > EVEPOS::StructureState::Unanchored)
     {
         InventoryItem::Rename(name);
