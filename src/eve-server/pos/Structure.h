@@ -178,6 +178,7 @@ public:
     inline void                 SetTimer(uint32 time)   { m_procTimer.SetTimer(time); }
 
     void                        SetUsageFlags(int8 view=0, int8 take=0, int8 use=0);
+    bool                        IsPOSInitialized() const { return m_loaded; }
     inline int8                 CanUse()                { return m_data.use; }
     inline int8                 CanView()               { return m_data.view; }
     inline int8                 CanTake()               { return m_data.take; }
