@@ -56,6 +56,15 @@ void SBUSE::SetOnline()
 {
     _log(SOV__DEBUG, "Onlining SBU...");
 
+    // Prevent contesting an unclaimed/empire system. The static owner and
+    // gate count must also exist before this can affect sovereignty.
+    const SovereigntyData sov = svDataMgr.GetSovereigntyData(m_system->GetID());
+    if (!sov.claimStructureID || GetGates() <= 0.0f) {
+        _log(SOV__ERROR, "SBU %u cannot online: system %u is unclaimed or has no gates.",
+             m_self->itemID(), m_system->GetID());
+        return;
+    }
+
     // Ensure the SBU is online before we check the ratio
     StructureSE::SetOnline();
 
@@ -69,7 +78,7 @@ void SBUSE::SetOnline()
         // Make the TCU vulnerable
         for (auto cur : m_system->GetOperationalStatics())
         {
-            if (cur.second->IsTCUSE())
+            if (cur.second != nullptr && cur.second->IsTCUSE())
             {
                 cur.second->GetTCUSE()->SetVulnerable();
             }
@@ -96,7 +105,7 @@ void SBUSE::SetOffline()
         // Make the TCU invulnerable
         for (auto cur : m_system->GetOperationalStatics())
         {
-            if (cur.second->IsTCUSE())
+            if (cur.second != nullptr && cur.second->IsTCUSE())
             {
                 // Restoring invulnerability must not call TCUSE::SetOnline:
                 // that would create a new sovereignty claim and reset claimTime.
@@ -169,7 +178,7 @@ float SBUSE::GetSBUs()
     int numberOfSBUs = 0;
     for (auto cur : m_system->GetOperationalStatics())
     {
-        if (cur.second->IsSBUSE())
+        if (cur.second != nullptr && cur.second->IsSBUSE())
         {
             //Only increment the number of SBUs if they are online
             if (cur.second->GetSBUSE()->GetState() == EVEPOS::StructureState::Online)
