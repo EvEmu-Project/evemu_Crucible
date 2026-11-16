@@ -29,6 +29,7 @@
 #include "Client.h"
 #include "EntityList.h"
 #include "packets/CorporationPkts.h"
+#include "EVE_StationOfficeHelpers.h"
 #include "station/Station.h"
 #include "station/StationOffice.h"
 #include "station/StationDataMgr.h"
@@ -137,10 +138,7 @@ uint32 StationItem::GetOfficeID(uint32 corpID)
 {
     if (!IsPlayerCorp(corpID))
         return 0;
-    for (auto cur : m_officeMap)
-        if (cur.second.corporationID = corpID)
-            return cur.first;
-    return 0;
+    return EvEStation::OfficeIDForCorporation(m_officeMap, corpID);
 }
 
 void StationItem::AddLoadedOffice(uint32 officeID)
@@ -178,11 +176,26 @@ void StationItem::LoadStationOffice(uint32 corpID)
         return;
     _log(CORP__TRACE, "StationItem::LoadStationOffice() is loading corp office %u in stationID %u", officeID, m_stationID);
     StationOfficeRef oRef = sItemFactory.GetOfficeRef(officeID);
-    if (oRef->GetMyInventory() == nullptr) {   // not sure why this would be null, but i *may* have seen errors from it
-        _log(ITEM__ERROR, "StationItem::LoadStationOffice() - GetMyInventory() for corp office %u in stationID %u is NULL.", officeID, m_stationID);
+    if (oRef.get() == nullptr) {
+        sLog.Error("StationItem::LoadStationOffice",
+                   "Missing office %u for corporation %u in station %u; skipping unsafe inventory access.",
+                   officeID, corpID, m_stationID);
         return;
     }
-    oRef->SetLoaded(oRef->GetMyInventory()->LoadContents());
+    Inventory* officeInventory = oRef->GetMyInventory();
+    if (officeInventory == nullptr) {
+        sLog.Error("StationItem::LoadStationOffice",
+                   "Office %u has no inventory for corporation %u in station %u.",
+                   officeID, corpID, m_stationID);
+        return;
+    }
+    if (!officeInventory->LoadContents()) {
+        sLog.Error("StationItem::LoadStationOffice",
+                   "Cannot load office %u inventory for corporation %u in station %u.",
+                   officeID, corpID, m_stationID);
+        return;  // allow retry after the underlying database issue is fixed
+    }
+    oRef->SetLoaded(true);
     m_officeLoaded.emplace(officeID, true);
 }
 

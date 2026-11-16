@@ -412,6 +412,12 @@ bool SystemManager::LoadSystemStatics() {
                 /*  types 12242 - 22298 in group 15 are outposts */
                 /*  types 29323 - 29390 in group 15 are wrecked stations */
                 StationItemRef itemRef = sItemFactory.GetStationRef(cur.itemID);
+                if (itemRef.get() == nullptr) {
+                    sLog.Error("SystemManager::LoadSystemStatics",
+                               "Cannot load station item %u (type %u) in system %u; skipping invalid static entity.",
+                               cur.itemID, cur.typeID, m_data.systemID);
+                    continue;
+                }
                 StationSE *pSSE = new StationSE(itemRef, GetServiceMgr(), this);
                 sEntityList.AddStation(cur.itemID, itemRef);
                 pSE = pSSE;
