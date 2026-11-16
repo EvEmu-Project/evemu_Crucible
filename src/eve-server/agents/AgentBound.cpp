@@ -155,7 +155,7 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                         briefing += "\n\nCOMPLETION\n"
                             "Return to this agent after the pocket is clear.\n\n"
                             "MISSION REWARD\n"
-                            "150,000 ISK\n"
+                            "50,000,000 ISK\n"
                             "TIME LIMIT\n"
                             "120 minutes from acceptance.";
                         agentSays->SetItem(0, new PyString(briefing));
@@ -231,7 +231,7 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                         "COMPLETION\n"
                         "Return to this agent once all hostile ships have been destroyed.\n\n"
                         "MISSION REWARD\n"
-                        "150,000 ISK\n"
+                        "50,000,000 ISK\n"
                         "TIME LIMIT\n"
                         "120 minutes from acceptance."));
                     agentSays->SetItem(1, PyStatic.NewNone());
@@ -281,7 +281,7 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                     briefing += "\n\nCOMPLETION\n"
                         "Return to this agent after the pocket is clear.\n\n"
                         "MISSION REWARD\n"
-                        "150,000 ISK\n"
+                        "50,000,000 ISK\n"
                         "TIME LIMIT\n"
                         "120 minutes from acceptance.";
                     agentSays->SetItem(0, new PyString(briefing));
@@ -405,6 +405,8 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                     call.client->RemoveEncounterMissionSite(offer);
 
                 m_agent->UpdateStandings(call.client, Standings::MissionCompleted, offer.important);
+                // Keep completed missions in history rather than the active index.
+                sMissionDataMgr.ArchiveMissionOffer(pchar->itemID(), offer);
                 m_agent->RemoveOffer(pchar->itemID());
                 // Tell the Crucible client that this conversation completed
                 // its mission (the existing response flag was always false).
@@ -607,7 +609,7 @@ PyResult AgentBound::GetMissionBriefingInfo(PyCallArgs &call) {
             missionBriefing += "\n\nCOMPLETION\n"
                 "Return to your agent once all hostile ships have been destroyed.\n\n"
                 "REWARD\n"
-                "150,000 ISK\n\n"
+                "50,000,000 ISK\n\n"
                 "TIME LIMIT\n"
                 "120 minutes from acceptance.";
             briefingInfo->SetItemString("Mission Title", new PyString("The Blockade - Angel Cartel"));
@@ -812,7 +814,7 @@ PyDict* AgentBound::GetMissionObjectiveInfo(Client* pClient, MissionOffer& offer
         missionBriefing += "\n\nCOMPLETION\n"
             "Return to your agent once all hostile ships have been destroyed.\n\n"
             "REWARD\n"
-            "150,000 ISK\n\n"
+            "50,000,000 ISK\n\n"
             "TIME LIMIT\n"
             "120 minutes from acceptance.";
         objectiveData->SetItemString("missionTitle", new PyString("The Blockade - Angel Cartel"));

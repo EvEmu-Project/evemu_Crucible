@@ -1,5 +1,6 @@
 #include "eve-test.h"
 #include "EVE_AgentHelpers.h"
+#include "EVE_Missions.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -10,7 +11,8 @@ int utils_AgentHelpersTest(int argc, char* argv[]) {
     const double accepted = 130000000000000000.0;
     const double tick = 10000000.0;
     const bool passed =
-        EvEAgent::IsStationAgentPortraitRequest("Character", 3010819)
+        Mission::kBlockadeSecurityTestRewardISK == 50000000u
+        && EvEAgent::IsStationAgentPortraitRequest("Character", 3010819)
         && EvEAgent::IsStationAgentPortraitRequest("Character", 3000000)
         && EvEAgent::IsStationAgentPortraitRequest("Character", 3999999)
         && !EvEAgent::IsStationAgentPortraitRequest("Character", 4000000)

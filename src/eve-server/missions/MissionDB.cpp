@@ -174,29 +174,41 @@ void MissionDB::LoadMissionBookMark(DBQueryResult& res, std::vector<int32>& bmID
 
 void MissionDB::RemoveMissionItem(uint32 charID, uint16 typeID, uint32 qty)
 {
-    //  this may get a bit complicated if the items are split.
+    // Offline mission item cleanup: preserve complete stack quantities and
+    // avoid querying or modifying inventory for empty requests.
+    if (typeID == 0 || qty == 0)
+        return;
+
     DBQueryResult res;
-    sDatabase.RunQuery(res, "SELECT itemID, quantity FROM entity WHERE typeID = %u AND ownerID = %u", typeID, charID);
+    if (!sDatabase.RunQuery(res,
+        "SELECT itemID, quantity FROM entity WHERE typeID = %u AND ownerID = %u AND quantity > 0 ORDER BY itemID",
+        typeID, charID)) {
+        codelog(DATABASE__ERROR, "Failed to load offline mission item stacks: %s", res.error.c_str());
+        return;
+    }
 
     DBResultRow row;
-    std::map<uint32, uint16> map;
-    while (res.GetRow(row)) {
-        // make map of all items of 'typeID'
-        map.emplace(row.GetInt(0), row.GetInt(1));
-    }
+    std::map<uint32, uint32> stacks;
+    while (res.GetRow(row))
+        stacks.emplace(row.GetUInt(0), row.GetUInt(1));
 
     DBerror err;
-    for (auto cur : map) {
-        if (qty < 1)
+    for (const auto& stack : stacks) {
+        if (qty == 0)
             break;
-        if (cur.second <= qty) {
-            qty -= cur.second;
-            sDatabase.RunQuery(err, "DELETE FROM entity WHERE itemID = %u", cur.first);
-        } else if (cur.second > qty) {
-            sDatabase.RunQuery(err, "UPDATE entity SET quantity = %u WHERE itemID = %u", qty, cur.first);
-            qty = 0;
+        const uint32 remaining = Mission::RemainingItemQuantity(stack.second, qty);
+        if (remaining == 0) {
+            if (!sDatabase.RunQuery(err, "DELETE FROM entity WHERE itemID = %u", stack.first)) {
+                codelog(DATABASE__ERROR, "Failed to delete offline mission item: %s", err.c_str());
+                break;
+            }
+            qty -= stack.second;
+        } else {
+            if (!sDatabase.RunQuery(err,
+                "UPDATE entity SET quantity = %u WHERE itemID = %u", remaining, stack.first)) {
+                codelog(DATABASE__ERROR, "Failed to reduce offline mission item stack: %s", err.c_str());
+            }
+            break;
         }
     }
-
 }
-

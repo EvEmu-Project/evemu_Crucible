@@ -94,7 +94,7 @@ namespace Mission {
     // Synthetic Level 0 Blockade encounter used for combat testing.
     constexpr uint16 kBlockadeSecurityTestMissionID = 65535;
     constexpr uint16 kBlockadeSecurityTestRequiredKills = 24;
-    constexpr uint32 kBlockadeSecurityTestRewardISK = 150000;
+    constexpr uint32 kBlockadeSecurityTestRewardISK = 50000000;
     constexpr uint32 kBlockadeSecurityTestDurationMinutes = 120;
     namespace State {
         enum {
@@ -108,6 +108,21 @@ namespace Mission {
             Defered     = 6,    // send as Allocated
             Expired     = 7     // send as Failed
         };
+    }
+
+    // Deferred (Allocated) and newly Offered missions both await acceptance.
+    inline bool IsAwaitingAcceptance(uint8 stateID) {
+        return stateID == State::Offered || stateID == State::Allocated;
+    }
+
+    // An agent can serve multiple characters, and an old offer can coexist
+    // briefly with a new one: compare persistent offer identity.
+    inline bool MatchesOffer(const MissionOffer& offer, uint32 characterID, uint32 offerID) {
+        return offer.characterID == characterID && offer.offerID == offerID;
+    }
+
+    inline uint32 RemainingItemQuantity(uint32 stackQuantity, uint32 amountToRemove) {
+        return amountToRemove >= stackQuantity ? 0u : stackQuantity - amountToRemove;
     }
 
     namespace Status {
