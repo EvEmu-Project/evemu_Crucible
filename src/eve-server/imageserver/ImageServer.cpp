@@ -25,10 +25,8 @@
 
 /** @todo  boost is the only system in this code that does NOT leak */
 
-#include "EVE_AgentHelpers.h"
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerListener.h"
-#include <cstring>
 
 const char *const ImageServer::FallbackURL = "https://images.evetech.net/";
 
@@ -122,32 +120,14 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     if (!ValidateCategory(category) || !ValidateSize(category, size))
         return std::shared_ptr<std::vector<char> >();
 
-    // Only disk files are used for station NPC agents. Exact-size historical
-    // portraits take priority, followed by whatever other local JPEG size is
-    // available. An importer's 256px JPEG is valid for Crucible's 50px URL.
+    //std::ifstream stream;
     std::string path(GetFilePath(category, id, size));
     FILE * fp = fopen(path.c_str(), "rb");
-    if (fp == NULL && category == "Character") {
-        for (uint32 cachedSize : {512u, 256u, 128u, 64u, 50u, 40u, 32u, 1024u}) {
-            if (cachedSize == size)
-                continue;
-            path = GetFilePath(category, id, cachedSize);
-            fp = fopen(path.c_str(), "rb");
-            if (fp != NULL)
-                break;
-        }
-    }
-
-    if (fp == NULL && EvEAgent::IsStationAgentPortraitRequest(category, id)) {
-        // A custom operator-supplied local JPEG still takes precedence.
-        path = _basePath + "Character/agent_missing_512.jpg";
+    // Existing characters have only a 512px image. Serve that local file
+    // when a client requests a smaller portrait; new exact-size images win.
+    if (fp == NULL && category == "Character" && size != 512) {
+        path = GetFilePath(category, id, 512);
         fp = fopen(path.c_str(), "rb");
-
-        // Never rely on current working directory or archive installation
-        // layout to show NPCs. CMake also packages the JPEG for operators,
-        // but the image service always has this verified built-in copy.
-        if (fp == NULL)
-            return GetOfflineAgentPortrait();
     }
     if (fp == NULL)
         return std::shared_ptr<std::vector<char> >();
@@ -168,61 +148,6 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     if (bytesRead != length)
         return std::shared_ptr<std::vector<char>>();
     return ret;
-}
-
-std::shared_ptr<std::vector<char> > ImageServer::GetOfflineAgentPortrait()
-{
-    // Exact bytes of assets/agent_portraits/agent_missing_512.jpg; the unit
-    // test compares the decoded payload to that file. This is the original
-    // generic fallback, not a claim to be authentic CCP historical artwork.
-    static const std::shared_ptr<std::vector<char> > portrait = []() {
-        const char* encoded =
-        "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAsHCAkIBwsJCQkMCwsNEBoREA8PECAXGBMaJiIoKCYiJSQqMD0zKi05LiQlNUg1"
-        "OT9BREVEKTNLUEpCTz1DREH/2wBDAQsMDBAOEB8RER9BLCUsQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
-        "QUFBQUFBQUH/wAARCACAAIADASIAAhEBAxEB/8QAGgAAAgMBAQAAAAAAAAAAAAAAAAECAwQFBv/EADgQAAICAQEFBQYEBAcA"
-        "AAAAAAABAgMRBAUSITFREyJBYXEVQlJUkZMyM4HBFKGx0SQ0RIKDkuH/xAAYAQEBAQEBAAAAAAAAAAAAAAAAAQIDBP/EABYR"
-        "AQEBAAAAAAAAAAAAAAAAAAARAf/aAAwDAQACEQMRAD8A8MMQz1uIGAFQDAAAAGAgGIAEMAEIYAIQxEUwAYAMQyoCUISm8RTb"
-        "JV1px35y3Y+HWXoSlc8bta7OPPCfH6gHYqP5lkYeXNhjTrg5WS80kkVEq6rLXu1wlN88RWQJ/wCHfDNi83gOxjL8u2Mn0fAj"
-        "ZTbVjtK5wzy3otZIASsrnW8Si0QLYXSit2Xfi+DiwnXGUd+t+sfGIFQhiAQDERQMQwAtphFpzseIR/m+hXFOTSXN8EW3yw1V"
-        "F92HD1fiyohObnLL/RdBCGB0dlbNeqkrbU1Sn/2PQQhCuKjCKjFcklhEdNUqKK6ljEYpZSxnzLDOoUoqUXGSTT4NPxOHtfZf"
-        "Z51Gnj3OcoL3fNeR3RSipRcZJNNYafiB40cZOMlKLw0Svr7K+yvOdyTjnrggaVZZGModrD0lHo/7FJbTZuT4/glwkvIjZB12"
-        "OD8AICGIKAEMgv03dcrfgXD1fIqLY93Sya96ai/04lRUA0IAPY02K2qFkc4lFNZJnB2PtJUpaa5pQz3ZfD6neMoAA5G2NpqM"
-        "ZaalpyfCcunkBx9TYrdRbZHKUpuSz5sqADSgtt79NdnRbj/YqLYd7S2J+61JfrwApEAEUhkRgX/6P/k/YqLae9RbDm0lJL+p"
-        "UVDNOj0F+sb7KKUU8OUuCRZsnQPWXKU4vsYvvPlnyPSwhCuKhCKjFcklhEo5tGw9NDDtnOxrmuSf7/zN1Gmq0/CpSSxjDm2v"
-        "o2XARFd1EL1u2b2OWFJrPrgw3bE0s8uDnW8cMPKz14nSADy+t2Zfo05tKdfxr9zGezlFSi4ySafBp+J5/bWz/wCHn29MMVS/"
-        "El7r/sWq5ZbV/lrv9v8AUqLX3dIvBznn1S/9KKRABFIZEYFunmq7U5fhfB+grIOuxwfgyBt0UY6m6hNJyhOKafKUc9Aj0Wg0"
-        "y0mlhUsZSzJrxfiaAAiAAAgAAAArvqjfTOqazGSwywAPGWVShfKl4coyceHXOCWpkt9Vx5QW76vxN21Yx0+uutwk21uJdWuL"
-        "OWaUCAQUhkN5dUPej1X1IJlmmtdOortSzuSTxnGSnej8S+ob8fiX1KPdAcnY21KJaONd99cJ193vSSyvA3e0NF83R9xGWWgD"
-        "P7Q0XzdH3EHtDRfN0fcQGgDP7Q0XzdH3EHtDRfN0fcQGgDP7Q0XzdH3EZ9obV01OlnKnUVTsaxFRmnx6gcLa1ru2hdJrGJbq"
-        "Wc8uBkI78fiX1Dej8S+ppoxC3o9V9Rby6ogpAAMNAAAAAAAAAAAAAAAAAAAAAAAD/9k=";
-        const char* alphabet =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        auto decoded = std::make_shared<std::vector<char>>();
-        decoded->reserve(1600);
-        unsigned int value = 0;
-        int bits = -8;
-        for (const unsigned char ch : std::string(encoded)) {
-            if (ch == '=')
-                break;
-            const char* at = std::strchr(alphabet, ch);
-            if (at == nullptr)
-                continue;
-            value = (value << 6) | static_cast<unsigned int>(at - alphabet);
-            bits += 6;
-            if (bits >= 0) {
-                decoded->push_back(static_cast<char>((value >> bits) & 0xff));
-                bits -= 8;
-            }
-        }
-        if (decoded->size() < 128
-            || static_cast<unsigned char>((*decoded)[0]) != 0xff
-            || static_cast<unsigned char>((*decoded)[1]) != 0xd8
-            || static_cast<unsigned char>((*decoded)[decoded->size() - 2]) != 0xff
-            || static_cast<unsigned char>((*decoded)[decoded->size() - 1]) != 0xd9)
-            return std::shared_ptr<std::vector<char> >();
-        return decoded;
-    }();
-    return portrait;
 }
 
 std::string ImageServer::GetFilePath(std::string& category, uint32 id, uint32 size)
