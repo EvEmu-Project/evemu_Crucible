@@ -15,6 +15,7 @@
 
 
 #include "eve-server.h"
+#include <cmath>
 
 #include "EVEServerConfig.h"
 
@@ -46,10 +47,8 @@ void BeltMgr::Init()
         return;
     }
 
-    m_belts.clear();
-    m_active.clear();
-    m_spawned.clear();
-
+    // Belt entities register during LoadSystemStatics(), before Init().
+    // Preserve registration and per-belt state instead of deleting it.
     m_respawnTimer.Start(sConfig.cosmic.BeltRespawn *60 *60 *1000);  // hours->ms
 
     m_initialized = true;
@@ -58,6 +57,9 @@ void BeltMgr::Init()
 
 void BeltMgr::RegisterBelt(InventoryItemRef itemRef)
 {
+    if (itemRef.get() == nullptr)
+        return;
+
     uint32 beltID = itemRef->itemID();
     m_belts.insert(std::pair<uint32, InventoryItemRef>(beltID, itemRef));
     m_active.insert(std::pair<uint32, bool>(beltID, false));
@@ -129,12 +131,16 @@ void BeltMgr::Process() {
         return;
 
     if (m_respawnTimer.Check()) {
-        for (auto cur : m_spawned)
-            if (!cur.second) {
-                std::unordered_multimap<float, uint16> roidTypes;
-                roidTypes.clear();
-                SpawnBelt(cur.first, roidTypes);
-            }
+        for (const auto& cur : m_spawned) {
+            if (cur.second)
+                continue;
+            // m_spawned uses belt itemIDs. SpawnBelt requires a bubble ID.
+            SystemEntity* belt = m_system->GetSE(cur.first);
+            if (belt == nullptr || belt->SysBubble() == nullptr)
+                continue;
+            std::unordered_multimap<float, uint16> roidTypes;
+            SpawnBelt(belt->SysBubble()->GetID(), roidTypes);
+        }
     }
 }
 
@@ -154,7 +160,7 @@ bool BeltMgr::Load(uint16 bubbleID) {
             continue;
         }
         // set attribs using loaded values from asteroid table.
-        itemRef->SetAttribute(AttrRadius,    itemRef->type().radius() * entity.radius); // Radius
+        itemRef->SetAttribute(AttrRadius,    entity.radius); // Stored radius is already in metres.
         itemRef->SetAttribute(AttrQuantity,  entity.quantity);                          // Quantity
         itemRef->SetAttribute(AttrVolume,    itemRef->type().volume());                 // Volume
         itemRef->SetAttribute(AttrMass,      itemRef->type().mass() * entity.quantity); // Mass
@@ -280,6 +286,13 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
     } else {
         sDataMgr.GetRoidDist(m_system->GetSystemSecurityClass(), roidDist);
     }
+    if (roidDist.empty()) {
+        _log(COSMIC_MGR__WARNING,
+             "Missing %s distribution for belt %u in %s(%u), security class '%s' (true sec %.3f).",
+             ice ? "ice" : "ore", beltID, m_system->GetName(), m_system->GetID(),
+             m_system->GetSystemSecurityClass(), secRating);
+        return;
+    }
 
     int8 pcs = 5;
     double radius = 8000;
@@ -311,10 +324,11 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
         elevation = (radius / 4);
     }
 
-    double degreeSeparation = (180 / pcs);
+    double degreeSeparation = (180.0 / pcs);
     ++pcs;
     GPoint center(pSE->SysBubble()->GetCenter());
     GPoint mposition(NULL_ORIGIN);
+    uint32 spawned = 0;
     for (uint8 i = 1; i < pcs; ++i) {
         if (ice) {
             if (secRating > -0.2) {
@@ -340,7 +354,14 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
             mposition.z = (randRadius + roidradius + radius) * sin(theta);
         }
         mposition.y = MakeRandomFloat(-elevation, elevation);
-        SpawnAsteroid(beltID, GetAsteroidType(MakeRandomFloat(), roidDist), roidradius, (center + mposition), ice);
+        if (SpawnAsteroid(beltID, GetAsteroidType(MakeRandomFloat(), roidDist),
+                          roidradius, (center + mposition), ice))
+            ++spawned;
+    }
+    if (!spawned) {
+        _log(COSMIC_MGR__WARNING, "No asteroids created for belt %u in %s(%u).",
+             beltID, m_system->GetName(), m_system->GetID());
+        return;
     }
 
     std::map<uint32, bool>::iterator itr = m_spawned.find(beltID);
@@ -358,34 +379,48 @@ void BeltMgr::SpawnBelt(uint16 bubbleID, std::unordered_multimap<float, uint16>&
     }
 
     _log(COSMIC_MGR__TRACE, "BeltMgr::SpawnBelt - Belt spawned with %u roids of %s in %s %u for %s(%u)", \
-            pcs, (ice?"ice":"ore"), (anomaly?"anomalyID":"beltID"), beltID, m_system->GetName(), m_system->GetID() );
+            spawned, (ice?"ice":"ore"), (anomaly?"anomalyID":"beltID"), beltID, m_system->GetName(), m_system->GetID() );
 }
 
 uint32 BeltMgr::GetAsteroidType(double p, const std::unordered_multimap<float, uint16>& roids) {
-    std::unordered_multimap<float, uint16>::const_iterator cur = roids.begin();
-    float chance = 0.0;
-    for(; cur != roids.end(); ++cur ) {
-        chance += cur->first;
-        _log(COSMIC_MGR__DEBUG, "BeltMgr::GetAsteroidType - checking %u with chance %.3f(%.3f)", cur->second, chance, p);
-        if (chance > p )
-            return cur->second;
+    // Support SQL weights specified as fractions, percentages or rounded
+    // probabilities without biasing type selection or returning typeID 0.
+    double total = 0.0;
+    uint32 lastTypeID = 0;
+    for (const auto& entry : roids) {
+        if (entry.second && std::isfinite(entry.first) && entry.first > 0.0f) {
+            total += entry.first;
+            lastTypeID = entry.second;
+        }
     }
+    if (!(total > 0.0) || !std::isfinite(total))
+        return 0;
 
-    return 0;
+    const double threshold = p * total;
+    double accumulated = 0.0;
+    for (const auto& entry : roids) {
+        if (!entry.second || !std::isfinite(entry.first) || entry.first <= 0.0f)
+            continue;
+        accumulated += entry.first;
+        if (threshold < accumulated)
+            return entry.second;
+    }
+    // MakeRandomFloat can return its upper endpoint.
+    return lastTypeID;
 }
 
-void BeltMgr::SpawnAsteroid(uint32 beltID, uint32 typeID, double radius, const GPoint& position, bool ice/*false*/) {
+bool BeltMgr::SpawnAsteroid(uint32 beltID, uint32 typeID, double radius, const GPoint& position, bool ice/*false*/) {
     if (typeID == 0) {
         _log(COSMIC_MGR__WARNING, "BeltMgr::SpawnAsteroid - typeID is 0");
-        return;
+        return false;
     }
     if (IsNaN(radius)) {
         _log(COSMIC_MGR__WARNING, "BeltMgr::SpawnAsteroid - radius is NaN");
-        return;
+        return false;
     }
     if (radius <= 0) {
         _log(COSMIC_MGR__WARNING, "BeltMgr::SpawnAsteroid - radius < 0");
-        return;
+        return false;
     }
 
     double quantity = 0;
@@ -395,6 +430,10 @@ void BeltMgr::SpawnAsteroid(uint32 beltID, uint32 typeID, double radius, const G
         radius *= sConfig.cosmic.roidRadiusMultiplier;
         //Amount of Ore = (25000*ln(Radius))-112404.8   V = 25000Ln(r) - 112407
         quantity = ((25000 * log(radius)) - 112404.8);
+    }
+    if (!std::isfinite(quantity) || quantity <= 0.0) {
+        _log(COSMIC_MGR__WARNING, "Invalid quantity for ore type %u at radius %.2f.", typeID, radius);
+        return false;
     }
 
     AsteroidData adata = AsteroidData();
@@ -412,15 +451,16 @@ void BeltMgr::SpawnAsteroid(uint32 beltID, uint32 typeID, double radius, const G
         iRef = sItemFactory.SpawnAsteroid(idata, adata);
     }
     if (iRef.get() == nullptr)
-        return;
+        return false;
 
     AsteroidSE* pASE = new AsteroidSE( iRef, m_system->GetServiceMgr(), m_system );
     if (pASE == nullptr)
-        return;
+        return false;
 
     m_asteroids.emplace(std::pair<uint32, AsteroidSE*>(beltID, pASE));
     pASE->SetMgr(this, beltID);
     m_system->AddEntity(pASE, false);   // we're not adding roids to signal list
+    return true;
 }
 
 void BeltMgr::RemoveAsteroid(uint32 beltID, AsteroidSE* pASE)
@@ -431,6 +471,10 @@ void BeltMgr::RemoveAsteroid(uint32 beltID, AsteroidSE* pASE)
     for (auto itr = range.first; itr != range.second; ++itr) {
         if (itr->second == pASE) {
             m_asteroids.erase(itr);
+            if (m_asteroids.count(beltID) == 0) {
+                m_spawned[beltID] = false;
+                m_active[beltID] = false;
+            }
             return;
         }
     }
