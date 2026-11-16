@@ -796,7 +796,7 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
 }
 
 InventoryItemRef InventoryItem::Split(int32 qty/*0*/, bool notify/*true*/, bool silent/*false*/) {
-    if (qty < 1 || m_data.singleton || qty > m_data.quantity) {
+    if (qty < 1 || m_data.singleton || qty >= m_data.quantity) {
         _log(ITEM__ERROR, "II::Split() - %s(%u): Cannot split qty=%i from stack qty=%i singleton=%u.",
              m_data.name.c_str(), m_itemID, qty, m_data.quantity, m_data.singleton ? 1u : 0u);
         return InventoryItemRef(nullptr);
