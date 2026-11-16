@@ -94,7 +94,7 @@ namespace Mission {
     // Synthetic Level 0 Blockade encounter used for combat testing.
     constexpr uint16 kBlockadeSecurityTestMissionID = 65535;
     constexpr uint16 kBlockadeSecurityTestRequiredKills = 24;
-    constexpr uint32 kBlockadeSecurityTestRewardISK = 150000;
+    constexpr uint32 kBlockadeSecurityTestRewardISK = 50000000;
     constexpr uint32 kBlockadeSecurityTestDurationMinutes = 120;
     namespace State {
         enum {

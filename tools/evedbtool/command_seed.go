@@ -243,7 +243,15 @@ WHERE oldOrder.regionID = @regionid
           SELECT seededType.typeID
           FROM invTypes AS seededType
           INNER JOIN invGroups AS seededGroup ON seededType.groupID = seededGroup.groupID
-          WHERE seededGroup.categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46)
+          WHERE (
+              seededGroup.categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46)
+              -- Buyable containers are Celestial-category items. Restrict
+              -- to the four historical container inventory groups and only
+              -- published, market-listed types; do not seed wreck/loot cans.
+              OR (seededGroup.groupID IN (12, 340, 448, 649)
+                  AND seededType.published = 1
+                  AND seededType.marketGroupID IS NOT NULL)
+          )
       )
       OR oldOrder.typeID IN (
           SELECT rareType.typeID
@@ -325,7 +333,13 @@ LEFT JOIN tExistingSellOrders AS existing
     ON existing.stationID = stations.stationId
    AND existing.typeID = it.typeID
 WHERE it.published = 1
-  AND ig.categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46)
+  AND (
+      ig.categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46)
+      -- Crucible market containers are Celestial-category groups:
+      -- ordinary (12), secure (340), audit log (448), freight (649).
+      OR (ig.groupID IN (12, 340, 448, 649)
+          AND it.marketGroupID IS NOT NULL)
+  )
   AND existing.stationID IS NULL;
 
 -- Add newly seeded orders to the lookup table before considering rare modules.

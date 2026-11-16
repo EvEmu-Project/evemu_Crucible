@@ -72,7 +72,7 @@ jobs:
         run: |
           cp sql/evedb.yaml.example sql/evedb.yaml
           (cd sql && ./evedbtool seed -force -dryrun) > "$RUNNER_TEMP/evedbtool-seed-dryrun.log" 2>&1
-          for expected in "550000" "RAND() < @saturation" "officer" "deadspace" "faction" "storyline" "NOT EXISTS"; do
+          for expected in "550000" "RAND() < @saturation" "officer" "deadspace" "faction" "storyline" "NOT EXISTS" "seededGroup.groupID IN (12, 340, 448, 649)" "ig.groupID IN (12, 340, 448, 649)" "marketGroupID IS NOT NULL"; do
             grep -qi "$expected" "$RUNNER_TEMP/evedbtool-seed-dryrun.log" || {
               echo "EVEDBTool dry-run output is missing expected SQL: $expected" >&2
               cat "$RUNNER_TEMP/evedbtool-seed-dryrun.log" >&2
@@ -181,7 +181,7 @@ jobs:
           $exitCode = $LASTEXITCODE
           Pop-Location
           if ($exitCode -ne 0) { throw "EVEDBTool seed dry-run failed: $output" }
-          foreach ($expected in @("550000", "RAND() < @saturation", "officer", "deadspace", "faction", "storyline", "NOT EXISTS")) {
+          foreach ($expected in @("550000", "RAND() < @saturation", "officer", "deadspace", "faction", "storyline", "NOT EXISTS", "seededGroup.groupID IN (12, 340, 448, 649)", "ig.groupID IN (12, 340, 448, 649)", "marketGroupID IS NOT NULL")) {
             if (!$output.Contains($expected, [StringComparison]::OrdinalIgnoreCase)) {
               throw "EVEDBTool dry-run output is missing expected SQL: $expected"
             }
