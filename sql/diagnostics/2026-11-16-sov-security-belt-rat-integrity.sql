@@ -18,12 +18,14 @@ FROM mapSolarSystems AS mss
 GROUP BY mss.securityClass
 ORDER BY mss.securityClass;
 
--- 2. Detect any security class with no ore entries. These are belts that can
---    fail to spawn ore even when BeltEnabled=true.
+-- 2. Detect defined security classes with no ore entries.
+--    NULL is deliberately excluded here: it mixes known-space omissions,
+--    wormhole space and special systems, and must be classified separately
+--    by queries 10-13 before anyone changes static SQL.
 SELECT mss.securityClass, COUNT(*) AS affected_systems
 FROM mapSolarSystems AS mss
 LEFT JOIN roidDistribution AS r ON r.systemSec = mss.securityClass
-WHERE r.roidID IS NULL
+WHERE mss.securityClass IS NOT NULL AND r.roidID IS NULL
 GROUP BY mss.securityClass
 ORDER BY affected_systems DESC;
 
@@ -96,3 +98,96 @@ FROM sysAsteroids
 GROUP BY systemID, beltID
 ORDER BY stored_asteroids DESC
 LIMIT 100;
+
+-- 10. IMPORTANT: break NULL securityClass into *system domains*, rather than
+--     reporting the combined 2789 NULL systems as 2789 broken mining belts.
+--     The 31xxxxxx range is traditional wormhole-space solarSystemIDs.
+--     Wormhole mining/anomaly resources have different rules; do not assign
+--     F/G/H/... null-sec class by security rating alone.
+--     The groupID=9 filter is the source-verified Asteroid_Belt group.
+SELECT
+    CASE
+        WHEN s.solarSystemID BETWEEN 31000000 AND 31999999 THEN 'wormhole-space IDs'
+        WHEN s.solarSystemID BETWEEN 30000000 AND 30999999 THEN 'known-space IDs'
+        ELSE 'other/special IDs'
+    END AS system_domain,
+    COUNT(*) AS null_security_class_systems,
+    SUM(IFNULL(b.asteroid_belt_count, 0) > 0) AS systems_with_static_belts,
+    SUM(IFNULL(b.asteroid_belt_count, 0)) AS total_static_belts,
+    MIN(s.security) AS lowest_static_truesec,
+    MAX(s.security) AS highest_static_truesec
+FROM mapSolarSystems AS s
+LEFT JOIN
+    (SELECT solarSystemID, COUNT(*) AS asteroid_belt_count
+     FROM mapDenormalize
+     WHERE groupID = 9
+     GROUP BY solarSystemID) AS b ON b.solarSystemID = s.solarSystemID
+WHERE s.securityClass IS NULL
+GROUP BY system_domain
+ORDER BY system_domain;
+
+-- 11. Locate missing known-space classes *that actually have static belts*.
+--     These deserve investigation first; systems with NULL securityClass but
+--     no belt might not be broken by the belt-ore class lookup at all.
+SELECT s.regionID, r.regionName,
+       COUNT(*) AS known_space_systems_with_missing_class,
+       SUM(b.asteroid_belt_count) AS static_belts_affected,
+       MIN(s.security) AS lowest_truesec,
+       MAX(s.security) AS highest_truesec
+FROM mapSolarSystems AS s
+INNER JOIN
+    (SELECT solarSystemID, COUNT(*) AS asteroid_belt_count
+     FROM mapDenormalize
+     WHERE groupID = 9
+     GROUP BY solarSystemID) AS b ON b.solarSystemID = s.solarSystemID
+LEFT JOIN mapRegions AS r ON r.regionID = s.regionID
+WHERE s.securityClass IS NULL
+  AND s.solarSystemID BETWEEN 30000000 AND 30999999
+GROUP BY s.regionID, r.regionName
+ORDER BY static_belts_affected DESC, s.regionID;
+
+-- 12. Example known-space systems with missing classes and actual static belts.
+--     The nearest class in the SAME CONSTELLATION is a diagnostic suggestion,
+--     NOT evidence that the class is historically correct! Do not UPDATE from
+--     this candidate without verifying the Crucible-era static data.
+SELECT s.solarSystemID, s.solarSystemName,
+       s.regionID, s.constellationID, s.factionID,
+       s.security AS static_truesec,
+       d.security AS runtime_denormalized_truesec,
+       b.asteroid_belt_count,
+       (SELECT neighbor.securityClass
+        FROM mapSolarSystems AS neighbor
+        WHERE neighbor.constellationID = s.constellationID
+          AND neighbor.securityClass IS NOT NULL
+        ORDER BY ABS(neighbor.security - s.security), neighbor.solarSystemID
+        LIMIT 1) AS nearest_constellation_class_DIAGNOSTIC_ONLY
+FROM mapSolarSystems AS s
+INNER JOIN
+    (SELECT solarSystemID, COUNT(*) AS asteroid_belt_count
+     FROM mapDenormalize
+     WHERE groupID = 9
+     GROUP BY solarSystemID) AS b ON b.solarSystemID = s.solarSystemID
+LEFT JOIN mapDenormalize AS d ON d.itemID = s.solarSystemID
+WHERE s.securityClass IS NULL
+  AND s.solarSystemID BETWEEN 30000000 AND 30999999
+ORDER BY b.asteroid_belt_count DESC, s.regionID, s.solarSystemID
+LIMIT 300;
+
+-- 13. Compare the static security value used in the attached SQL summary
+--     with the mapDenormalize security used by the original server query.
+--     The patched loader now falls back to s.security only when d.security
+--     is NULL. Do not overwrite differing non-NULL values without verifying
+--     why the static and denormalized representations disagree.
+SELECT s.solarSystemID, s.solarSystemName,
+       s.security AS static_security,
+       d.security AS denormalized_security,
+       CASE WHEN d.itemID IS NULL THEN 'missing mapDenormalize system row'
+            WHEN d.security IS NULL THEN 'missing denormalized security'
+            ELSE 'nonmatching trueSec values' END AS diagnostic_reason
+FROM mapSolarSystems AS s
+LEFT JOIN mapDenormalize AS d ON d.itemID = s.solarSystemID
+WHERE s.solarSystemID BETWEEN 30000000 AND 30999999
+  AND (d.itemID IS NULL OR d.security IS NULL
+       OR ABS(d.security - s.security) > 0.00001)
+ORDER BY s.regionID, s.solarSystemID
+LIMIT 300;
