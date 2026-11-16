@@ -43,7 +43,7 @@ SELECT
     stations.stationId,
     CASE
         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100
-        ELSE it.basePrice
+        ELSE GREATEST(0.01, ROUND(it.basePrice, 2))
     END,
     10,
     10,
