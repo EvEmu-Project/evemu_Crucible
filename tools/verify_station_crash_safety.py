@@ -24,7 +24,7 @@ split = items[items.index("InventoryItemRef InventoryItem::Split("):items.index(
 assert split.index("sItemFactory.SpawnItem(idata)") < split.index("AlterQuantity(-qty, notify)")
 assert "iRef->Delete();" in split and "qty >= m_data.quantity" in split
 alter = items[items.index("bool InventoryItem::AlterQuantity("):items.index("bool InventoryItem::SetQuantity(", items.index("bool InventoryItem::AlterQuantity("))]
-assert "if (new_qty < 0)" in alter
+assert "if (new_qty < 0 || new_qty > std::numeric_limits<int32>::max())" in alter
 assert "Delete();" not in alter, "Invalid quantity must not delete existing stack"
 assert "IsLegacyAgentThumbnail50(category, id, size)" in img
 assert "Content-Length: " in connection
@@ -63,7 +63,7 @@ assert 'return;  // already indexed in mContents and m_contentsByFlag' in invent
 assert 'if (cRef.get() != nullptr && cRef->groupID()' in inventory, (
     "Missing source container must not be dereferenced")
 assert 'if (pClient == nullptr || pClient->GetShip().get() == nullptr)' in inventory
-assert 'if (iRef->itemID() == m_myID)' in inventory
+assert 'if (iRef->itemID() == m_myID || WouldCreateContainmentCycle(iRef))' in inventory
 assert 'if (pClient == nullptr || m_self.get() == nullptr || pInventory == nullptr)' in inventory_bound
 assert 'if (!pInventory->ValidateAddItem(toFlag, iRef))' in inventory_bound
 assert 'if (itemVec.empty())' in inventory_bound
@@ -90,6 +90,46 @@ assert 'if (sDataMgr.IsSolarSystem(locationID()) && !m_isAnchored)' in cargo_ren
 cargo_ctor = container_cpp.split('CargoContainer::CargoContainer(', 1)[1].split('CargoContainer::~CargoContainer', 1)[0]
 assert 'pInventory = new Inventory(' not in cargo_ctor, (
     "StructureItem already allocates the inventory; do not leak a second one")
+
+# Cross-cutting inventory, POS, and persistence safety after the full transfer audit.
+inventory_h = src("src/eve-server/inventory/Inventory.h")
+pos_h = src("src/eve-server/pos/Structure.h")
+pos_mgr = src("src/eve-server/pos/PosMgr.cpp")
+tower_h = src("src/eve-server/pos/Tower.h")
+tower_cpp = src("src/eve-server/pos/Tower.cpp")
+item_db = src("src/eve-server/inventory/ItemDB.cpp")
+assert 'bool WouldCreateContainmentCycle(InventoryItemRef item) const;' in inventory_h
+assert 'bool Inventory::WouldCreateContainmentCycle(InventoryItemRef item) const' in inventory
+assert 'std::set<uint32> visited;' in inventory
+assert 'if (pInventory->WouldCreateContainmentCycle(iRef))' in inventory_bound
+assert 'ScopedInventoryClient factoryClient(pClient);' in inventory_bound
+assert 'ScopedInventoryClient factoryClient(call.client);' in inventory_bound
+assert 'if (qty < 1 || qty > srcItem->quantity())' in inventory_bound
+assert 'if (ship && (pShip == nullptr || m_self->GetShipItem() == nullptr))' in inventory_bound
+assert 'if (!pInventory->ValidateAddItem(toFlag, iRef))' in inventory_bound
+assert 'iRef->Move(m_itemID, toFlag, true);' in inventory_bound, "Customs must persist location changes"
+assert 'Inventory* parentInventory = iRef->GetMyInventory();' in items
+assert 'if (parentInventory != nullptr)' in items
+assert 'to_merge.get() == this' in items
+assert 'qty > std::numeric_limits<int32>::max() - m_data.quantity' in items
+assert 'const int64 new_qty = static_cast<int64>(m_data.quantity) + qty;' in items
+assert 'if (qty < 0)' in items
+assert 'if (pClient->IsDocked() || pClient->GetShipSE() == nullptr' in items
+assert 'if (mySE == nullptr || mySE->GetPOSSE() == nullptr)' in structure
+assert 'if (!InitData())' in structure
+assert 'm_towerSE == nullptr' in structure
+assert 'bool StructureSE::InitData()' in structure
+assert 'virtual bool                InitData();' in pos_h
+assert 'virtual bool                InitData();' in tower_h
+assert 'bool TowerSE::InitData()' in tower_cpp
+assert 'IsPOSInitialized()' in tower_cpp
+assert 'GetCheckedTowerSE(SystemManager* system' in pos_mgr
+assert 'GetCheckedStructureSE(SystemManager* system' in pos_mgr
+assert 'sDatabase.DoEscapeString(customInfoEsc, cur.customInfo);' in item_db
+sql_audit = src("sql/diagnostics/2026-11-16-container-pos-integrity.sql")
+assert 'SELECT itemID, itemName, typeID' in sql_audit
+assert 'SHOW INDEX FROM entity;' in sql_audit
+assert 'DELETE FROM ENTITY' not in sql_audit.upper(), "SQL audit must be read-only"
 
 assert not (root / "tools/agent_portraits").exists()
 tcp = src("src/eve-core/network/TCPConnection.cpp")
