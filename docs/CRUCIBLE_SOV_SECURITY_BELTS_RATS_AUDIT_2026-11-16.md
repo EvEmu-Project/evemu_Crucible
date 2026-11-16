@@ -135,3 +135,39 @@ No SQL migrations were introduced in this branch. Retain your existing
 0.8.7-Rizonx server binary and database backup. Install the new matching
 Windows ZIP together with its UCRT64 runtime DLLs, record `BUILD-INFO.txt`
 commit SHA, and capture relevant `COSMIC_MGR`, `SPAWN` and `SOV` logs.
+
+## Follow-up: actual SQL audit export reviewed on 2026-11-16
+
+A user-supplied 63-row export of **query 1 only** reported **7,929 total systems**:
+5,140 systems with a non-NULL securityClass and 2,789 with NULL.
+Each non-NULL class (A, B, B1 ... K7) had between 2 and 11
+`roidDistribution` type rows. The NULL group had 0 entries and
+its static trueSec ranged from -1.0 to ~0.6528.
+
+**Do not mistake this for 2,789 corrupted belts.** The first query groups
+every system of NULL class together, including wormhole space where the
+known-space ore classification is not necessarily applicable. Some special
+known-space systems may also lack conventional asteroid belts. Thus the
+first report alone cannot prove how many ordinary mining belts are broken.
+
+The follow-up read-only SQL audit now includes:
+
+1. Query 10: grouped **known-space ID / wormhole-space ID / special ID**
+   NULL-class counts and number of real static asteroid belts (groupID 9).
+2. Query 11: known-space regions with static asteroid belts and NULL class.
+3. Query 12: named affected known-space systems, their trueSec, belt counts
+   and a *diagnostic-only* nearest same-constellation candidate class.
+   **Never mass-UPDATE from this candidate without historical verification.**
+4. Query 13: missing or differing denormalized trueSec values.
+   `ManagerDB::GetSystemData` now uses
+   `COALESCE(mapDenormalize.security, mapSolarSystems.security)` so missing
+   denormalized rows do not silently force system-security calculations to 0.
+5. Query 2 excludes NULL classes, so it no longer falsely labels all
+   wormhole/special systems as empty ore-class tables.
+
+**Still needed to certify historical resources:** Actual output of SQL
+queries 3, 4 and 5 (weight totals, invalid types, exact ore names), and
+queries 6-8 (regional rat factions and sovereignty claim consistency).
+No static class was automatically assigned and no schema or game-data
+migration was performed. Correct class assignments should come from
+verified Crucible-era static data, not simply numerical security thresholds.
