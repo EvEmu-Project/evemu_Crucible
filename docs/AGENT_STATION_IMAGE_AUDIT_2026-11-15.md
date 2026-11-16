@@ -31,6 +31,10 @@ This patch does not synthesize authentic NPC portraits or change NPC portrait id
 
 References: [Current EVE image server](https://docs.esi.evetech.net/docs/image_server.html), [fork patch notes](../PATCH_NOTES.md).
 
+## Offline station-agent portrait follow-up — 15 November 2026
+
+The follow-up branch `fix/offline-agent-station-portraits-2026-11-15` removes external redirects for the Crucible NPC agent-ID range and packages a generic local JPEG fallback. A one-time optional agent portrait importer can cache available original CCP portraits from official imagery sources; no historical portraits are invented or automatically redistributed. See [offline rollout and verification](AGENT_LOCAL_PORTRAITS_2026-11-15.md). These are source changes; a successful CI run will not prove authentic NPC artwork coverage or live 2012-client presentation.
+
 ## Further agent UI and lookup optimization
 
 - The Crucible agent conversation now sets `missionCompleted=true` in its out-of-band response only after an actual completion. Previously this field remained false on every successful completion.

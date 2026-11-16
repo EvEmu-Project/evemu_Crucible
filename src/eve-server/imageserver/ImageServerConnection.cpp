@@ -108,6 +108,14 @@ void ImageServerConnection::ProcessHeaders()
 
     _imageData = sImageServer.GetImage(_category, _id, _size);
     if (!_imageData) {
+        if (EvEAgent::IsStationAgentPortraitRequest(_category, _id)) {
+            // Never send a Crucible-era station NPC to an external HTTPS
+            // portrait endpoint. If both local cache and bundled placeholder
+            // are missing, fail locally and keep the old client offline.
+            sLog.Warning("     Image Server", "Local agent portrait and fallback missing for agent %u.", _id);
+            NotFound();
+            return;
+        }
         if (IsPlayerItem(_id)) {
             sLog.Error("     Image Server","Image for itemID %u not found.", _id);
             NotFound();

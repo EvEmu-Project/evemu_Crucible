@@ -1,5 +1,13 @@
 # Live Patch Notes — xrizonx/evemu_Crucible
 
+## 2026-11-15 — Offline Crucible station-agent portraits
+
+- Removed external HTTPS redirection for missing NPC station-agent character portraits (legacy 3,000,000–3,999,999 IDs); the local image server now serves exact or alternative cached JPEG sizes, or a bundled original generic silhouette when no historic portrait exists.
+- Added a portable placeholder at `share/evemu/agent_portraits/agent_missing_512.jpg` via CMake, with a custom override under `image_cache/Character/`. The packaged fallback remains accessible even if Docker mounts an existing `image_cache` volume.
+- Added opt-in `tools/agent_portraits/sync_portraits.py` to import available genuine JPEGs as local files using `sql/base/agtAgents.sql.gz` without live MariaDB. It validates responses and preserves existing cached portraits; a `--local-import ... --offline-only` mode imports an existing historical JPEG folder/ZIP entirely without network. **No network access is required from the server during agent image requests**; the importer uses the official image service only when intentionally run.
+- Added offline Python cache/JPEG tests and an expanded `AgentHelpersTest` NPC portrait-ID check; Windows/Linux CI verifies the importer against the actual packaged agent SQL dump.
+- Documentation: [offline portrait setup and verification](docs/AGENT_LOCAL_PORTRAITS_2026-11-15.md). Complete historical NPC portrait coverage and a 2012 client visual test are not yet proven, and downloaded copyrighted CCP assets are not automatically added to the public GitHub source.
+
 ## 2026-11-15 — Blockade test reward and cargo containers in NPC market seed
 
 - Increased the synthetic Level 0 Blockade test mission's ISK reward from **150,000 to 50,000,000 ISK**, without altering official Crucible-era mission templates or unrelated rewards.
