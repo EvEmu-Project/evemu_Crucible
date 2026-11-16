@@ -248,6 +248,10 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
         }
     }
 
+    if (iRef->GetMyInventory() == nullptr) {
+        _log(INV__ERROR, "GetInventoryFromId: item %u (group %u) cannot hold inventory; refusing binding.", iRef->itemID(), iRef->groupID());
+        return nullptr;
+    }
     InventoryBound* ib = new InventoryBound(this->GetServiceManager(), reinterpret_cast <BoundServiceParent<InventoryBound>&> (this->GetParent ()), iRef, flag, ownerID, passive->value());
 
     ib->NewReference(call.client);
@@ -341,6 +345,10 @@ PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std:
             return nullptr;
     }
 
+    if (item->GetMyInventory() == nullptr) {
+        _log(INV__ERROR, "GetInventory: item %u (group %u) cannot hold inventory; refusing binding.", item->itemID(), item->groupID());
+        return nullptr;
+    }
     InventoryBound* ib = new InventoryBound(this->GetServiceManager(), reinterpret_cast <BoundServiceParent<InventoryBound>&> (this->GetParent ()), item, flag, ownerID, false);
 
     ib->NewReference(call.client);
