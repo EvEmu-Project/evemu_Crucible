@@ -7,6 +7,7 @@
 - Prevented `StationItem::LoadStationOffice` from dereferencing a missing office or inventory, and only marks an office as loaded after `LoadContents` actually succeeds.
 - Guarded missing station references while constructing system statics and cleaning up a disconnected/docked character; a partial/failed station load no longer causes an additional null dereference during logout.
 - Guarded missing cached office PyRep before returning office data to the client.
+- Corrected `StationDB::GetStationOfficeIDs` for office-folder locations: `officeFolderID` is already the encoded folder ID, so subtracting `STATION_OFFICE_OFFSET` produced an incorrect SQL filter and hid office rows.
 - Added `StationOfficeIntegrityTest` CTest for multiple corporations, missing offices, empty office indexes and no cross-corporation mutation. No image, market, agents, weapon, drone, warp or container-assembly logic changed.
 - See [station-load failure source audit and client testing](docs/STATION_LOGIN_OFFICE_CRASH_AUDIT_2026-11-16.md). CI success does **not** imply that the live client crash has been reproduced and resolved.
 
