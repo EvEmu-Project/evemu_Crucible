@@ -626,12 +626,23 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             StructureItemRef sRef = StructureItemRef::StaticCast(m_self);
             sRef->AddItem(iRef);// this will throw if it fails
         } else {
+            const bool stationContainerMove = m_self->categoryID() == EVEDB::invCategories::Celestial
+                && sDataMgr.IsStation(m_self->locationID());
+            if (stationContainerMove)
+                sLog.Warning("StationContainerTransfer",
+                             "BEGIN item=%u source=%u destination=%u flag=%u qty=%d.",
+                             iRef->itemID(), iRef->locationID(), m_itemID,
+                             static_cast<uint32>(toFlag), iRef->quantity());
             if (!pInventory->ValidateAddItem(toFlag, iRef)) {
                 _log(INV__WARNING, "IB::MoveItems: item %u rejected by destination %u capacity validation.",
                      iRef->itemID(), m_itemID);
                 continue;
             }
             iRef->Donate(m_ownerID, m_itemID, toFlag);
+            if (stationContainerMove)
+                sLog.Warning("StationContainerTransfer",
+                             "END item=%u nowIn=%u expected=%u.",
+                             iRef->itemID(), iRef->locationID(), m_itemID);
         }
     }
 
