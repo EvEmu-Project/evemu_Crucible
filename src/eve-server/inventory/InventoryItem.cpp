@@ -641,11 +641,16 @@ void InventoryItem::Rename(std::string name)
     if (IsCharacterID(m_data.ownerID)) {
         // this will be the most-used case
         Client* pClient = sEntityList.FindClientByCharID(m_data.ownerID);
-        if (pClient == nullptr)
-            return;  //  make error here?
-        if (pClient->IsDocked()) {
-            pClient->SendNotification("OnCfgDataChanged", "charid", &tuple, false); //unsequenced.
-        } else { // client in space.  sent update to all clients in bubble
+        if (pClient == nullptr) {
+            PySafeDecRef(tuple);
+            return;
+        }
+        if (pClient->IsDocked() || pClient->GetShipSE() == nullptr
+                || pClient->GetShipSE()->SysBubble() == nullptr) {
+            // A client may be transitioning through dock/undock while a
+            // container or POS rename notification is generated.
+            pClient->SendNotification("OnCfgDataChanged", "charid", &tuple, false);
+        } else { // client in space: notify others in the bubble
             pClient->GetShipSE()->SysBubble()->BubblecastSendNotification("OnCfgDataChanged", "solarsystemid", &tuple, false);
         }
     } else if (IsPlayerCorp(m_data.ownerID)) {
@@ -655,6 +660,9 @@ void InventoryItem::Rename(std::string name)
         } else {
             sEntityList.CorpNotify(m_data.ownerID, Notify::Types::ItemUpdateSystem, "OnCfgDataChanged", "solarsystemid", tuple);
         }
+    } else {
+        // Unknown or system owners have no subscribed client.
+        PySafeDecRef(tuple);
     }
 
     /** @todo  if renaming a POS or other space object, we'll need to BubblecastSendNotification instead of CorpNotify  */
