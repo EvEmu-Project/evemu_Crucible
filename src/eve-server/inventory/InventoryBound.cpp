@@ -496,6 +496,13 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             _log(INV__ERROR, "IB::MoveItems() - item %i not found.  continuing.", (*itr));
             continue;
         }
+        // Check before splitting, donating or fitting: a rejected nesting
+        // request must not mutate the original item/stack.
+        if (pInventory->WouldCreateContainmentCycle(iRef)) {
+            _log(INV__WARNING, "IB::MoveItems() - rejected containment cycle for item %u into %u.",
+                 iRef->itemID(), m_itemID);
+            continue;
+        }
 
         if (iRef->typeID() == EVEDB::invTypes::Bookmark) {
             // update this to keep owner/creator and other data
