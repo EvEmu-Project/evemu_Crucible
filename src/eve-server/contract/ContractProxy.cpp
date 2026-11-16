@@ -477,6 +477,18 @@ PyResult ContractProxy::DeleteContract(PyCallArgs &call, PyInt* contractID) {
     sLog.White( "ContractProxy::Handle_DeleteContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
+    // Never let another player cancel an arbitrary contract and take its
+    // escrowed items. Only the issuer may delete an outstanding contract.
+    DBQueryResult ownerQuery;
+    if (!sDatabase.RunQuery(ownerQuery,
+        "SELECT issuerID, status FROM ctrContracts WHERE contractId = %u",
+        contractID->value()))
+        return new PyBool(false);
+    DBResultRow ownerRow;
+    if (!ownerQuery.GetRow(ownerRow) || ownerRow.GetUInt(0) != call.client->GetCharacterID()
+        || ownerRow.GetInt(1) != 0)
+        return new PyBool(false);
+
     // In order to return items back to the owner, we need a full list of entityID's to return. We gather them using utils function
     std::vector<int> entityIds;
     ContractUtils::GetContractItemIDs(contractID->value(), &entityIds);
@@ -495,7 +507,8 @@ PyResult ContractProxy::DeleteContract(PyCallArgs &call, PyInt* contractID) {
 
     DBerror err;
     if (!sDatabase.RunQuery(err,
-                            "UPDATE ctrContracts SET status = 8 WHERE contractId = %u", contractID->value()))
+                            "UPDATE ctrContracts SET status = 8 WHERE contractId = %u AND issuerID = %u AND status = 0",
+                            contractID->value(), call.client->GetCharacterID()))
     {
         codelog(DATABASE__ERROR, "Failed to update contract volume: %s", err.c_str());
     }
@@ -511,7 +524,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
     // For the time being - we ignore the second value in tuple (forCorp), since it's not yet functional.
 
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp, startSolarSystemID, endSolarSystemID FROM ctrContracts WHERE contractId = %u", contractID->value()))
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp, startSolarSystemID, endSolarSystemID, isPrivate, assigneeID FROM ctrContracts WHERE contractId = %u", contractID->value()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -532,6 +545,11 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
     bool forCorp = row.GetBool(8);
     int startSolarSystemID = row.GetInt(9);
     int endSolarSystemID = row.GetInt(10);
+    const bool isPrivate = row.GetBool(11);
+    const uint32 assigneeID = row.GetUInt(12);
+    if (isPrivate && assigneeID != call.client->GetCharacterID()
+        && assigneeID != call.client->GetCorporationID())
+        return new PyBool(false);
 
     if (status == 0) {
         // We can only accept outstanding contracts. If it's not - we ignore the call.
@@ -719,7 +737,7 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
     call.Dump(SERVICE__CALL_DUMP);
 
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, endStationID, issuerID, forCorp, crateID FROM ctrContracts WHERE contractId = %u", contractID))
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, endStationID, issuerID, forCorp, crateID, acceptorID FROM ctrContracts WHERE contractId = %u", contractID->value()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return new PyBool(false);
@@ -738,6 +756,12 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
     int issuerID = row.GetInt(8);
     bool forCorp = row.GetBool(9);
     int crateID = row.GetInt(10);
+    const uint32 acceptorID = row.GetUInt(11);
+    // Completion only applies to an active courier contract and its
+    // actual acceptor; otherwise repeated calls can award collateral and
+    // reward ISK more than once or let another player finish the job.
+    if (contractType != 3 || status != 1 || acceptorID != call.client->GetCharacterID())
+        return new PyBool(false);
 
     int64 timestamp = int64(GetFileTimeNow());
     switch (completionStatus->value()) {
