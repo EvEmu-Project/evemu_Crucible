@@ -9,6 +9,7 @@
   */
 
 #include "EVEServerConfig.h"
+#include <algorithm>
 
 #include "StaticDataMgr.h"
 #include "npc/NPC.h"
@@ -147,14 +148,22 @@ void SpawnMgr::Process() {
             while (itr != end) {
                 if (itr->second.enabled) {
                     killTimer = false;
-                    if (itr->second.stamp < sEntityList.GetStamp()) {
+                    // stamp is the earliest permitted respawn time, not
+                    // an expiry; retain entries until their delay has elapsed.
+                    if (itr->second.stamp > sEntityList.GetStamp()) {
+                        ++itr;
+                        continue;
+                    }
+                    SystemBubble* spawnBubble = sBubbleMgr.FindBubbleByID(itr->first);
+                    if (spawnBubble == nullptr) {
+                        itr->second.enabled = false;
                         ++itr;
                         continue;
                     }
                     _log(SPAWN__TRACE, "Process() calling Respawn for SpawnEntryID %u (0x%X)", \
                             itr->second.spawnID, &itr->second);
                     // this means check SpawnEntry for 'missing' SpawnGroup members and respawn as needed.
-                    ReSpawn(sBubbleMgr.FindBubbleByID(itr->first), itr->second);
+                    ReSpawn(spawnBubble, itr->second);
                     itr->second.enabled = false;
                 }
                 ++itr;
@@ -268,22 +277,28 @@ void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID, uint32 killerID
         // if any SpawnEntry still exists for this bubble, reset group timer.
         // this enables chain ratting
         bool killed = true;
+        bool foundKilledNPC = false;
         auto range = m_spawns.equal_range(pBubble->GetID());
         auto itr = range.first;
         while (itr != range.second) {
             if (itr->second.itemID == itemID) {
-                itr->second.stamp = sEntityList.GetStamp() + sConfig.npc.RespawnTimer; // in seconds
+                foundKilledNPC = true;
+                itr->second.stamp = sEntityList.GetStamp() + sConfig.npc.RespawnTimer; // seconds
                 itr->second.enabled = true;
             }
             if (!itr->second.enabled)
                 killed = false;     // at least one rat left.
             ++itr;
         }
+        if (!foundKilledNPC)
+            return;
         if (killed) {
             _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled - Belt Spawn has been destoyed.  Resetting spawn checks for bubble %u.", pBubble->GetID());
             // spawn destroyed.  delete from list and reset bubble checks.
-            m_spawns.erase(pBubble->GetID()); // just in case....may/may not be in here.
-            m_bubbles.erase(std::find(m_bubbles.begin(), m_bubbles.end(), pBubble));
+            m_spawns.erase(pBubble->GetID());
+            auto bubbleItr = std::find(m_bubbles.begin(), m_bubbles.end(), pBubble);
+            if (bubbleItr != m_bubbles.end())
+                m_bubbles.erase(bubbleItr);
             pBubble->ResetBubbleRatSpawn();
             m_system->RemoveSpawnBubble(pBubble);
             return;
@@ -411,7 +426,14 @@ void SpawnMgr::DoSpawnForAnomaly(SystemBubble* pBubble, GPoint pos, uint8 level,
     group.quantity = 1;
     group.typeID = typeID;
 
-    if (m_toSpawn.size() > 0) {
+    // A missing faction/class mapping yields typeID 0. Do not create
+    // invalid NPCs or mark an empty belt bubble as successfully spawned.
+    m_toSpawn.erase(std::remove_if(m_toSpawn.begin(), m_toSpawn.end(),
+                     [](const SpawnGroup& group) {
+                         return group.typeID == 0 || group.quantity == 0;
+                     }), m_toSpawn.end());
+
+    if (!m_toSpawn.empty()) {
         if (is_log_enabled(SPAWN__MESSAGE)) {
             _log(SPAWN__MESSAGE, "SpawnMgr::DoSpawnForAnomaly() - toSpawn size is %u.", m_toSpawn.size());    //variable
             _log(SPAWN__MESSAGE, "SpawnMgr::DoSpawnForAnomaly() - Creating spawn for %s in bubbleID %u.", \
@@ -914,11 +936,11 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
 {
     if (pBubble == nullptr)
         return false;
-    float secRating = m_system->GetSecValue();
-
-    // GetSecValue() is stored as 1.1 - true security rating. Convert it
-    // back to the -1.0..1.0 scale used by the spawn-class thresholds below.
-    secRating = 1.0f - secRating;
+    // Use the actual system security rating (-1.0 to 1.0). GetSecValue()
+    // stores 1.1 - trueSec and the old 1.0 - GetSecValue() was 0.1 too low.
+    const float secRating = m_system->GetSystemSecurityRating();
+    m_toSpawn.clear();
+    m_factionGroups.clear();
 
     bool anomaly = false;
     // get faction for this region
@@ -930,6 +952,10 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
         factionID = sConfig.npc.RatFaction;
     } else if (MakeRandomFloat() > 0.05) {      // 5% chance for ANY ordinary spawn to be rogue drone.
         factionID = sDataMgr.GetRegionRatFaction(m_system->GetRegionID());
+        if (!factionID) {
+            _log(SPAWN__WARNING, "No NPC faction configured for region %u; using rogue drones.", m_system->GetRegionID());
+            factionID = factionRogueDrones;
+        }
     }
 
     if (is_log_enabled(SPAWN__MESSAGE))
@@ -1038,9 +1064,17 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
         else if (secRating < 0.7)   { level = 2; }
         else                        { level = 1; }
     } else if (sClass <= Spawn::Class::Hell) {
-        level = MakeRandomInt(0, spawnEntry.size());  // random belt/gate spawn type.
+        level = MakeRandomInt(0, spawnEntry.size() - 1);  // highest valid index is size()-1.
     } else {
         // do we need anything else here?
+    }
+
+    if (level >= spawnEntry.size()) {
+        // Some static-data packs have fewer hauler variants than the
+        // security-based range above. Never index past the available rows.
+        _log(SPAWN__WARNING, "NPC spawn class %u has %u variants; clamping requested level %u.",
+             sClass, static_cast<uint32>(spawnEntry.size()), level);
+        level = static_cast<uint8>(spawnEntry.size() - 1);
     }
 
     // get ship class data from spawnEntry.at(subtype)
@@ -1307,6 +1341,9 @@ void SpawnMgr::MakeSpawn(SystemBubble* pBubble, uint32 factionID, uint8 sClass, 
 
 void SpawnMgr::ReSpawn(SystemBubble* pBubble, SpawnEntry& spawnEntry)
 {
+    if (pBubble == nullptr)
+        return;
+
     //  we are NOT enabling spawn chaining for officer, hauler, or commander spawns.
     if (spawnEntry.spawnClass > Spawn::Class::Insane)
         return;
