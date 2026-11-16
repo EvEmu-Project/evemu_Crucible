@@ -58,12 +58,14 @@ void TCUSE::SetOnline()
     if (!m_allyID || !sDataMgr.GetSystemData(m_system->GetID(), sysData) || sysData.factionID) {
         _log(SOV__ERROR, "Cannot claim system %u with TCU %u: no alliance or NPC/unknown system.",
              m_system->GetID(), m_self->itemID());
+        RejectOnlining();
         return;
     }
     const SovereigntyData existing = svDataMgr.GetSovereigntyData(m_system->GetID());
     if (existing.claimStructureID && existing.claimStructureID != m_self->itemID()) {
         _log(SOV__ERROR, "Cannot online TCU %u: system %u already claimed by structure %u.",
              m_self->itemID(), m_system->GetID(), existing.claimStructureID);
+        RejectOnlining();
         return;
     }
 
