@@ -580,6 +580,13 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         }
 
         if (donating) {
+            // POS storage and corp destinations need capacity checks just
+            // like ordinary cargo. Do not mutate ownership for rejected moves.
+            if (!pInventory->ValidateAddItem(toFlag, iRef)) {
+                _log(INV__WARNING, "IB::MoveItems: POS/corp destination %u rejected item %u.",
+                     m_itemID, iRef->itemID());
+                continue;
+            }
             iRef->Donate(m_ownerID, m_itemID, toFlag);
             continue;
         }
@@ -630,8 +637,10 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
                 _log(INV__WARNING, "IB::MoveItems: item %u rejected by customs capacity validation.", iRef->itemID());
                 continue;
             }
-            StructureItemRef sRef = StructureItemRef::StaticCast(m_self);
-            sRef->AddItem(iRef);// this will throw if it fails
+            // AddItem only updated the in-memory inventory; it never moved
+            // the item in the database. Move preserves the existing owner,
+            // updates its location and invokes destination AddItem hooks.
+            iRef->Move(m_itemID, toFlag, true);
         } else {
             const bool stationContainerMove = m_self->categoryID() == EVEDB::invCategories::Celestial
                 && sDataMgr.IsStation(m_self->locationID());
