@@ -690,23 +690,26 @@ PyResult AgentBound::GetMissionObjectiveInfo(PyCallArgs &call, std::optional <Py
     _log(AGENT__DUMP,  "AgentBound::Handle_GetMissionObjectiveInfo() - size=%lli", call.tuple->size());
     call.Dump(AGENT__DUMP);
 
+    // Both RPC variants must load the real player's mission first.
+    // Previously only the zero-argument path loaded it; requests with
+    // characterID/contentID silently returned a default/empty offer.
+    const uint32 callerID = call.client->GetCharacterID();
+    if (characterID.has_value() && characterID.value()->value() != callerID)
+        return PyStatic.NewNone();
     MissionOffer offer = MissionOffer();
-    if (call.tuple->size() == 0)
-        if (!m_agent->HasMission(call.client->GetCharacterID(), offer))
-            return PyStatic.NewNone();
+    if (!m_agent->HasMission(callerID, offer))
+        return PyStatic.NewNone();
 
+    if (call.tuple->size() == 0) {
         switch (offer.stateID) {
-            //case Mission::State::Allocated:
             case Mission::State::Accepted:
-            //case Mission::State::Failed:
             case Mission::State::Completed:
             case Mission::State::Rejected:
             case Mission::State::Defered:
-            case Mission::State::Expired: {
+            case Mission::State::Expired:
                 return PyStatic.NewNone();
-            }
         }
-
+    }
     return GetMissionObjectiveInfo(call.client, offer);
 }
 
