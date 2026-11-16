@@ -275,7 +275,10 @@ void ServiceDB::ProcessRealChange(const char * key, double oldValue, double newV
     // literals. fcvt() requires valid output pointers and is not thread-safe.
     std::ostringstream formattedValue;
     formattedValue.imbue(std::locale::classic());
-    formattedValue << std::fixed << std::setprecision(2) << newValue;
+    // Rates such as a 12.5% corporation tax are stored as 0.125.
+    // Two decimal places silently turned them into 13%; retain fractional
+    // percent precision for all persisted real-valued changes.
+    formattedValue << std::fixed << std::setprecision(6) << newValue;
 
     std::string qValue(key);
     qValue += " = ";
