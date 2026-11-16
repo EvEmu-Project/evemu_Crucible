@@ -9,6 +9,7 @@
 - Agent services: prevent null bind parameter and null mission-bookmark dereferences in agent manager and bound journal.
 - Inventory: guard missing container `GetMyInventory()`; `Split` reserves the new item *before* decrementing the original, compensates if decrement fails, and refuses full/singleton splits; `AlterQuantity` no longer deletes whole stacks on quantity underflow.
 - Added Linux/Windows source-safety invariants for these fixes. Maintains PR #20 container assembly, PR #23 station-office fix, mission/Blockade rewards, drones, weapons, market and warp.
+- Reclassified the unconditional `TCPConnection` destructor warning as trace, formatted `std::thread::id` safely instead of passing it to `%X`, preserved true thread ID before detach, and corrected pointer formatting to `%p` in the thread manager. The operator's `[ThreadWarning]` line was normal teardown logging, not proof of a client crash.
 - **Important:** automated tests confirm code safety only; the original station-load client crash has not been proven fixed. Validate HTTP 200 with exactly 322 bytes and 50×50 dimensions before loading the same station; if crash continues, obtain client minidump/fault module. [Runbook](docs/CRUCIBLE_STATION_AGENT_50PX_CLIENT_CRASH_TRIAGE_2026-11-16.md).
 
 ## 2026-11-16 — Prevent modern portrait redirects during Crucible station loading
