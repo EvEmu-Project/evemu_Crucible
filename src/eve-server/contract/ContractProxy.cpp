@@ -275,6 +275,23 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
         codelog(SERVICE__ERROR, "CreateContract: negative ISK values or no contract items.");
         return nullptr;
     }
+    // Validate requested-item rows before any courier reward withdrawal,
+    // contract INSERT or item ownership change. Previously a malformed list
+    // could reach GetItem()->AsInt() with an invalid/null pointer after ISK
+    // and other contract state had already been touched.
+    PyList* requestedRows = requestedArg->second->AsList();
+    for (size_t index = 0; index < requestedRows->size(); ++index) {
+        PyRep* raw = requestedRows->GetItem(index);
+        if (raw == nullptr || !raw->IsList())
+            return nullptr;
+        PyList* item = raw->AsList();
+        if (item->size() < 2 || item->GetItem(0) == nullptr
+            || item->GetItem(1) == nullptr || !item->GetItem(0)->IsInt()
+            || !item->GetItem(1)->IsInt()
+            || item->GetItem(0)->AsInt()->value() <= 0
+            || item->GetItem(1)->AsInt()->value() <= 0)
+            return nullptr;
+    }
     if (sDataMgr.IsStation(startStationID->value())) {
         startSystemId = sDataMgr.GetStationSystem(startStationID->value());
         startRegionId = sDataMgr.GetStationRegion(startStationID->value());
