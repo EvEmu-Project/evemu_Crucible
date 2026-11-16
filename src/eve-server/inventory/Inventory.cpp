@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include <set>
 
 #include "Client.h"
 #include "ConsoleCommands.h"
@@ -765,6 +766,31 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
     return true;
 }
 
+bool Inventory::WouldCreateContainmentCycle(InventoryItemRef item) const
+{
+    if (item.get() == nullptr)
+        return true;
+
+    // Cached ancestry is enough for ordinary station/ship/container moves.
+    // Stop at unloaded or static roots; a separate SQL audit detects any
+    // pre-existing cycles whose ancestors are not present in the item cache.
+    uint32 location = m_myID;
+    std::set<uint32> visited;
+    for (uint32 depth = 0; depth < 64 && IsValidLocationID(location); ++depth) {
+        if (location == item->itemID())
+            return true;
+        if (!visited.insert(location).second)
+            return true;
+        InventoryItemRef parent = sItemFactory.GetItemRefFromID(location, false);
+        if (parent.get() == nullptr)
+            return false;
+        if (parent->locationID() == location)
+            return true;
+        location = parent->locationID();
+    }
+    return visited.size() == 64;
+}
+
 bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
 {
     if (iRef.get() == nullptr || m_self.get() == nullptr) {
@@ -773,8 +799,9 @@ bool Inventory::ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const
     }
     // Never place a container inside itself. This also prevents an item
     // loading recursion when a malformed client sends its own ID as cargo.
-    if (iRef->itemID() == m_myID) {
-        _log(INV__WARNING, "Inventory::ValidateAddItem: rejecting item %u inside itself.", m_myID);
+    if (iRef->itemID() == m_myID || WouldCreateContainmentCycle(iRef)) {
+        _log(INV__WARNING, "Inventory::ValidateAddItem: rejecting item %u into %u (containment cycle).",
+             iRef->itemID(), m_myID);
         return false;
     }
 
