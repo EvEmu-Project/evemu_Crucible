@@ -78,7 +78,7 @@ assert "Mission::RandomCandidateIndex(candidates.size())" in spawn
 assert all(re.search(r'=\s*' + str(i) + r',', groups) for i in ids)
 assert all(re.search(r'case ' + str(i) + r':', mission) for i in ids)
 assert "group.catID != EVEDB::invCategories::Entity" in spawn
-assert "group.name.find(spec.groupNameToken)" in spawn
+assert "group.name.find(spec->groupNameToken)" in spawn
 assert "selectedFleet.size()" not in spawn.split("if (missionID == Mission::kEliteSecurityMissionID)", 1)[1].split("// Mission 65535", 1)[0] or "static_assert" in spawn
 assert "pBubble->SetMissionData(characterID, agentID, offerID, beaconID" in spawn
 assert "pBubble->SetMissionTypeID(missionID);" in spawn
