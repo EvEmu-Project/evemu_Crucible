@@ -1,3 +1,11 @@
+## 17 November 2026 — Sovereignty and POS source integrity and access fixes
+
+- SOV-01/02/03: write 64-bit FILETIME claimTime as BIGINT instead of mismatched %f, preserve cached sovereignty on failed DB insert/delete/query, and count unique online SBU-controlled gates to prevent false contested states.
+- POS-01/02/03/04: lookup silo capacity by real item type; authorize tower settings, passwords, anchoring and jump bridge link/unlink by owner and StarbaseConfig/Director roles or server ADMIN; validate malformed POS access flag packets before writes.
+- POS-05/06/07/08/09: persist tower sentry status and integer deploy flags, exclude packed cargo towers from deployed list, replace MariaDB self-referential bridge unlink with a reciprocal join, and reject wrong-system/occupied/cross-alliance bridge requests.
+- Added CTest SovereigntyPosIntegrityTest and Windows/Linux CI source guard, read-only SQL diagnostics, full review dossier, risk notes and manual test matrix. Existing TCU/IHub and belt security fixes preserved. No migration, SQL mutation or account modification.
+- Remaining work: live reinforcement/fuel, multi-system bridge atomicity, corporation roles and mission/structure playtests. Not merged until tested.
+
 ## 17 November 2026 — Fix /dogma access for DEV and ADMIN
 
 - The observed `0x62f8000280c41000` DEV account includes CONTENT but not ADMIN (`0x0100000000000000`). Old `/dogma` required ADMIN only.
