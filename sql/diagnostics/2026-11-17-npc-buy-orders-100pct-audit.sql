@@ -1,11 +1,11 @@
 -- EVEmu Crucible: READ-ONLY NPC buy order seed audit (2026-11-17).
 -- Does not add, update, delete, or replace any row.
 -- Use MariaDB/HeidiSQL on a staging or backed-up production clone first.
--- Static NPC buy seed identity: ownerID=1000125, bid=1, orderRange=-1,
+-- Static NPC buy seed identity: ownerID=4000000, bid=1, orderRange=-1,
 -- duration=250, isCorp=0. Trader Joe's dynamic bids have other scopes.
 -- The 100%-of-market-value reference here is invTypes.basePrice, NOT the
 -- current regional weighted average or player market price.
-SET @npc_owner_id = 1000125;
+SET @npc_owner_id = 4000000;
 
 -- 1. Every eligible published market-listed item type.
 SELECT COUNT(*) AS eligible_market_types

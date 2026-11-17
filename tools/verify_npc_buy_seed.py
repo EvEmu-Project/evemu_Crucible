@@ -19,8 +19,8 @@ assert "buyQueries = append(buyQueries, getBuyQuery(regionID, saturation, force)
 assert "if !buyOnly {" in go
 assert "func getBuyQuery(" in go
 buy = go.split("func getBuyQuery(", 1)[1]
-assert "o.bid = 1" in buy and "o.ownerID = 1000125" in buy
-assert "oldOrder.ownerID = 1000125" in buy
+assert "o.bid = 1" in buy and "o.ownerID = 4000000" in buy
+assert "oldOrder.ownerID = 4000000" in buy
 assert "oldOrder.bid = 1" in buy and "oldOrder.isCorp = 0" in buy
 assert "oldOrder.orderRange = -1" in buy and "oldOrder.duration = 250" in buy
 assert "it.published = 1 AND it.marketGroupID IS NOT NULL" in buy
@@ -36,6 +36,8 @@ assert "UPDATE chrCharacters" not in buy
 assert "UPDATE crpWallet" not in buy
 
 buyPrice = bot.split("double MarketBotMgr::CalculateBuyPrice(", 1)[1].split("\n}", 1)[0]
+assert "order.ownerID = BOT_BUY_OWNER_ID;" in bot
+assert "static constexpr uint32 BOT_BUY_OWNER_ID = npcTraderJoe;" in bot
 assert "GetRandomFloat" not in buyPrice
 assert "type->basePrice()" in buyPrice and "std::max(0.01" in buyPrice
 assert ": 100.0" in buyPrice
@@ -53,5 +55,5 @@ assert "sellerWalletOwnerID = useCorp ?" in sale
 
 assert workflow.count("verify_npc_buy_seed.py") == 2
 assert "SELECT" in audit and "DELETE " not in audit and "UPDATE " not in audit
-assert "SET @npc_owner_id = 1000125" in audit
+assert "SET @npc_owner_id = 4000000" in audit
 print("PASS: NPC buy migration, idempotence, pricing, settlement, and read-only audit invariants")

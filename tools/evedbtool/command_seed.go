@@ -128,7 +128,7 @@ func (c *SeedCommand) Run(args []string) int {
 
 	// First standard invocation installs buy orders even on databases whose
 	// legacy SEED_MARKET migration is already recorded. Never debit a player:
-	// NPC owner 1000125 is the same non-player buyer used by Trader Joe.
+	// NPC owner 4000000 is the same non-player buyer used by Trader Joe.
 	buyID := "SEED_NPC_BUY_100PCT"
 	if force {
 		buyID += "_" + stamp
@@ -446,7 +446,7 @@ WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN ('officer', 'deadspace', 'faction
     AND station.regionID = oldOrder.regionID
  WHERE oldOrder.regionID = @regionid
    AND oldOrder.bid = 1
-   AND oldOrder.ownerID = 1000125
+   AND oldOrder.ownerID = 4000000
    AND oldOrder.isCorp = 0
    AND oldOrder.orderRange = -1
    AND oldOrder.duration = 250;
@@ -485,7 +485,7 @@ WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN ('officer', 'deadspace', 'faction
  FROM tNPCBuyStations AS st
  INNER JOIN mktOrders AS o ON o.stationID = st.stationId
  WHERE o.bid = 1
-   AND o.ownerID = 1000125
+   AND o.ownerID = 4000000
    AND o.isCorp = 0
    AND o.orderRange = -1
    AND o.duration = 250;
@@ -503,7 +503,7 @@ WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN ('officer', 'deadspace', 'faction
       issued, contraband, duration, jumps, isCorp, accountKey, memberID)
  SELECT
      eligible.typeID,
-     1000125,
+     4000000,
      eligible.regionID,
      eligible.stationId,
      eligible.solarSystemID,

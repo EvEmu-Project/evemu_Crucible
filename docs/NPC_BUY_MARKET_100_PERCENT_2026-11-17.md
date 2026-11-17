@@ -10,7 +10,7 @@ The standard `evedbtool seed` now seeds NPC **buy and sell** orders in configure
 
 ## Implementation details
 
-- Seed NPC buyer identity `ownerID = 1000125` (existing Trader Joe / NPC owner), `bid=1`, `orderRange=-1` (station-local), `duration=250`, `isCorp=0`. This combination marks **seed-managed** bids; dynamic random bot orders are not overwritten.
+- Seed NPC buyer identity `ownerID = 4000000` (reserved Trader Joe pseudo-character ID recognized by `IsTraderJoe`), `bid=1`, `orderRange=-1` (station-local), `duration=250`, `isCorp=0`. This combination marks **seed-managed** bids; dynamic random bot orders are not overwritten.
 - Orders initially offer **550,000** charge-category items or **550** of other types, capped to keep each initial order's synthetic notional escrow within **10 trillion ISK**. Types whose single-unit reference price is above that cap are skipped; the audit lists gaps. No player wallet is charged to create NPC orders.
 - A one-time migration `SEED_NPC_BUY_100PCT` is separate from legacy `SEED_MARKET`. Once applied, a regular `seed` command leaves seeded bids unchanged. Repeatable `seed -buy-only -force` deliberately replaces only marker-matched NPC bids in configured regions.
 - Trader Joe's future randomly created buys also use 100% reference prices. Its **existing** older buys retain their prior prices until manually reviewed/expired; altering outstanding escrow and market history automatically would be unsafe.
@@ -41,7 +41,7 @@ The standard `evedbtool seed` now seeds NPC **buy and sell** orders in configure
 - [ ] Docker image build passes.
 - [ ] Existing `SEED_MARKET` database accepts `seed -buy-only` without reseeding sells.
 - [ ] Repeat `seed -buy-only` creates **no additional orders**.
-- [ ] `seed -buy-only -force` replaces only seed-managed `ownerID=1000125` station-local bids; existing player orders and Trader Joe dynamic bids unchanged.
+- [ ] `seed -buy-only -force` replaces only seed-managed `ownerID=4000000` station-local bids; existing player orders and Trader Joe dynamic bids unchanged.
 - [ ] Database audit shows zero mispriced or duplicate seed-managed NPC buy orders.
 - [ ] UI displays bids for published market-listed item types (mineral, charges, module, ship, container, implant, skill, blueprint, faction/deadspace).
 - [ ] One-item and partial-stack sales pay exactly **stored NPC bid price** (less configured tax) and consume no more than the requested quantity.

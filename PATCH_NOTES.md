@@ -2,7 +2,7 @@
 
 - Added NPC **buy** orders to standard EVEDBTool market seed using independent `SEED_NPC_BUY_100PCT` migration so existing `SEED_MARKET` databases can add bids with `seed -buy-only` without rewriting sell/player orders. Bids cover every published, market-listed Crucible inventory type in configured regions.
 - New bids use exactly `invTypes.basePrice` rounded to cents (100 ISK fallback when missing/nonpositive). Existing Trader Joe bot's future buy prices likewise no longer vary randomly from 80% to 110%.
-- NPC buy orders are recognizable by `ownerID=1000125`, `bid=1`, station range `-1`, duration 250 days. Full refresh is explicit via `seed -buy-only -force`; default seed is once-only/idempotent. Orders limit notional escrow to 10 trillion ISK per order and cannot draw from player wallets.
+- NPC buy orders are recognizable by `ownerID=4000000`, `bid=1`, station range `-1`, duration 250 days. Full refresh is explicit via `seed -buy-only -force`; default seed is once-only/idempotent. Orders limit notional escrow to 10 trillion ISK per order and cannot draw from player wallets.
 - Market settlement uses stored NPC bid price and caps a sale to the requested inventory quantity. [Read-only SQL audit](sql/diagnostics/2026-11-17-npc-buy-orders-100pct-audit.sql) and [operator test plan](docs/NPC_BUY_MARKET_100_PERCENT_2026-11-17.md) document coverage, pricing, duplicates, rollback boundaries and live client tests. CI / real MariaDB / 2012 client outcomes must be recorded before merging to master.
 
 ## 17 Nov 2026 — A01 operator acceptance, merged validation and staging cleanup

@@ -65,7 +65,8 @@ static const std::vector<uint32> VALID_GROUPS = {
     303
 };
 
-static constexpr uint32 BOT_OWNER_ID = 1000125; // NPC corp owner, default CONCORD
+static constexpr uint32 BOT_OWNER_ID = 1000125; // NPC corp owner for sell orders
+static constexpr uint32 BOT_BUY_OWNER_ID = npcTraderJoe; // 4000000; supported NPC buyer in ExecuteBuyOrder
 
 // helper random generators
 int GetRandomInt(int min, int max) {
@@ -200,8 +201,8 @@ int MarketBotMgr::ExpireOldOrders() {
     codelog(MARKET__TRACE, "ExpireOldOrders: now = %" PRIu64, now);
 
     if (!sDatabase.RunQuery(res,
-        "SELECT orderID FROM mktOrders WHERE (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ") < CAST(%" PRIu64 " AS UNSIGNED) AND ownerID = %u AND volEntered != 550",
-        FILETIME_TICKS_PER_DAY, now, BOT_OWNER_ID)) {
+        "SELECT orderID FROM mktOrders WHERE (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ") < CAST(%" PRIu64 " AS UNSIGNED) AND ownerID IN (%u, %u) AND volEntered != 550",
+        FILETIME_TICKS_PER_DAY, now, BOT_OWNER_ID, BOT_BUY_OWNER_ID)) {
         codelog(MARKET__DB_ERROR, "Failed to query expired bot orders.");
         return 0;
     }
@@ -274,7 +275,7 @@ int MarketBotMgr::PlaceBuyOrders(uint32 systemID) {
         order.bid = true;
         order.issued = GetFileTimeNow();
         order.isCorp = false;
-        order.ownerID = BOT_OWNER_ID;
+        order.ownerID = BOT_BUY_OWNER_ID;
         order.orderRange = 32767; // -1 station, 0 solarsystem, 1-5 10 20 30 40 jumps, 32767 region (default)
         // marketbot update; unsure if these are really needed, but aligns with how orders are created manually in-game and through seed-market.
         order.memberID = 0;       // default value for who placed the order (0 for char order)

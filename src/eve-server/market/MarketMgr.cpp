@@ -399,16 +399,6 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
 
     std::string reason = "DESC:  Buying items in ";
     reason += stDataMgr.GetStationName(stationID).c_str();
-    uint32 sellerWalletOwnerID = 0;
-    uint8 level = seller->GetChar ()->GetSkillLevel (EvESkill::Accounting);
-    float tax = EvEMath::Market::SalesTax (sConfig.market.salesTax, level) * money;
-
-    // Note: The original item that was for sale still has not been deleted up
-    // until this point, because we still might need data from it to do some of
-    // the above calculations.
-    if (shouldDeleteItem) {
-        iRef->Delete();
-    }
 
     // Wallet role permissions were checked before mutating inventory.
     uint32 sellerWalletOwnerID = useCorp ? seller->GetCorporationID() : seller->GetCharacterID();
