@@ -72,7 +72,7 @@ After building the patched branch, restart the server and check startup logs for
 
 The operator reports a server exit on a later expedition run after an earlier encounter reached 8/8. The supplied log has module FX and bound-object warnings, but no native crash stack. Therefore the precise fault is not yet confirmed.
 
-The scoped remediation retires matching mission-bubble spawn registrations and flags when a mission beacon is removed on completion or quit. It preserves live NPCs, wrecks and salvage, checks character/agent/offer/beacon identity before cleanup, repairs inconsistent empty-bubble ID indexes, and prevents creating an encounter inside an occupied or mismatched beacon bubble.
+The scoped remediation also guards AnomalyMgr signal registration against null beacon bubbles, which otherwise could crash during mission acceptance before its own log appears. It retires matching mission-bubble spawn registrations and flags when a mission beacon is removed on completion or quit. It preserves live NPCs, wrecks and salvage, checks character/agent/offer/beacon identity before cleanup, repairs inconsistent empty-bubble ID indexes, and prevents creating an encounter inside an occupied or mismatched beacon bubble.
 
 Test consecutive eight-NPC expeditions: accept, warp, kill 8/8, complete, confirm one 50M ISK payout, then repeat. Also test quitting a partially completed mission and standard belt/gate spawning. Check for orphan sites or stale spawn registrations. The absence of a crash in CI does not prove this real-client scenario is fixed.
 

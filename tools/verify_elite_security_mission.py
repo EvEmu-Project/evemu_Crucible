@@ -144,5 +144,10 @@ assert "beaconBubble->CountNPCs() != 0" in client
 assert "GetMissionOfferID() == offer.offerID" in client
 assert "GetMissionBeaconID() == offer.destinationID" in client
 assert "ReleaseMissionBubble(pBubble, offer.offerID);" in client
+anom_mgr = read("src/eve-server/system/cosmicMgrs/AnomalyMgr.cpp")
+assert "SystemBubble* signalBubble = pSE->SysBubble();" in anom_mgr
+assert "if (signalBubble == nullptr)" in anom_mgr
+assert "sig.bubbleID = signalBubble->GetID();" in anom_mgr
+assert "sig.bubbleID = pSE->SysBubble()->GetID();" not in anom_mgr
 
 print("PASS: independent 8-NPC Security Agent DED/officer mission and scoped rare wreck loot")
