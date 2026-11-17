@@ -8,6 +8,9 @@
 #ifndef EVE_MISSIONS_H
 #define EVE_MISSIONS_H
 
+#include <cstddef>
+#include <random>
+
 struct MissionData {
         bool important;
         bool storyline;
@@ -103,6 +106,17 @@ namespace Mission {
     constexpr uint16 kEliteSecurityRequiredKills = 18;
     constexpr uint32 kEliteSecurityRewardISK = 50000000;
     constexpr uint32 kEliteSecurityDurationMinutes = 120;
+
+    // MakeRandomInt(0, n - 1) truncates a float, so it virtually never
+    // chooses the last index when n == 2. Keep this fix mission-scoped to
+    // avoid changing existing server-wide spawn and market randomness.
+    inline std::size_t RandomCandidateIndex(std::size_t count) {
+        if (count <= 1)
+            return 0;
+        static thread_local std::mt19937 engine(std::random_device{}());
+        std::uniform_int_distribution<std::size_t> distribution(0, count - 1);
+        return distribution(engine);
+    }
 
     inline bool IsSyntheticSecurityEncounter(uint16 missionID) {
         return missionID == kBlockadeSecurityTestMissionID

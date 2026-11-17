@@ -29,6 +29,9 @@ assert "kEliteSecurityMissionID = 65534" in mission
 assert "kEliteSecurityRequiredKills = 18" in mission
 assert "kEliteSecurityRewardISK = 50000000" in mission
 assert "kEliteSecurityDurationMinutes = 120" in mission
+assert "#include <random>" in mission
+assert "std::uniform_int_distribution<std::size_t>" in mission
+assert "RandomCandidateIndex(std::size_t count)" in mission
 assert "IsSyntheticSecurityEncounter(uint16 missionID)" in mission
 assert "EliteLootMetaGroupForNPCGroup" in mission
 
@@ -45,6 +48,10 @@ assert "m_missions.emplace(testLevel, eliteMission)" in data
 assert "m_missionsImp.emplace(testLevel, eliteMission)" in data
 assert data.count("Mission::IsSyntheticSecurityEncounter(mission.missionID)") == 2
 assert "securityAgent && Mission::IsSyntheticSecurityEncounter" in data
+assert "Mission::RandomCandidateIndex(candidates.size())" in data
+assert "candidates[MakeRandomInt(" not in data
+assert "Mission::RandomCandidateIndex(it->second.size())" in mgr
+assert "it->second[MakeRandomInt(" not in mgr
 assert "securityAgent = IsSecurityMissionDivision" in agent
 assert "NormalizeEliteTestOffer" in agent
 assert "offer.courierAmount = Mission::kEliteSecurityRequiredKills;" in agent
@@ -97,5 +104,6 @@ assert "Mission::IsSyntheticSecurityEncounter(offer.missionID)" in bound
 assert "offer.courierAmount = static_cast<uint16>(pBubble->GetMissionKillsRequired())" in client
 assert "return (data.courierAmount > 0 && data.courierTypeID >= data.courierAmount)" in client
 assert "Mission::kEliteSecurityMissionID != Mission::kBlockadeSecurityTestMissionID" in lifecycle
+assert "selectedBlockade && selectedExpedition" in lifecycle
 
 print("PASS: independent 18-NPC Security Agent DED/officer mission and scoped rare wreck loot")

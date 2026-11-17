@@ -16,6 +16,7 @@
 #include "../eve-common/EVE_POS.h"
 
 #include "StaticDataMgr.h"
+#include "EVE_Missions.h"
 #include "EVEServerConfig.h"
 #include "database/EVEDBUtils.h"
 #include "manufacturing/FactoryDB.h"
@@ -957,7 +958,7 @@ bool StaticDataMgr::GetEliteMissionLootType(uint8 metaGroupID, uint16& typeID)
     const auto it = m_eliteMissionLootTypes.find(metaGroupID);
     if (it == m_eliteMissionLootTypes.end() || it->second.empty())
         return false;
-    typeID = it->second[MakeRandomInt(0, static_cast<uint32>(it->second.size() - 1))];
+    typeID = it->second[Mission::RandomCandidateIndex(it->second.size())];
     return true;
 }
 

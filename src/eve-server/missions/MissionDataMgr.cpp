@@ -700,7 +700,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 return;
             }
 
-            const MissionData& mission = candidates[MakeRandomInt(0, static_cast<uint32>(candidates.size() - 1))];
+            const MissionData& mission = candidates[Mission::RandomCandidateIndex(candidates.size())];
             data.typeID = Mission::Type::Encounter;
             data.name = mission.name;
             if (level == 0)

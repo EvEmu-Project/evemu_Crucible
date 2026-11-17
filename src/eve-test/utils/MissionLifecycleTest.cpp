@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <map>
+#include <cstddef>
 
 int utils_MissionLifecycleTest(int argc, char* argv[]) {
     (void)argc;
@@ -31,7 +32,21 @@ int utils_MissionLifecycleTest(int argc, char* argv[]) {
         }
     }
 
+    // The 2012-era MakeRandomInt(0, 1) almost always returned zero.
+    // Exercise the real production selector; both missions must be reachable.
+    bool selectedBlockade = false;
+    bool selectedExpedition = false;
+    bool indicesInRange = true;
+    for (unsigned attempt = 0; attempt < 256; ++attempt) {
+        const std::size_t selected = Mission::RandomCandidateIndex(2);
+        indicesInRange = indicesInRange && selected < 2;
+        selectedBlockade = selectedBlockade || selected == 0;
+        selectedExpedition = selectedExpedition || selected == 1;
+    }
+
     const bool passed =
+        indicesInRange && selectedBlockade && selectedExpedition
+        && Mission::RandomCandidateIndex(1) == 0
         Mission::IsAwaitingAcceptance(Mission::State::Offered)
         && Mission::IsAwaitingAcceptance(Mission::State::Allocated)
         && !Mission::IsAwaitingAcceptance(Mission::State::Accepted)

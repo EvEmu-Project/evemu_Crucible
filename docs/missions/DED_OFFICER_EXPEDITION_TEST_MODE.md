@@ -35,6 +35,12 @@ If any rarity tier or required NPC group has no supported type in the installed 
 - A character can hold at most one offer with a specific agent, but can work with other Security Agents; selecting the new mission from the same agent is random.
 - Because five officers and several battleship-class NPCs may spawn together, consider it an **endgame challenge irrespective of the issuing agent's level**. Test on a backup/test character and avoid losing valuable ships.
 
+## Offer selection correction (17 November 2026)
+
+The original PR #36 selector called `MakeRandomInt(0, candidates.size() - 1)`. That helper truncates a floating-point value, so a two-entry Blockade/Expedition pool almost always selected its first candidate (Blockade). The mission selector now uses a thread-local `std::mt19937` with an inclusive `std::uniform_int_distribution` to give both offers a real chance. The expedition's premium-module selector uses the same corrected helper so loot pools are not stuck on their first item. This is intentionally scoped to these two PR #36 paths; other legacy random selection is unchanged.
+
+Existing Blockade offers are preserved; restarting the server does not replace them. Request a **new offer** from another eligible Security Agent, or finish the current offer, to exercise the corrected selection. `agtOffers.missionID=65534` identifies the elite mission. No player or mission SQL rewrite is required.
+
 ## Test checklist
 
 - [ ] Windows UCRT64 server builds; Linux GCC server builds; Docker succeeds
