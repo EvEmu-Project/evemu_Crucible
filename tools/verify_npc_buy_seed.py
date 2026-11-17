@@ -20,6 +20,13 @@ assert "if !buyOnly {" in go
 assert "func getBuyQuery(" in go
 buy = go.split("func getBuyQuery(", 1)[1]
 assert "o.bid = 1" in buy and "o.ownerID = 4000000" in buy
+assert "UPDATE mktOrders AS legacy" in buy
+assert "legacy.ownerID = 1000125" in buy
+assert "legacy.ownerID = 4000000" in buy
+assert "legacy.bid = 1" in buy and "legacy.isCorp = 0" in buy
+assert "legacy.orderRange = 32767" in buy
+assert "legacy.regionID = @regionid" in buy
+assert "legacy.escrow = (CASE" in buy
 assert "oldOrder.ownerID = 4000000" in buy
 assert "oldOrder.bid = 1" in buy and "oldOrder.isCorp = 0" in buy
 assert "oldOrder.orderRange = -1" in buy and "oldOrder.duration = 250" in buy

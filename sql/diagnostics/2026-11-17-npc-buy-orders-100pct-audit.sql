@@ -78,3 +78,14 @@ SELECT o.bid, COUNT(*) AS non_npc_order_count
 FROM mktOrders AS o
 WHERE o.ownerID <> @npc_owner_id
 GROUP BY o.bid;
+
+-- 7. Historical pre-fix Trader Joe orders under the unsupported 1000125
+--    owner ID. The new buy seed normalizes only these regional-range bids.
+--    Run before and after: this should be ZERO in seeded regions afterward.
+SELECT o.regionID, COUNT(*) AS legacy_unfillable_npc_buy_orders
+FROM mktOrders AS o
+JOIN staStations AS st ON st.stationID = o.stationID
+WHERE o.ownerID = 1000125 AND o.bid = 1 AND o.isCorp = 0
+  AND o.orderRange = 32767
+  AND st.regionID = o.regionID
+GROUP BY o.regionID ORDER BY o.regionID;

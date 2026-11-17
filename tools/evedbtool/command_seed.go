@@ -472,7 +472,30 @@ WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN ('officer', 'deadspace', 'faction
  WHERE regionID = @regionid AND RAND() < @saturation;
  
  CLEANUP
- 
+
+ -- Legacy Trader Joe (old server) created unfillable NPC buy bids as
+ -- NPC-corporation owner 1000125, rather than the supported pseudo-character
+ -- 4000000. Normalize ONLY these regional-range legacy NPC buy orders to
+ -- the new 100% reference price, and transfer their nonfunded pseudo-escrow
+ -- to the new price. The former owner is NOT a player character.
+ -- Regular NPC sells, all player buys/sells, and wallet balances are untouched.
+ UPDATE mktOrders AS legacy
+ INNER JOIN staStations AS st ON st.stationID = legacy.stationID
+ INNER JOIN invTypes AS it ON it.typeID = legacy.typeID
+ SET legacy.ownerID = 4000000,
+     legacy.price = CASE
+         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100.00
+         ELSE GREATEST(0.01, ROUND(it.basePrice, 2)) END,
+     legacy.escrow = (CASE
+         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100.00
+         ELSE GREATEST(0.01, ROUND(it.basePrice, 2)) END) * legacy.volRemaining
+ WHERE legacy.regionID = @regionid
+   AND st.regionID = @regionid
+   AND legacy.ownerID = 1000125
+   AND legacy.bid = 1
+   AND legacy.isCorp = 0
+   AND legacy.orderRange = 32767;
+
  CREATE TEMPORARY TABLE IF NOT EXISTS tExistingNPCBuySeed (
      stationID INT NOT NULL,
      typeID INT NOT NULL,
