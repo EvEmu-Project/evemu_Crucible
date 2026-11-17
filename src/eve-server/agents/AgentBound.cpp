@@ -39,6 +39,41 @@
 #include "system/SystemManager.h"
 #include "system/DestinyManager.h"
 
+
+namespace {
+
+// Both synthetic security missions have a literal briefing because their
+// 6553x IDs are not localized client message IDs. The original Blockade
+// briefing remains unchanged; this is only for the new elite mission.
+std::string EliteSecurityMissionBriefing(const MissionOffer& offer)
+{
+    const uint32 kills = std::min<uint32>(offer.courierTypeID, offer.courierAmount);
+    std::string briefing =
+        "DED & OFFICER EXPEDITION\n\n"
+        "HIGH-THREAT SECURITY ENCOUNTER\n"
+        "An organized DED/overseer and pirate-officer force has been detected.\n"
+        "Expect frigates, destroyers, cruisers, battlecruisers and battleships.\n\n"
+        "OBJECTIVES\n"
+        "- Defeat DED and deadspace ships (5)\n"
+        "- Destroy faction commander ships (5)\n"
+        "- Eliminate pirate officers (5)\n"
+        "- Destroy DED overseers (3)\n\n"
+        "WRECK LOOT\n"
+        "Elite NPC wrecks carry an appropriate faction, officer or deadspace\n"
+        "module from this server's item catalogue. Salvage remains normal.\n\n"
+        "COMBAT PROGRESS\n"
+        "Hostiles destroyed: ";
+    briefing += std::to_string(kills);
+    briefing += " / ";
+    briefing += std::to_string(offer.courierAmount);
+    briefing += "\n\nCOMPLETION\nReturn to the issuing Security Agent when the pocket is cleared."
+                "\n\nREWARD\n50,000,000 ISK"
+                "\nTIME LIMIT\n120 minutes from acceptance.";
+    return briefing;
+}
+
+} // namespace
+
 AgentBound::AgentBound(EVEServiceManager& mgr, AgentMgrService& parent, Agent *agt) :
     EVEBoundObject(mgr, parent),
     m_agent(agt)
@@ -132,7 +167,10 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                             button2->SetItem(1, new PyInt(Complete));
                         dialog->AddItem(button2);
                     }
-                    if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
+                    if (offer.missionID == Mission::kEliteSecurityMissionID) {
+                        agentSays->SetItem(0, new PyString(EliteSecurityMissionBriefing(offer)));
+                        agentSays->SetItem(1, PyStatic.NewNone());
+                    } else if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
                         const uint32 killsDestroyed =
                             (offer.courierTypeID < offer.courierAmount)
                                 ? offer.courierTypeID : offer.courierAmount;
@@ -212,7 +250,10 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                 *   contentID is used for specific char's mission keywords.  we're not using it like there here....
                 */
 
-                if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
+                if (offer.missionID == Mission::kEliteSecurityMissionID) {
+                    agentSays->SetItem(0, new PyString(EliteSecurityMissionBriefing(offer)));
+                    agentSays->SetItem(1, PyStatic.NewNone());
+                } else if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
                     agentSays->SetItem(0, new PyString(
                         "\n\nTHE BLOCKADE\n"
                         "ANGEL CARTEL INCURSION\n\n"
@@ -254,7 +295,10 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
             case ViewMission: { //1
                 MissionOffer offer = MissionOffer();
                 m_agent->GetOffer(pchar->itemID(), offer);
-                if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
+                if (offer.missionID == Mission::kEliteSecurityMissionID) {
+                    agentSays->SetItem(0, new PyString(EliteSecurityMissionBriefing(offer)));
+                    agentSays->SetItem(1, PyStatic.NewNone());
+                } else if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
                     const uint32 killsDestroyed =
                         (offer.courierTypeID < offer.courierAmount)
                             ? offer.courierTypeID : offer.courierAmount;
@@ -336,7 +380,9 @@ PyResult AgentBound::DoAction(PyCallArgs &call, std::optional <PyInt*> actionID)
                 const uint32 missionDurationMinutes =
                     (offer.missionID == Mission::kBlockadeSecurityTestMissionID)
                         ? Mission::kBlockadeSecurityTestDurationMinutes
-                        : (30 * m_agent->GetLevel());
+                        : ((offer.missionID == Mission::kEliteSecurityMissionID)
+                            ? Mission::kEliteSecurityDurationMinutes
+                            : (30 * m_agent->GetLevel()));
                 offer.expiryTime = GetFileTimeNow() + (missionDurationMinutes * EvE::Time::Minute);
                 if (offer.typeID != Mission::Type::Encounter && offer.courierTypeID) {
                     sItemFactory.SetUsingClient(call.client);
@@ -572,7 +618,7 @@ PyResult AgentBound::GetMissionBriefingInfo(PyCallArgs &call) {
     PyDict *briefingInfo = new PyDict();
         briefingInfo->SetItemString("ContentID", new PyInt(offer.characterID));
         briefingInfo->SetItemString("Mission Keywords", keywords);
-        if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
+        if (Mission::IsSyntheticSecurityEncounter(offer.missionID)) {
             // The synthetic mission has no localization message IDs. Returning
             // integer zero makes the client render the literal "message 0".
             briefingInfo->SetItemString("Mission Title ID", PyStatic.NewNone());
@@ -581,7 +627,12 @@ PyResult AgentBound::GetMissionBriefingInfo(PyCallArgs &call) {
             briefingInfo->SetItemString("Mission Title ID", new PyInt(offer.missionID));
             briefingInfo->SetItemString("Mission Briefing ID", new PyInt(offer.briefingID));
         }
-        if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
+        if (offer.missionID == Mission::kEliteSecurityMissionID) {
+            briefingInfo->SetItemString("Mission Title",
+                new PyString("DED & Officer Expedition"));
+            briefingInfo->SetItemString("Mission Briefing",
+                new PyString(EliteSecurityMissionBriefing(offer)));
+        } else if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
             const uint32 killsDestroyed =
                 (offer.courierTypeID < offer.courierAmount)
                     ? offer.courierTypeID : offer.courierAmount;
@@ -754,7 +805,7 @@ PyResult AgentBound::GetMissionJournalInfo(PyCallArgs &call, std::optional <PyIn
 
     PyDict* journalInfo = new PyDict();
     journalInfo->SetItemString("contentID", new PyInt(offer.characterID));
-    if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
+    if (Mission::IsSyntheticSecurityEncounter(offer.missionID)) {
         journalInfo->SetItemString("missionNameID", PyStatic.NewNone());
         journalInfo->SetItemString("briefingTextID", PyStatic.NewNone());
     } else {
@@ -785,9 +836,18 @@ PyDict* AgentBound::GetMissionObjectiveInfo(Client* pClient, MissionOffer& offer
 {
     PyDict* objectiveData = new PyDict();
     objectiveData->SetItemString("missionTitleID",
-        offer.missionID == Mission::kBlockadeSecurityTestMissionID
+        Mission::IsSyntheticSecurityEncounter(offer.missionID)
             ? PyStatic.NewNone() : new PyInt(offer.missionID));
-    if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
+    if (offer.missionID == Mission::kEliteSecurityMissionID) {
+        objectiveData->SetItemString("missionTitle",
+            new PyString("DED & Officer Expedition"));
+        objectiveData->SetItemString("missionBriefing",
+            new PyString(EliteSecurityMissionBriefing(offer)));
+        objectiveData->SetItemString("killsDestroyed",
+            new PyInt(std::min<uint32>(offer.courierTypeID, offer.courierAmount)));
+        objectiveData->SetItemString("killsRequired",
+            new PyInt(offer.courierAmount));
+    } else if (offer.missionID == Mission::kBlockadeSecurityTestMissionID) {
         const uint32 killsDestroyed =
             (offer.courierTypeID < offer.courierAmount)
                 ? offer.courierTypeID : offer.courierAmount;

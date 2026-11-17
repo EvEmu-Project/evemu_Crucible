@@ -1,3 +1,11 @@
+## 17 November 2026 — Separate DED & Officer Security Agent Expedition (pending client acceptance)
+
+- Added synthetic Security Agent mission `65534` **DED & Officer Expedition (TEST)** alongside unchanged `65535` Blockade. Both are randomly offered by the same Security Agent divisions and tiers.
+- The new mission spawns up to 18 real Crucible NPC ships: five DED/deadspace, five faction commander, five pirate officer and three DED overseer types spanning frigates through battleships and all five pirate factions.
+- Each elite mission NPC adds a matched-tier, market-listed **Faction (meta group 4), Officer (5) or Deadspace (6)** module to its wreck via the static type catalogue. Normal NPC loot, bounty, salvage and all non-elite missions are unchanged.
+- Agent briefing, journal, mission-pocket kill count and two-hour turn-in timer reuse the established Blockade lifecycle; reward remains 50 million ISK.
+- Added `MissionLifecycleTest` assertions, Windows/Linux source regression checks and [gameplay test guide](docs/missions/DED_OFFICER_EXPEDITION_TEST_MODE.md). Real player-client verification still required.
+
 ## 17 Nov 2026 — Repair NPC buy-order seed MariaDB Error 1264 (PR #35)
 
 - Fixed `evedbtool seed -buy-only -force` failure `Out of range value for column 'orderRange'`: the seed wrote `-1`, which the deployed MariaDB column cannot represent. New static bids use **`orderRange=0`** and both refresh-deletion and duplicate detection use that value.

@@ -75,6 +75,9 @@ public:
     uint16              GetRandRatType(uint8 sClass, uint16 groupID);
     uint32              GetWreckID(uint32 typeID);  // returns wreck typeID based on given shipTypeID (incomplete, most ships done.)
     void                GetLoot(uint32 groupID, std::vector<LootList>& lootList);
+    // Mission 65534: choose a real published faction (4), officer (5), or
+    // deadspace (6) module from loaded invMetaTypes metadata.
+    bool                GetEliteMissionLootType(uint8 metaGroupID, uint16& typeID);
 
     bool                IsRefinable(uint16 typeID);
     bool                IsRecyclable(uint16 typeID);
@@ -176,6 +179,8 @@ private:
     std::map<uint16, Inv::CatData>                      m_catData;
     std::map<uint16, Inv::GrpData>                      m_grpData;
     std::map<uint16, Inv::TypeData>                     m_typeData;
+    // Cached at static-data load. Used only by the synthetic elite encounter.
+    std::map<uint8, std::vector<uint16>>               m_eliteMissionLootTypes;
 
     std::map<uint16, PyDict*>                           m_bpMatlData;       // typeID/dict*
     std::map<uint32, uint8>                             m_whRegions;        // regionID/classID

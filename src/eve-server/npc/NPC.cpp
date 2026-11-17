@@ -26,6 +26,7 @@
 
 
 #include "eve-server.h"
+#include "EVE_Missions.h"
 
 #include "Client.h"
 #include "EntityList.h"
@@ -365,6 +366,35 @@ void NPC::Killed(Damage &damage) {
         _log(PHYSICS__TRACE, "NPC::Killed() - NPC %s(%u) Position: %.2f,%.2f,%.2f.  Wreck %s(%u) Position: %.2f,%.2f,%.2f.", \
                 GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
 
+    // The optional DED/Officer Security encounter drops an actual
+    // faction, officer or deadspace module appropriate to this NPC group.
+    // Scope this strictly to mission 65534; the original Blockade, belts,
+    // ordinary missions, anomalies and all other NPCs use normal loot rules.
+    if (m_bubble != nullptr && m_bubble->IsMission()
+        && m_bubble->GetMissionTypeID() == Mission::kEliteSecurityMissionID) {
+        const uint8 metaGroup = Mission::EliteLootMetaGroupForNPCGroup(m_self->groupID());
+        uint16 rareTypeID = 0;
+        if (metaGroup != 0 && sDataMgr.GetEliteMissionLootType(metaGroup, rareTypeID)) {
+            ItemData rareDrop(rareTypeID, killerID, wreckItemRef->itemID(), flagNone, 1);
+            InventoryItemRef droppedItem = sItemFactory.SpawnItem(rareDrop);
+            if (droppedItem.get() != nullptr) {
+                wreckItemRef->AddItem(droppedItem);
+                _log(LOOT__INFO,
+                    "DED/Officer mission wreck %u received meta-group %u loot type %u from NPC group %u.",
+                    wreckItemRef->itemID(), metaGroup, rareTypeID, m_self->groupID());
+            } else {
+                _log(LOOT__ERROR,
+                    "DED/Officer mission wreck %u failed to spawn rare loot type %u.",
+                    wreckItemRef->itemID(), rareTypeID);
+            }
+        } else {
+            _log(LOOT__WARNING,
+                "DED/Officer mission NPC group %u has no valid rare loot for meta-group %u.",
+                m_self->groupID(), metaGroup);
+        }
+    }
+
+    // Normal group-based drops remain available as additional wreck loot.
     if ((MakeRandomFloat() < sConfig.npc.LootDropChance) or (m_allyID == factionRogueDrones))
         DropLoot(wreckItemRef, m_self->groupID(), killerID);
 

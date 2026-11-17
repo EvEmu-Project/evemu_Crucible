@@ -57,6 +57,7 @@ m_npcDivisions(nullptr)
     m_corpFaction.clear();
     m_typeAttrMap.clear();
     m_LootGroupMap.clear();
+    m_eliteMissionLootTypes.clear();
     m_stationCount.clear();
     m_stationConst.clear();
     m_stationRegion.clear();
@@ -115,6 +116,7 @@ void StaticDataMgr::Clear()
     m_corpFaction.clear();
     m_typeAttrMap.clear();
     m_LootGroupMap.clear();
+    m_eliteMissionLootTypes.clear();
     m_stationCount.clear();
     m_stationConst.clear();
     m_stationRegion.clear();
@@ -254,6 +256,26 @@ void StaticDataMgr::Populate()
         m_typeData.emplace(row.GetUInt(0), data);
     }
     sLog.Cyan("    StaticDataMgr", "%lu Inventory Types loaded in %.3fms.", m_typeData.size(), (GetTimeMSeconds() - startTime));
+    // Crucible invMetaTypes.metaGroupID (not the numeric dogma Meta Level):
+    // 4=Faction, 5=Officer, 6=Deadspace. Select actual, market-listed
+    // module types so this special encounter drops valid game items.
+    // Do not change the ordinary NPC loot table or production invTypes.
+    for (const auto& entry : m_typeData) {
+        const Inv::TypeData& item = entry.second;
+        if (!item.published || item.marketGroupID == 0
+            || (item.metaLvl != 4 && item.metaLvl != 5 && item.metaLvl != 6))
+            continue;
+        const auto groupItr = m_grpData.find(item.groupID);
+        if (groupItr == m_grpData.end()
+            || groupItr->second.catID != EVEDB::invCategories::Module)
+            continue;
+        m_eliteMissionLootTypes[static_cast<uint8>(item.metaLvl)].push_back(entry.first);
+    }
+    sLog.Cyan("    StaticDataMgr",
+        "Elite mission loot modules loaded: %u faction, %u officer, %u deadspace.",
+        static_cast<uint32>(m_eliteMissionLootTypes[4].size()),
+        static_cast<uint32>(m_eliteMissionLootTypes[5].size()),
+        static_cast<uint32>(m_eliteMissionLootTypes[6].size()));
 
     startTime = GetTimeMSeconds();
     ManagerDB::GetAttributeTypes(*res);
@@ -927,6 +949,16 @@ uint32 StaticDataMgr::GetWreckID(uint32 typeID)
     if (itr != m_WrecksToTypesMap.end())
         return itr->second;
     return 0;
+}
+
+bool StaticDataMgr::GetEliteMissionLootType(uint8 metaGroupID, uint16& typeID)
+{
+    typeID = 0;
+    const auto it = m_eliteMissionLootTypes.find(metaGroupID);
+    if (it == m_eliteMissionLootTypes.end() || it->second.empty())
+        return false;
+    typeID = it->second[MakeRandomInt(0, static_cast<uint32>(it->second.size() - 1))];
+    return true;
 }
 
 void StaticDataMgr::GetLoot(uint32 groupID, std::vector<LootList>& lootList) {

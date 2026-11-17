@@ -71,6 +71,8 @@ public:
     // these are set in spawnMgr.
     void SetAnomaly(bool set=true)                      { m_anomaly = set; }
     void SetMission(bool set=true)                      { m_mission = set; }
+    void SetMissionTypeID(uint16 missionID)             { m_missionTypeID = missionID; }
+    uint16 GetMissionTypeID() const                     { return m_missionTypeID; }
     void SetMissionData(uint32 characterID, uint32 agentID, uint32 offerID,
                         uint32 beaconID, uint16 killsRequired) {
         m_missionCharacterID = characterID;
@@ -225,6 +227,7 @@ private:
     uint32 m_missionCharacterID;
     uint32 m_missionAgentID;
     uint32 m_missionOfferID;
+    uint16 m_missionTypeID;
     uint32 m_missionBeaconID;
     uint16 m_missionKills;
     uint16 m_missionKillsRequired;

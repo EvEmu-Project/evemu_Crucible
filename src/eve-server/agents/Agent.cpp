@@ -58,6 +58,25 @@ bool NormalizeBlockadeTestOffer(MissionOffer& offer)
     return changed;
 }
 
+bool NormalizeEliteTestOffer(MissionOffer& offer)
+{
+    if (offer.missionID != Mission::kEliteSecurityMissionID)
+        return false;
+    bool changed = false;
+    if (offer.rewardISK != Mission::kEliteSecurityRewardISK) {
+        offer.rewardISK = Mission::kEliteSecurityRewardISK;
+        changed = true;
+    }
+    // The accepted pocket owns its true kill target. Only pending offers
+    // receive the configured 18-ship target during a server restart.
+    if (Mission::IsAwaitingAcceptance(offer.stateID)
+        && offer.courierAmount != Mission::kEliteSecurityRequiredKills) {
+        offer.courierAmount = Mission::kEliteSecurityRequiredKills;
+        changed = true;
+    }
+    return changed;
+}
+
 } // namespace
 #include "../system/SystemManager.h"
 #include "../standing/StandingMgr.h"
@@ -166,6 +185,10 @@ bool Agent::MakeOffer(uint32 charID, MissionOffer& offer)
         offer.rewardISK = Mission::kBlockadeSecurityTestRewardISK;
         offer.courierTypeID = 0;
         offer.courierAmount = Mission::kBlockadeSecurityTestRequiredKills;
+    } else if (offer.missionID == Mission::kEliteSecurityMissionID) {
+        offer.rewardISK = Mission::kEliteSecurityRewardISK;
+        offer.courierTypeID = 0;
+        offer.courierAmount = Mission::kEliteSecurityRequiredKills;
     }
 
     offer.remoteOfferable = false;
@@ -207,7 +230,7 @@ bool Agent::HasMission(uint32 charID, MissionOffer& offer)
 {
     std::map<uint32, MissionOffer>::iterator itr = m_offers.find(charID);
     if (itr != m_offers.end()) {
-        if (NormalizeBlockadeTestOffer(itr->second)) {
+        if (NormalizeBlockadeTestOffer(itr->second) || NormalizeEliteTestOffer(itr->second)) {
             MissionDB::UpdateMissionOffer(itr->second);
             sMissionDataMgr.UpdateMissionData(charID, itr->second);
         }
@@ -221,7 +244,7 @@ void Agent::GetOffer(uint32 charID, MissionOffer& offer)
 {
     std::map<uint32, MissionOffer>::iterator itr = m_offers.find(charID);
     if (itr != m_offers.end()) {
-        if (NormalizeBlockadeTestOffer(itr->second)) {
+        if (NormalizeBlockadeTestOffer(itr->second) || NormalizeEliteTestOffer(itr->second)) {
             MissionDB::UpdateMissionOffer(itr->second);
             sMissionDataMgr.UpdateMissionData(charID, itr->second);
         }

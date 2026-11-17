@@ -44,7 +44,18 @@ int utils_MissionLifecycleTest(int argc, char* argv[]) {
         && Mission::RemainingItemQuantity(10, 20) == 0
         && Mission::RemainingItemQuantity(100000, 1) == 99999
         && Mission::RemainingItemQuantity(100000, 0) == 100000
-        && Mission::kBlockadeSecurityTestRequiredKills == 12;
+        && Mission::kBlockadeSecurityTestRequiredKills == 12
+        && Mission::kEliteSecurityMissionID == 65534
+        && Mission::kEliteSecurityMissionID != Mission::kBlockadeSecurityTestMissionID
+        && Mission::kEliteSecurityRequiredKills == 18
+        && Mission::IsSyntheticSecurityEncounter(Mission::kBlockadeSecurityTestMissionID)
+        && Mission::IsSyntheticSecurityEncounter(Mission::kEliteSecurityMissionID)
+        && !Mission::IsSyntheticSecurityEncounter(100)
+        && Mission::EliteLootMetaGroupForNPCGroup(789) == 4
+        && Mission::EliteLootMetaGroupForNPCGroup(553) == 5
+        && Mission::EliteLootMetaGroupForNPCGroup(597) == 6
+        && Mission::EliteLootMetaGroupForNPCGroup(821) == 6
+        && Mission::EliteLootMetaGroupForNPCGroup(551) == 0;
 
     if (!passed) {
         ::printf("Mission lifecycle regression test failed.\n");

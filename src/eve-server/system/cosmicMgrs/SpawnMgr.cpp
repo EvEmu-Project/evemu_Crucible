@@ -58,6 +58,44 @@ static const BlockadeTestShipClass kAngelCartelBlockadeTestMix[] = {
     {576, "Asteroid Angel Cartel BattleCruiser", 4}
 };
 
+// A second Security Agent combat mission: 5 DED/deadspace ships covering
+// frigate through battleship, 5 faction commander hull classes, one officer
+// from each of the five pirate factions, and 3 DED overseers. Every group
+// is a static Crucible invGroups ID, not a guessed typeID or fake NPC.
+// This roster does not replace the original 12-ship Blockade above.
+struct EliteSecurityShipSpec {
+    uint16 groupID;
+    uint32 factionID;
+    const char* groupNameToken;
+};
+
+static const EliteSecurityShipSpec kEliteSecurityFleet[] = {
+    // Deadspace: frigate, destroyer, cruiser, battlecruiser, battleship.
+    {597, factionAngel,       "Deadspace"},
+    {605, factionBloodRaider, "Deadspace"},
+    {613, factionGuristas,    "Deadspace"},
+    {620, factionSanshas,     "Deadspace"},
+    {630, factionSerpentis,   "Deadspace"},
+    // Faction commanders: one of each hull size across the five factions.
+    {789, factionAngel,       "Commander"},
+    {796, factionBloodRaider, "Commander"},
+    {798, factionGuristas,    "Commander"},
+    {807, factionSanshas,     "Commander"},
+    {852, factionSerpentis,   "Commander"},
+    // Officers: one rare boss representing each pirate faction.
+    {553, factionAngel,       "Officer"},
+    {559, factionBloodRaider, "Officer"},
+    {564, factionGuristas,    "Officer"},
+    {569, factionSanshas,     "Officer"},
+    {574, factionSerpentis,   "Officer"},
+    // DED overseer frigate, cruiser and battleship (Angel-backed faction).
+    {819, factionAngel,       "Overseer"},
+    {820, factionAngel,       "Overseer"},
+    {821, factionAngel,       "Overseer"}
+};
+static_assert(sizeof(kEliteSecurityFleet) / sizeof(kEliteSecurityFleet[0])
+    == Mission::kEliteSecurityRequiredKills, "Elite mission encounter target must match its roster");
+
 /** @todo  this can be updated to spawn mission, anomaly and deadspace rats.
  *   change all *roidRat* to *somethingelse* to better explain/describe the maps and how they're used.
  *  add objects for mission, anomaly and deadspace rats as needed to aid in tracking/deleting.
@@ -567,6 +605,160 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
     }
 
     pBubble->SetMission();
+    pBubble->SetMissionTypeID(missionID);
+
+    if (missionID == Mission::kEliteSecurityMissionID) {
+        // Fail closed if the selected Crucible SDE cannot supply one of the
+        // named NPC classes or any of the three required real loot tiers.
+        uint16 previewLoot = 0;
+        for (uint8 tier = 4; tier <= 6; ++tier) {
+            if (!sDataMgr.GetEliteMissionLootType(tier, previewLoot)) {
+                _log(SPAWN__ERROR,
+                    "DED/Officer mission %u missing market-listed module loot for meta group %u.",
+                    offerID, tier);
+                pBubble->SetMission(false);
+                pBubble->SetMissionTypeID(0);
+                return false;
+            }
+        }
+
+        std::map<uint16, Inv::TypeData> allTypes;
+        sDataMgr.GetTypes(allTypes);
+        struct SelectedEliteShip {
+            uint16 typeID;
+            uint16 groupID;
+            uint32 factionID;
+        };
+        std::vector<SelectedEliteShip> selectedFleet;
+        for (const EliteSecurityShipSpec& spec : kEliteSecurityFleet) {
+            Inv::GrpData group = {};
+            sDataMgr.GetGroup(spec.groupID, group);
+            if (group.id == 0 || group.catID != EVEDB::invCategories::Entity
+                || group.name.find(spec.groupNameToken) == std::string::npos) {
+                _log(SPAWN__ERROR,
+                    "DED/Officer mission %u missing expected entity group %u (%s).",
+                    offerID, spec.groupID, spec.groupNameToken);
+                pBubble->SetMission(false);
+                pBubble->SetMissionTypeID(0);
+                return false;
+            }
+            std::vector<uint16> candidates;
+            for (const auto& candidate : allTypes) {
+                if (candidate.second.id != 0 && candidate.second.groupID == spec.groupID)
+                    candidates.push_back(candidate.first);
+            }
+            if (candidates.empty()) {
+                _log(SPAWN__ERROR,
+                    "DED/Officer mission %u has no NPC types in group %u (%s).",
+                    offerID, spec.groupID, group.name.c_str());
+                pBubble->SetMission(false);
+                pBubble->SetMissionTypeID(0);
+                return false;
+            }
+            const uint16 typeID =
+                candidates[static_cast<size_t>(rand()) % candidates.size()];
+            selectedFleet.push_back({typeID, spec.groupID, spec.factionID});
+        }
+
+        uint16 spawnedCount = 0;
+        uint16 failedCount = 0;
+        uint16 fleetNumber = 0;
+        const GPoint center = pBubble->GetCenter();
+        for (const SelectedEliteShip& ship : selectedFleet) {
+            Inv::TypeData type = {};
+            sDataMgr.GetType(ship.typeID, type);
+            if (type.id == 0 || type.groupID != ship.groupID) {
+                ++failedCount;
+                continue;
+            }
+            const uint32 corpID = sDataMgr.GetFactionCorp(ship.factionID);
+            if (corpID == 0) {
+                _log(SPAWN__ERROR, "DED/Officer mission %u invalid faction %u.",
+                    offerID, ship.factionID);
+                ++failedCount;
+                continue;
+            }
+
+            GPoint position(center);
+            // Separate hostile ships across the mission pocket, not on the
+            // warp-in point. Range includes battleship and officer spawns.
+            position.x += MakeRandomFloat(-24000.0f, 24000.0f);
+            position.y += MakeRandomFloat(-24000.0f, 24000.0f);
+            position.z += MakeRandomFloat(-12000.0f, 12000.0f);
+
+            ItemData itemData(ship.typeID, corpID, m_system->GetID(),
+                flagNone, "", position, type.name.c_str());
+            InventoryItemRef item = sItemFactory.SpawnItem(itemData);
+            if (item.get() == nullptr) {
+                ++failedCount;
+                _log(SPAWN__ERROR, "DED/Officer mission %u failed spawning NPC type %u.",
+                    offerID, ship.typeID);
+                continue;
+            }
+
+            FactionData factionData = FactionData();
+            factionData.allianceID = ship.factionID;
+            factionData.corporationID = corpID;
+            factionData.factionID = ship.factionID;
+            factionData.ownerID = corpID;
+            NPC* pNPC = new NPC(item, m_services, m_system, factionData, this);
+            if (pNPC == nullptr || !pNPC->Load()) {
+                ++failedCount;
+                _log(SPAWN__ERROR, "DED/Officer mission %u NPC load failed for type %u.",
+                    offerID, ship.typeID);
+                if (pNPC != nullptr)
+                    pNPC->Delete();
+                continue;
+            }
+
+            m_system->AddNPC(pNPC);
+            pNPC->DestinyMgr()->SetPosition(position);
+            SpawnEntry entry = SpawnEntry();
+            entry.enabled = false;  // do not respawn completed mission kills
+            entry.groupID = ship.groupID;
+            entry.itemID = item->itemID();
+            entry.total = 1;
+            entry.number = ++fleetNumber;
+            entry.typeID = ship.typeID;
+            entry.spawnID = m_spawnID;
+            entry.corpID = corpID;
+            entry.factionID = ship.factionID;
+            entry.spawnClass = spawnClass;
+            entry.spawnGroup = GetSpawnGroup(spawnClass);
+            entry.level = missionLevel;
+            entry.stamp = 0;
+            m_spawns.emplace(pBubble->GetID(), entry);
+            ++spawnedCount;
+        }
+
+        if (spawnedCount == 0) {
+            _log(SPAWN__ERROR, "DED/Officer mission %u spawned zero valid NPCs.",
+                offerID);
+            pBubble->SetMission(false);
+            pBubble->SetMissionTypeID(0);
+            return false;
+        }
+        ++m_spawnID;
+        m_bubbles.push_back(pBubble);
+        const uint32 npcCount = pBubble->CountNPCs();
+        if (npcCount == 0 || npcCount > 65535) {
+            m_spawns.erase(pBubble->GetID());
+            m_bubbles.pop_back();
+            pBubble->SetMission(false);
+            pBubble->SetMissionTypeID(0);
+            pBubble->SetSpawned(false);
+            return false;
+        }
+        // Accepted offer's required kills are updated from this actual pocket
+        // by Client::StartEncounterMission; no unwinnable stale target.
+        pBubble->SetMissionData(characterID, agentID, offerID, beaconID,
+            static_cast<uint16>(npcCount));
+        pBubble->SetSpawned(true);
+        _log(SPAWN__MESSAGE,
+            "DED/Officer mission %u spawned %u/%u NPCs (%u failures), all hull classes eligible.",
+            offerID, spawnedCount, Mission::kEliteSecurityRequiredKills, failedCount);
+        return true;
+    }
 
     // Mission 65535 is a synthetic test encounter. Spawn the supplied Angel
     // Cartel inventory types directly so it is independent of incomplete or

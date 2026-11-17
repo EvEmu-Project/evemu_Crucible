@@ -96,6 +96,35 @@ namespace Mission {
     constexpr uint16 kBlockadeSecurityTestRequiredKills = 12;
     constexpr uint32 kBlockadeSecurityTestRewardISK = 50000000;
     constexpr uint32 kBlockadeSecurityTestDurationMinutes = 120;
+
+    // Separate Security Agent encounter; the working 65535 Blockade is untouched.
+    // Each high-value kill has a DED, faction, or officer loot-table tier.
+    constexpr uint16 kEliteSecurityMissionID = 65534;
+    constexpr uint16 kEliteSecurityRequiredKills = 18;
+    constexpr uint32 kEliteSecurityRewardISK = 50000000;
+    constexpr uint32 kEliteSecurityDurationMinutes = 120;
+
+    inline bool IsSyntheticSecurityEncounter(uint16 missionID) {
+        return missionID == kBlockadeSecurityTestMissionID
+            || missionID == kEliteSecurityMissionID;
+    }
+
+    // invMetaGroups: 4 = Faction, 5 = Officer, 6 = Deadspace.
+    // Only the explicitly selected new encounter groups are eligible for
+    // premium mission loot; other NPCs retain their ordinary loot behavior.
+    inline uint8 EliteLootMetaGroupForNPCGroup(uint16 groupID) {
+        switch (groupID) {
+            case 789: case 796: case 798: case 807: case 852:
+                return 4;  // Faction commanders
+            case 553: case 559: case 564: case 569: case 574:
+                return 5;  // Pirate officers
+            case 597: case 605: case 613: case 620: case 630:
+            case 819: case 820: case 821:
+                return 6;  // DED rats and overseers
+            default:
+                return 0;
+        }
+    }
     namespace State {
         enum {
             Allocated   = 0,    // also listed as 'Offered' in some places
