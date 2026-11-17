@@ -861,13 +861,23 @@ PyResult Command_dogma(Client* who, CommandDB* db, EVEServiceManager &services, 
 
     InventoryItemRef i;
     if (args.arg(1) == "me") {
-        i = sItemFactory.GetItemRef(who->GetShip().get()->itemID());
+        ShipItemRef ship = who->GetShip();
+        if (ship.get() == nullptr)
+            throw CustomError("/dogma: no active ship for 'me'.");
+        i = sItemFactory.GetItemRef(ship->itemID());
     } else {
+        if (!args.isNumber(1))
+            throw CustomError("/dogma: provide an itemID or 'me'.");
         i = sItemFactory.GetItemRef(atoi(args.arg(1).c_str()));
     }
 
+    if (i.get() == nullptr)
+        throw CustomError("/dogma: the specified item was not found.");
+    const int attributeID = db->GetAttributeID(attributeName);
+    if (attributeID <= 0)
+        throw CustomError("/dogma: the named dogma attribute does not exist.");
 
-    i->SetAttribute(db->GetAttributeID(attributeName), attributeValue);
+    i->SetAttribute(attributeID, attributeValue);
     /** @todo  for modules and ships, this will need to call some kind of 'reload' to reset the attrib mem object before new attrib takes affect.  */
 
     return nullptr;

@@ -9,6 +9,7 @@
 
 //clean up macros
 #undef COMMAND
+#undef COMMAND_ANY
 
 
 

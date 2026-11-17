@@ -1,3 +1,10 @@
+## 17 November 2026 — Fix /dogma access for DEV and ADMIN
+
+- The observed `0x62f8000280c41000` DEV account includes CONTENT but not ADMIN (`0x0100000000000000`). Old `/dogma` required ADMIN only.
+- Register `/dogma` with explicit **CONTENT OR ADMIN** permissions, preserving current ADMIN access. Ordinary/VIP players remain denied, and other ADMIN-only commands such as /kick, /ban and /givelp are unaffected. Do not modify account SQL or grant blanket privileges.
+- Reuse bitmask authorization in `CommandDispatcher` and `/commandlist`, show CONTENT commands, log role masks as real 64-bit hex values instead of pointer `%p` formatting.
+- Reject missing ship, missing item and unknown dogma attribute safely before modifying the item. Add CTest permission regression coverage for DEV, CONTENT, ADMIN, BOSS, VIP, STD and multi-bit roles. Live command check and CI needed.
+
 ## 17 November 2026 — PR #36 DED & Officer Expedition reward to 500M ISK
 
 - Increase only synthetic Security Agent mission 65534 reward to **500,000,000 ISK** (from 50,000,000). Mission 65535 Blockade remains **50,000,000 ISK**.
