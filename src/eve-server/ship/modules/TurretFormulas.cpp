@@ -40,12 +40,15 @@ float TurretFormulas::GetToHit(ShipItemRef shipRef, TurretModule* pMod, SystemEn
         return 0;
     }
 
-    uint32 falloff = pMod->GetAttribute(AttrFalloff).get_uint32();
-    uint32 range = pMod->GetAttribute(AttrMaxRange).get_uint32();
-    float distance = shipRef->position().distance(targetDestiny->GetPosition());
-    if (distance <= 0.001f)
+    // Use effective fitted Crucible optimal/falloff at full precision and
+    // live source position. Falloff is NOT a hard cutoff at optimal range.
+    const double falloff = pMod->GetAttribute(AttrFalloff).get_double();
+    const double range = pMod->GetAttribute(AttrMaxRange).get_double();
+    const double distance = sourceSE->GetPosition().distance(targetDestiny->GetPosition());
+    if (!std::isfinite(distance) || distance <= 0.001)
         return 0;
-    _log(DAMAGE__TRACE, "Turret::GetToHit - distance:%.2f, range:%u, falloff:%u", distance, range, falloff);
+    _log(DAMAGE__TRACE, "Turret::GetToHit - distance:%.2f, optimal:%.2f, falloff:%.2f",
+         distance, range, falloff);
 
     // Turret tracking uses angular velocity, not total relative speed.
     // Remove the radial component by taking the cross product of relative
