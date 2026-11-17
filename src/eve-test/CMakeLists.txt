@@ -31,6 +31,7 @@ SET( utils_SOURCE
      "utils/MovementFormulaTest.cpp"
      "utils/DroneControlRangeTest.cpp"
      "utils/AgentHelpersTest.cpp"
+     "utils/CommandPermissionsTest.cpp"
      "utils/MissionLifecycleTest.cpp"
      "utils/ContainerAssemblyTest.cpp"
      "utils/StationOfficeIntegrityTest.cpp"
@@ -83,6 +84,8 @@ ADD_TEST( NAME "MovementFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/MovementFormulaTest" )
 ADD_TEST( NAME "DroneControlRangeTest"
           COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )
+ADD_TEST( NAME "CommandPermissionsTest"
+          COMMAND "${TARGET_NAME}" "utils/CommandPermissionsTest" )
 ADD_TEST( NAME "AgentHelpersTest"
           COMMAND "${TARGET_NAME}" "utils/AgentHelpersTest" )
 ADD_TEST( NAME "MissionLifecycleTest"
