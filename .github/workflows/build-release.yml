@@ -64,6 +64,8 @@ jobs:
         run: python3 tools/verify_elite_security_mission.py
       - name: Verify Crucible-era weapon ranges and hull warp speed
         run: python3 tools/verify_crucible_range_and_warp.py
+      - name: Verify sovereignty and POS integrity invariants
+        run: python3 tools/verify_sov_pos_integrity.py
       - name: Test
         run: |
           ctest --test-dir build -N | tee test-list.txt
@@ -204,6 +206,11 @@ jobs:
         run: |
           python tools/verify_crucible_range_and_warp.py
           if ($LASTEXITCODE -ne 0) { throw "Crucible weapon/warp regression" }
+      - name: Verify sovereignty and POS integrity invariants
+        shell: pwsh
+        run: |
+          python tools/verify_sov_pos_integrity.py
+          if ($LASTEXITCODE -ne 0) { throw "Sovereignty/POS source regression" }
       - name: Test
         shell: msys2 {0}
         run: |
