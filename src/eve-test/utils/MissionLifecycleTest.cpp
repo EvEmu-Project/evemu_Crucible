@@ -47,7 +47,7 @@ int utils_MissionLifecycleTest(int argc, char* argv[]) {
     const bool passed =
         indicesInRange && selectedBlockade && selectedExpedition
         && Mission::RandomCandidateIndex(1) == 0
-        Mission::IsAwaitingAcceptance(Mission::State::Offered)
+        && Mission::IsAwaitingAcceptance(Mission::State::Offered)
         && Mission::IsAwaitingAcceptance(Mission::State::Allocated)
         && !Mission::IsAwaitingAcceptance(Mission::State::Accepted)
         && !Mission::IsAwaitingAcceptance(Mission::State::Completed)
