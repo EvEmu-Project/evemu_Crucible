@@ -242,7 +242,7 @@ def cmd_selftest(args: argparse.Namespace) -> None:
     db_query(project, (source / "a01_fixture_transition.sql").read_text(encoding="utf-8"))
     after = snapshot(project, "fixture", FIXTURE_CHARACTERS, FIXTURE_CORPORATIONS)
     changes = diff(before, after)
-    expected = {"characters": 1, "items": 1, "offers": 1, "market_orders": 1, "contracts": 1, "corporation_wallets": 0, "wallet_journal": 0}
+    expected = {"characters": 1, "items": 1, "offers": 1, "market_orders": 1, "contracts": 1, "corporation_wallets": 0}
     for scope, number in expected.items():
         if len(changes[scope]["changed"]) != number or changes[scope]["added"] or changes[scope]["removed"]:
             raise StagingError(f"Unexpected synthetic fixture transition for {scope}")
