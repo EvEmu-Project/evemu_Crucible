@@ -31,7 +31,11 @@ assert "legacy.regionID = @regionid" in buy
 assert "legacy.escrow = (CASE" in buy
 assert "oldOrder.ownerID = 4000000" in buy
 assert "oldOrder.bid = 1" in buy and "oldOrder.isCorp = 0" in buy
-assert "oldOrder.orderRange = -1" in buy and "oldOrder.duration = 250" in buy
+# The MariaDB column is UNSIGNED: do not accidentally reintroduce -1.
+assert "oldOrder.orderRange = 0" in buy and "oldOrder.duration = 250" in buy
+assert "o.orderRange = 0" in buy
+assert "oldOrder.orderRange = -1" not in buy and "o.orderRange = -1" not in buy
+assert "     0,\n     1,\n     eligible.referencePrice," in buy
 assert "it.published = 1 AND it.marketGroupID IS NOT NULL" in buy
 assert "CASE WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100.00" in buy
 assert "ELSE GREATEST(0.01, ROUND(it.basePrice, 2))" in buy
@@ -72,4 +76,7 @@ assert "seed -buy-only -force" in workflow
 assert "needs: [linux, windows, docker, npc-buy-mariadb]" in workflow
 assert "SELECT" in audit and "DELETE " not in audit and "UPDATE " not in audit
 assert "SET @npc_owner_id = 4000000" in audit
+assert audit.count("o.orderRange = 0 AND o.duration = 250") == 4
+assert "o.orderRange = -1" not in audit
+assert "orderRange=-1" not in audit
 print("PASS: NPC buy migration, idempotence, pricing, settlement, and read-only audit invariants")

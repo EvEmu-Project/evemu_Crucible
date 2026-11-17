@@ -1,7 +1,7 @@
 -- EVEmu Crucible: READ-ONLY NPC buy order seed audit (2026-11-17).
 -- Does not add, update, delete, or replace any row.
 -- Use MariaDB/HeidiSQL on a staging or backed-up production clone first.
--- Static NPC buy seed identity: ownerID=4000000, bid=1, orderRange=-1,
+-- Static NPC buy seed identity: ownerID=4000000, bid=1, orderRange=0,
 -- duration=250, isCorp=0. Trader Joe's dynamic bids have other scopes.
 -- The 100%-of-market-value reference here is invTypes.basePrice, NOT the
 -- current regional weighted average or player market price.
@@ -37,7 +37,7 @@ SELECT o.regionID,
 FROM mktOrders AS o
 WHERE o.ownerID = @npc_owner_id
   AND o.bid = 1 AND o.isCorp = 0
-  AND o.orderRange = -1 AND o.duration = 250
+  AND o.orderRange = 0 AND o.duration = 250
 GROUP BY o.regionID
 ORDER BY o.regionID;
 
@@ -53,7 +53,7 @@ FROM mktOrders AS o
 JOIN invTypes AS it ON it.typeID = o.typeID
 WHERE o.ownerID = @npc_owner_id
   AND o.bid = 1 AND o.isCorp = 0
-  AND o.orderRange = -1 AND o.duration = 250
+  AND o.orderRange = 0 AND o.duration = 250
   AND (
     o.price <> CASE WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100.00
                     ELSE GREATEST(0.01, ROUND(it.basePrice, 2)) END
@@ -68,7 +68,7 @@ SELECT o.regionID, o.stationID, o.typeID, COUNT(*) AS duplicates
 FROM mktOrders AS o
 WHERE o.ownerID = @npc_owner_id
   AND o.bid = 1 AND o.isCorp = 0
-  AND o.orderRange = -1 AND o.duration = 250
+  AND o.orderRange = 0 AND o.duration = 250
 GROUP BY o.regionID, o.stationID, o.typeID
 HAVING COUNT(*) > 1
 ORDER BY duplicates DESC
@@ -81,7 +81,7 @@ FROM invTypes AS it
 LEFT JOIN mktOrders AS o
   ON o.typeID = it.typeID AND o.bid = 1
  AND o.ownerID = @npc_owner_id AND o.isCorp = 0
- AND o.orderRange = -1 AND o.duration = 250
+ AND o.orderRange = 0 AND o.duration = 250
 WHERE it.published = 1 AND it.marketGroupID IS NOT NULL
   AND o.orderID IS NULL
 ORDER BY it.typeID
