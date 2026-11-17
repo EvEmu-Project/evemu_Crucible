@@ -2,6 +2,7 @@
 -- All tables have an a01_ prefix; NO original EVEmu tables are modified.
 -- A01 fixture intentionally exercises the snapshot/diff harness, not actual
 -- server RPC behavior or historical Crucible game mechanics.
+DROP TABLE IF EXISTS a01_jnlCharacters;
 DROP TABLE IF EXISTS a01_ctrContracts;
 DROP TABLE IF EXISTS a01_mktOrders;
 DROP TABLE IF EXISTS a01_agtOffers;
@@ -19,6 +20,11 @@ CREATE TABLE a01_crpWalletDivisons (
   balance3 DECIMAL(20,2) NOT NULL, balance4 DECIMAL(20,2) NOT NULL,
   balance5 DECIMAL(20,2) NOT NULL, balance6 DECIMAL(20,2) NOT NULL,
   balance7 DECIMAL(20,2) NOT NULL
+) ENGINE=InnoDB;
+CREATE TABLE a01_jnlCharacters (
+  transactionID INT PRIMARY KEY, ownerID INT NOT NULL,
+  entryTypeID INT NOT NULL, referenceID INT NOT NULL,
+  amount DECIMAL(20,2) NOT NULL, balance DECIMAL(20,2) NOT NULL
 ) ENGINE=InnoDB;
 CREATE TABLE a01_entity (
   itemID INT PRIMARY KEY, ownerID INT NOT NULL, locationID INT NOT NULL,
@@ -44,6 +50,9 @@ INSERT INTO a01_chrCharacters VALUES
  (90010001,98010001,100000.00), (90010002,98010002,50000.00);
 INSERT INTO a01_crpWalletDivisons VALUES
  (98010001,200000.00,0,0,0,0,0,0), (98010002,300000.00,0,0,0,0,0,0);
+INSERT INTO a01_jnlCharacters VALUES
+ (71010001,90010001,10,0,0.00,100000.00),
+ (71010002,90010002,10,0,0.00,50000.00);
 INSERT INTO a01_entity VALUES
  (140010001,90010001,90010001,34,5,50),
  (140010002,90010001,90010001,35,5,20),

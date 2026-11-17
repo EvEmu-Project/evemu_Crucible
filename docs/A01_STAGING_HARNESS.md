@@ -5,7 +5,7 @@
 ## 1. What A01 verifies
 
 - A unique Docker Compose project named `evemu-a01-...` with an internal-only MariaDB 11.8 database and isolated named volumes. The MariaDB port is **never published to the host**; the runner has no database host/DSN option.
-- A deterministic fixture with two fictional characters (`90010001`, `90010002`), separate corporations (`98010001`, `98010002`), wallet balances, inventory items, mission offers, market orders and an outstanding contract. The fixture uses **only prefixed `a01_*` tables**, never real game tables.
+- A deterministic fixture with two fictional characters (`90010001`, `90010002`), separate corporations (`98010001`, `98010002`), wallet balances, inventory items, mission offers, market orders, wallet journal entries and an outstanding contract. The fixture uses **only prefixed `a01_*` tables**, never real game tables.
 - A five-change synthetic transition, actual MariaDB queries, row-by-row before/after snapshots, wallet delta checks, and protection against a change in the second character's balance or items.
 - Optional startup of the real built EVEmu server, whose existing Docker startup script initializes a full *new* database with EVEDBTool. On Windows, the operator then uses the **authentic Crucible client** to exercise real features, with snapshots around each test.
 - Linux GitHub Actions runs the isolated fixture against MariaDB. The full-server startup workflow is **manual/opt-in** and does not simulate an EVE client or claim that any gameplay RPC succeeds.
@@ -26,7 +26,7 @@ python tools/staging/a01.py selftest
 python tools/staging/a01.py status
 ```
 
-`selftest` prints **PASS** and saves three local JSON files under `.a01/runs/`: before, after, and diff. It verifies exactly one changed record for each of character wallet, item, mission offer, market order and contract. Character B and both corporation wallets remain unchanged. This is an *integration test of the snapshot harness*, not a test of real EVEmu reward/contract code.
+`selftest` prints **PASS** and saves three local JSON files under `.a01/runs/`: before, after, and diff. It verifies exactly one changed record for each of character wallet, item, mission offer, market order and contract, plus one new wallet journal entry (no duplicate). Character B and both corporation wallets remain unchanged. This is an *integration test of the snapshot harness*, not a test of real EVEmu reward/contract code.
 
 **Step 2 — run the real server in the same isolated project (optional):**
 
@@ -50,10 +50,10 @@ python tools/staging/a01.py snapshot --mode game --label before-market --charact
 python tools/staging/a01.py snapshot --mode game --label after-market --character-a 90010001 --character-b 90010002 --corporation-a 98010001 --corporation-b 98010002 --build-sha YOUR_BUILD_SHA
 
 # Insert the two actual generated .a01/runs/*.json paths below:
-python tools/staging/a01.py compare --before .a01/runs/BEFORE.json --after .a01/runs/AFTER.json --expect-b-isk 0
+python tools/staging/a01.py compare --before .a01/runs/BEFORE.json --after .a01/runs/AFTER.json --expect-b-isk 0 --expect-b-journal-entries 0
 ```
 
-The comparator reports exact changed primary keys and wallet deltas; e.g. if you expect character A's wallet to decrease by 100 ISK, add `--expect-a-isk -100`. `--fail-on-removal` is an optional guard for scenarios where no rows should disappear. It intentionally **does not** interpret a valid item transfer as duplication or a particular mission payout as correct without your explicit expected outcome. Inspect the diff and correlate it with the server log and the client's UI.
+The comparator reports exact changed primary keys and wallet deltas; e.g. if you expect character A's wallet to decrease by 100 ISK, add `--expect-a-isk -100`. For a one-entry mission reward, use `--expect-a-journal-entries 1` to detect an unexpected duplicate ledger row. `--fail-on-removal` is an optional guard for scenarios where no rows should disappear. It intentionally **does not** interpret a valid item transfer as duplication or a particular mission payout as correct without your explicit expected outcome. Inspect the diff and correlate it with the server log and the client's UI.
 
 **Recommended first real tests:** (1) buy one ordinary item, (2) transfer one stack between your own hangar/cargo, (3) accept and complete a disposable agent mission, (4) create/accept a minimal-ISK private contract with character B. Start each from a new snapshot pair and inspect asset/wallet records. **Do not test valuable items or actual accounts in A01.**
 

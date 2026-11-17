@@ -25,9 +25,10 @@ class A01Tests(unittest.TestCase):
 
     def test_game_sql_queries_are_allowlisted_by_numeric_ids(self):
         qs = a01.select_queries("", (90000001, 90000002), (98000001, 98000002))
-        self.assertEqual(len(qs), 6)
+        self.assertEqual(len(qs), 7)
         self.assertIn("FROM chrCharacters", qs["characters"])
         self.assertIn("FROM crpWalletDivisons", qs["corporation_wallets"])
+        self.assertIn("FROM jnlCharacters", qs["wallet_journal"])
         self.assertIn("WHERE ownerID IN (90000001,90000002)", qs["items"])
         with self.assertRaises(a01.StagingError):
             a01.select_queries("prod.", (90000001, 90000002), (98000001, 98000002))
@@ -37,14 +38,17 @@ class A01Tests(unittest.TestCase):
     def test_diff_wallet_and_rows(self):
         rows = {s: {} for s in a01.SCOPES}
         rows["characters"] = {"90010001": "100.00|98010001", "90010002": "200.00|98010002"}
+        rows["wallet_journal"] = {"700": "90010001|10|0|0.00|100.00"}
         rows["items"] = {"111": "90010001|90010001|34|5|10"}
         before = {"format":"evemu-a01-v1", "mode":"fixture", "project":"evemu-a01-demo", "character_ids":[90010001,90010002], "corporation_ids":[98010001,98010002], "rows":rows}
-        after = {**before, "rows": {**rows, "characters": {**rows["characters"], "90010001": "125.00|98010001"}, "items": {"111":"90010001|90010001|34|5|5", "222":"90010001|90010001|35|5|2"}}}
+        after = {**before, "rows": {**rows, "characters": {**rows["characters"], "90010001": "125.00|98010001"}, "items": {"111":"90010001|90010001|34|5|5", "222":"90010001|90010001|35|5|2"}, "wallet_journal": {"700": "90010001|10|0|0.00|100.00", "701":"90010001|10|100|25.00|125.00"}}}
         d = a01.diff(before, after)
         self.assertEqual(len(d["characters"]["changed"]), 1)
         self.assertEqual(len(d["items"]["added"]), 1)
         self.assertEqual(a01.wallet_delta(before, after, 90010001), Decimal("25.00"))
         self.assertEqual(a01.wallet_delta(before, after, 90010002), Decimal("0.00"))
+        self.assertEqual(a01.journal_added(before, after, 90010001), 1)
+        self.assertEqual(a01.journal_added(before, after, 90010002), 0)
         with self.assertRaises(a01.StagingError):
             a01.diff(before, {**after, "project":"evemu-a01-other"})
 

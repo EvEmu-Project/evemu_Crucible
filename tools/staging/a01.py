@@ -24,7 +24,7 @@ PASSWORD = "evemu-a01-local-only"  # exclusively isolated Docker DB, no host por
 PROJECT_RE = re.compile(r"^evemu-a01-[a-z0-9][a-z0-9-]{0,36}$")
 FIXTURE_CHARACTERS = (90010001, 90010002)
 FIXTURE_CORPORATIONS = (98010001, 98010002)
-SCOPES = ("characters", "corporation_wallets", "items", "offers", "market_orders", "contracts")
+SCOPES = ("characters", "corporation_wallets", "wallet_journal", "items", "offers", "market_orders", "contracts")
 
 
 class StagingError(RuntimeError):
@@ -90,6 +90,8 @@ def select_queries(prefix: str, chars: tuple[int, int], corps: tuple[int, int]) 
         "characters": q("chrCharacters", "characterID", "CAST(balance AS CHAR), CAST(corporationID AS CHAR)", f"characterID IN ({charids})"),
         "corporation_wallets": q("crpWalletDivisons", "corporationID",
             ", ".join(f"CAST(balance{n} AS CHAR)" for n in range(1, 8)), f"corporationID IN ({corpids})"),
+        "wallet_journal": q("jnlCharacters", "transactionID",
+            "CAST(ownerID AS CHAR), CAST(entryTypeID AS CHAR), CAST(referenceID AS CHAR), CAST(amount AS CHAR), CAST(balance AS CHAR)", f"ownerID IN ({charids})"),
         "items": q("entity", "itemID",
             "CAST(ownerID AS CHAR), CAST(locationID AS CHAR), CAST(typeID AS CHAR), CAST(flag AS CHAR), CAST(quantity AS CHAR)", f"ownerID IN ({charids})"),
         "offers": q("agtOffers", "offerID",
@@ -150,6 +152,12 @@ def wallet_delta(before: dict, after: dict, character: int) -> Decimal:
     except KeyError as exc:
         raise StagingError(f"Character {character} missing from snapshot; create test characters first") from exc
     return Decimal(new) - Decimal(old)
+
+
+def journal_added(before: dict, after: dict, character: int) -> int:
+    changes = diff(before, after)["wallet_journal"]
+    return sum(1 for value in changes["added"].values()
+               if value.split("|", 1)[0] == str(character))
 
 
 def write_snapshot(data: dict, label: str) -> Path:
@@ -215,6 +223,10 @@ def cmd_compare(args: argparse.Namespace) -> None:
     if args.expect_b_isk is not None:
         if wallet_delta(before, after, before["character_ids"][1]) != Decimal(args.expect_b_isk):
             raise StagingError("Character B ISK delta does not match expected amount")
+    for cid, expected in ((before["character_ids"][0], args.expect_a_journal_entries),
+                          (before["character_ids"][1], args.expect_b_journal_entries)):
+        if expected is not None and journal_added(before, after, cid) != expected:
+            raise StagingError(f"Character {cid} new journal row count differs from expected {expected}")
     if args.fail_on_removal and any(g["removed"] for g in changes.values()):
         raise StagingError("Unexpected row removal detected")
     path = write_snapshot({"before": args.before, "after": args.after, "changes": changes}, "diff")
@@ -230,7 +242,7 @@ def cmd_selftest(args: argparse.Namespace) -> None:
     db_query(project, (source / "a01_fixture_transition.sql").read_text(encoding="utf-8"))
     after = snapshot(project, "fixture", FIXTURE_CHARACTERS, FIXTURE_CORPORATIONS)
     changes = diff(before, after)
-    expected = {"characters": 1, "items": 1, "offers": 1, "market_orders": 1, "contracts": 1, "corporation_wallets": 0}
+    expected = {"characters": 1, "items": 1, "offers": 1, "market_orders": 1, "contracts": 1, "corporation_wallets": 0, "wallet_journal": 0}
     for scope, number in expected.items():
         if len(changes[scope]["changed"]) != number or changes[scope]["added"] or changes[scope]["removed"]:
             raise StagingError(f"Unexpected synthetic fixture transition for {scope}")
@@ -238,6 +250,10 @@ def cmd_selftest(args: argparse.Namespace) -> None:
         raise StagingError("Synthetic character A delta failed")
     if wallet_delta(before, after, FIXTURE_CHARACTERS[1]) != Decimal("0.00"):
         raise StagingError("Synthetic character B balance changed")
+    if len(changes["wallet_journal"]["added"]) != 1 or changes["wallet_journal"]["removed"]:
+        raise StagingError("Expected exactly one new wallet journal entry")
+    if journal_added(before, after, FIXTURE_CHARACTERS[0]) != 1 or journal_added(before, after, FIXTURE_CHARACTERS[1]) != 0:
+        raise StagingError("Wallet journal ownership mismatch or duplicate payout")
     if before["rows"]["items"]["140010003"] != after["rows"]["items"]["140010003"]:
         raise StagingError("Synthetic character B inventory mutated")
     if before["rows"]["offers"]["41010002"] != after["rows"]["offers"]["41010002"]:
@@ -249,7 +265,7 @@ def cmd_selftest(args: argparse.Namespace) -> None:
     bp = write_snapshot(before, "fixture-before")
     ap = write_snapshot(after, "fixture-after")
     dp = write_snapshot({"format":"evemu-a01-diff-v1","changes":changes}, "fixture-diff")
-    print("PASS: real MariaDB synthetic fixture, two characters/two corporations, snapshots and five changes.")
+    print("PASS: real MariaDB fixture, two characters/two corporations, five row changes and one journal insertion.")
     print(f"PASS: 25,000 ISK expected delta; character B wallet/inventory unchanged; no deleted/duplicate rows.")
     print(f"Evidence: {bp}, {ap}, {dp}")
     print("LIMITATION: synthetic tables do NOT exercise actual EVEmu RPC or persistence code.")
@@ -304,6 +320,8 @@ def parse_args() -> argparse.Namespace:
     compare_p.add_argument("--after", required=True)
     compare_p.add_argument("--expect-a-isk")
     compare_p.add_argument("--expect-b-isk")
+    compare_p.add_argument("--expect-a-journal-entries", type=int)
+    compare_p.add_argument("--expect-b-journal-entries", type=int)
     compare_p.add_argument("--fail-on-removal", action="store_true")
     sub.add_parser("selftest", help="destructive ONLY to six a01_* synthetic tables in own A01 DB")
     logp = sub.add_parser("logs", help="save private server logs for troubleshooting")
