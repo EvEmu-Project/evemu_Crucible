@@ -614,7 +614,7 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
         for (uint8 tier = 4; tier <= 6; ++tier) {
             if (!sDataMgr.GetEliteMissionLootType(tier, previewLoot)) {
                 _log(SPAWN__ERROR,
-                    "DED/Officer mission %u missing market-listed module loot for meta group %u.",
+                    "DED/Officer mission %u has no valid Module-category loot for meta group %u in installed static data.",
                     offerID, tier);
                 pBubble->SetMission(false);
                 pBubble->SetMissionTypeID(0);

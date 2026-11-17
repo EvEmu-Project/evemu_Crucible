@@ -41,6 +41,29 @@ The original PR #36 selector called `MakeRandomInt(0, candidates.size() - 1)`. T
 
 Existing Blockade offers are preserved; restarting the server does not replace them. Request a **new offer** from another eligible Security Agent, or finish the current offer, to exercise the corrected selection. `agtOffers.missionID=65534` identifies the elite mission. No player or mission SQL rewrite is required.
 
+## Mission acceptance: missing faction loot fix (17 November 2026)
+
+A live PR #36 client test reached mission ID **65534**, offer **90**, but acceptance refused the encounter with `missing market-listed module loot for meta group 4`. The initial loot cache demanded `invTypes.published = 1` **and** non-NULL `marketGroupID`, even for valid `invMetaTypes.metaGroupID = 4, 5, 6` modules. This was too strict for older Crucible SDE datasets.
+
+The cache now prefers published, market-listed modules when available. If a particular tier has no such modules, it falls back to actual Module-category (`invGroups.categoryID=7`) types carrying the exact rarity `invMetaTypes.metaGroupID`. It never fabricates type IDs or silently substitutes ordinary items. A missing rarity tier **even after fallback** remains a clear error requiring the installed SDE data to be checked. The server startup log prints per-tier counts and warnings when fallback is in use. No player or SQL data is modified.
+
+Read-only diagnostic SQL for your live database (run in the `EvE` database):
+
+```sql
+SELECT mt.metaGroupID, COUNT(*) AS moduleTypes,
+       SUM(CASE WHEN t.published = 1 AND t.marketGroupID IS NOT NULL
+                     AND t.marketGroupID <> 0 THEN 1 ELSE 0 END) AS marketListed,
+       SUM(CASE WHEN t.published = 0 OR t.marketGroupID IS NULL
+                     OR t.marketGroupID = 0 THEN 1 ELSE 0 END) AS fallbackCandidates
+FROM invMetaTypes AS mt
+JOIN invTypes AS t ON t.typeID = mt.typeID
+JOIN invGroups AS g ON g.groupID = t.groupID
+WHERE mt.metaGroupID IN (4, 5, 6) AND g.categoryID = 7
+GROUP BY mt.metaGroupID ORDER BY mt.metaGroupID;
+```
+
+After building the patched branch, restart the server and check startup logs for `Elite mission loot modules loaded:`. For a newly generated offer, acceptance should succeed only when all three tier counts are nonzero and all required NPC groups are available. Reopen an existing **unaccepted** offer normally; no manual `agtOffers` edits are needed.
+
 ## Test checklist
 
 - [ ] Windows UCRT64 server builds; Linux GCC server builds; Docker succeeds

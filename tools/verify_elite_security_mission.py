@@ -83,11 +83,18 @@ assert "entry.enabled = false" in spawn
 assert "GetEliteMissionLootType(uint8 metaGroupID, uint16& typeID)" in mgrh
 for tier in (4, 5, 6):
     assert f"item.metaLvl != {tier}" in mgr
-assert "item.published" in mgr and "item.marketGroupID == 0" in mgr
 assert "groupItr->second.catID != EVEDB::invCategories::Module" in mgr
+assert "std::map<uint8, std::vector<uint16>> allTaggedModules" in mgr
+assert "std::map<uint8, std::vector<uint16>> marketListedModules" in mgr
+assert "allTaggedModules[tier].push_back(entry.first)" in mgr
+assert "item.published && item.marketGroupID != 0" in mgr
+assert "m_eliteMissionLootTypes[tier] = preferred" in mgr
+assert "m_eliteMissionLootTypes[tier] = available" in mgr
+assert "if (!item.published || item.marketGroupID == 0" not in mgr
 assert "m_eliteMissionLootTypes" in mgr
 assert "m_eliteMissionLootTypes.clear()" in mgr
 assert "GetEliteMissionLootType(tier, previewLoot)" in spawn
+assert "has no valid Module-category loot" in spawn
 assert "GetMissionTypeID()" in bubbleh and "m_missionTypeID = 0;" in bubblec
 assert "m_bubble->GetMissionTypeID() == Mission::kEliteSecurityMissionID" in npc
 assert "EliteLootMetaGroupForNPCGroup(m_self->groupID())" in npc

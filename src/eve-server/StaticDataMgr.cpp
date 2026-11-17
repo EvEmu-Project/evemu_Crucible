@@ -257,20 +257,47 @@ void StaticDataMgr::Populate()
         m_typeData.emplace(row.GetUInt(0), data);
     }
     sLog.Cyan("    StaticDataMgr", "%lu Inventory Types loaded in %.3fms.", m_typeData.size(), (GetTimeMSeconds() - startTime));
-    // Crucible invMetaTypes.metaGroupID (not the numeric dogma Meta Level):
-    // 4=Faction, 5=Officer, 6=Deadspace. Select actual, market-listed
-    // module types so this special encounter drops valid game items.
-    // Do not change the ordinary NPC loot table or production invTypes.
+    // Mission 65534 uses invMetaTypes.metaGroupID (4=Faction, 5=Officer,
+    // 6=Deadspace), NOT dogma meta level. The 2012 SDE can contain valid
+    // rarity-tagged modules without a marketGroupID or published flag.
+    // Prefer market-listed modules per tier, but allow real tagged modules
+    // as a fallback instead of preventing mission acceptance outright.
+    // Every choice must exist in invTypes and belong to category Module.
+    // This cache affects only the new expedition, not ordinary NPC loot.
+    std::map<uint8, std::vector<uint16>> allTaggedModules;
+    std::map<uint8, std::vector<uint16>> marketListedModules;
+    m_eliteMissionLootTypes.clear();
     for (const auto& entry : m_typeData) {
         const Inv::TypeData& item = entry.second;
-        if (!item.published || item.marketGroupID == 0
+        if (item.id == 0
             || (item.metaLvl != 4 && item.metaLvl != 5 && item.metaLvl != 6))
             continue;
         const auto groupItr = m_grpData.find(item.groupID);
         if (groupItr == m_grpData.end()
             || groupItr->second.catID != EVEDB::invCategories::Module)
             continue;
-        m_eliteMissionLootTypes[static_cast<uint8>(item.metaLvl)].push_back(entry.first);
+        const uint8 tier = item.metaLvl;
+        allTaggedModules[tier].push_back(entry.first);
+        if (item.published && item.marketGroupID != 0)
+            marketListedModules[tier].push_back(entry.first);
+    }
+    for (uint8 tier = 4; tier <= 6; ++tier) {
+        const auto& preferred = marketListedModules[tier];
+        const auto& available = allTaggedModules[tier];
+        if (!preferred.empty()) {
+            m_eliteMissionLootTypes[tier] = preferred;
+        } else if (!available.empty()) {
+            m_eliteMissionLootTypes[tier] = available;
+            sLog.Warning("    StaticDataMgr",
+                "Elite mission meta group %u has no published market-listed modules; "
+                "using %u valid rarity-tagged Module types from the installed SDE.",
+                tier, static_cast<uint32>(available.size()));
+        } else {
+            sLog.Error("    StaticDataMgr",
+                "Elite mission meta group %u has no Module-category types in "
+                "loaded invMetaTypes/invTypes. Check the static-data import.",
+                tier);
+        }
     }
     sLog.Cyan("    StaticDataMgr",
         "Elite mission loot modules loaded: %u faction, %u officer, %u deadspace.",
