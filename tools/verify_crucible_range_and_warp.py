@@ -32,3 +32,17 @@ assert "11989,9,3.75" in repair and "11978,9,3.75" in repair
 assert "a.attributeID=600" in repair and "v.expected_old IS NULL" in repair
 assert "tmp_crucible_warp_fix" in repair
 print("Crucible module ranges and direct per-hull warp-speed calculation guarded.")
+
+# Ferox alignment must not use the acceleration timer as a speed check or
+# override the real heading/speed gate after the estimated align time.
+alignment = destiny[destiny.index("void DestinyManager::ProcessState()"):destiny.index("void DestinyManager::SetSpeedFraction(")]
+assert "m_activeSpeedFraction >= 0.75f" in alignment
+assert "m_timeFraction > 0.749" not in alignment
+assert "warp align/speed is incorrect" not in alignment
+assert "headingReady && speedReady" in alignment
+# Stop() must not fall through to a stale Follow() movement tick.
+assert "Stop();\n                // One authoritative sync at completion" in destiny
+invbroker = source("src/eve-server/inventory/InvBrokerService.cpp")
+assert "case EVEDB::invGroups::Wreck:" in invbroker
+assert "shipSE->GetPosition().distance(containerSE->GetPosition())" in invbroker
+assert "shipSE->GetRadius(), containerSE->GetRadius()" in invbroker

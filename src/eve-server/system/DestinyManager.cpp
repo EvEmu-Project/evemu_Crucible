@@ -278,26 +278,31 @@ void DestinyManager::ProcessState() {
                 return;
             }
 
-            if ((degrees < WARP_ALIGNMENT) and (m_timeFraction > 0.749)) {
-                m_shipHeading = toVec;
-                InitWarp();
-                return;
-            } else if (m_timeFraction < 0.749 && m_userSpeedFraction < 0.7499) {
-                SetSpeedFraction(1.0f, true);
-            } else if ((sEntityList.GetStamp() - m_stateStamp) > m_timeToEnterWarp + 0.3) {
-                // catchall for turn checks messed up, and m_moveTime > ship align time
-                if (mySE->HasPilot()) {
-                    _log(DESTINY__ERROR, "Destiny::ProcessState() Error!  Ship %s(%u) for Player %s(%u) - warp align/speed is incorrect, but time > shipTimeToWarp.",  \
-                                mySE->GetName(), mySE->GetID(), mySE->GetPilot()->GetName(), mySE->GetPilot()->GetCharacterID());
-                } else {
-                    _log(DESTINY__ERROR, "Destiny::ProcessState() Error!  NPC %s(%u) - warp align/speed is incorrect, but time > shipTimeToWarp.",  \
-                            mySE->GetName(), mySE->GetID());
-                }
+            // Warp readiness is a physical heading + actual velocity test.
+            // m_timeFraction is only the time progression of a speed
+            // transition, and can differ from the real speed after turns.
+            const bool headingReady = std::isfinite(degrees) && degrees < WARP_ALIGNMENT;
+            const bool speedReady = std::isfinite(m_activeSpeedFraction)
+                && m_activeSpeedFraction >= 0.75f;
+            if (headingReady && speedReady) {
                 m_shipHeading = toVec;
                 InitWarp();
                 return;
             }
-
+            if (m_userSpeedFraction < 0.75f) {
+                SetSpeedFraction(1.0f, true);
+            }
+            // Align time computed from full stop is not a warp deadline.
+            // Never force a misaligned Ferox (or any ship) into warp.
+            // Diagnostics are sampled to prevent 1Hz warning spam.
+            const uint32 alignTicks = sEntityList.GetStamp() - m_stateStamp;
+            if (alignTicks > static_cast<uint32>(m_timeToEnterWarp + 15.0f)
+                && alignTicks % 15u == 0u && is_log_enabled(DESTINY__WARP_TRACE)) {
+                _log(DESTINY__WARP_TRACE,
+                    "Destiny::ProcessState(): %s(%u) still aligning after %u ticks (heading %.2f deg, velocity %.3f of max, commanded %.3f).",
+                    mySE->GetName(), mySE->GetID(), alignTicks, degrees,
+                    m_activeSpeedFraction, m_userSpeedFraction);
+            }
             MoveObject();
         } break;
         case Ball::Mode::MUSHROOM:      // aoe?
@@ -1247,7 +1252,13 @@ void DestinyManager::Follow() {
                 //  still need to call MoveObject() here
                 SetSpeedFraction(0.2);
             } else {
+                // Stop() clears the follow range. Never run MoveObject()
+                // with that reset state, or approach prediction will drift.
                 Stop();
+                // One authoritative sync at completion, not every tick.
+                if (mySE->HasPilot())
+                    SetPosition(m_position, true);
+                return;
             }
         }
     } else {

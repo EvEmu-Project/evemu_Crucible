@@ -32,6 +32,9 @@
 #include "EntityList.h"
 
 #include "EVE_ContainerHelpers.h"
+#include "EVE_MovementFormulas.h"
+#include "system/SystemEntity.h"
+#include <cmath>
 #include "StaticDataMgr.h"
 #include "inventory/InvBrokerService.h"
 #include "inventory/InventoryBound.h"
@@ -228,19 +231,30 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
         } break;
         case EVEDB::invCategories::Celestial: {
             switch (iRef->groupID ()) {
-                case EVEDB::invGroups::Cargo_Container: {
+                case EVEDB::invGroups::Cargo_Container:
+                case EVEDB::invGroups::Wreck: {
                     flag = flagNone;
-                    // only check distance if the item is in space and not in a station
                     if (sDataMgr.IsSolarSystem(iRef->locationID())) {
-                        GVector direction(iRef->position(), call.client->GetShip()->position());
-                        float maxDistance = 2500.0f;
-
-                        if (iRef->HasAttribute (AttrMaxOperationalDistance) == true)
-                            maxDistance = iRef->GetAttribute(AttrMaxOperationalDistance).get_float ();
-
-                        if (direction.length () > maxDistance)
-                            throw UserError ("NotCloseEnoughToOpen")
-                                .AddAmount ("maxdist", maxDistance);
+                        // Match Follow() and the client interaction range:
+                        // live surface clearance, not centre-to-centre stale
+                        // inventory coordinates. Fail closed if the in-space
+                        // entity cannot be resolved.
+                        const double maxDistance = iRef->HasAttribute(AttrMaxOperationalDistance)
+                            ? iRef->GetAttribute(AttrMaxOperationalDistance).get_double()
+                            : 2500.0;
+                        ShipSE* shipSE = call.client->GetShipSE();
+                        SystemEntity* containerSE = (shipSE != nullptr && shipSE->SystemMgr() != nullptr)
+                            ? shipSE->SystemMgr()->GetSE(iRef->itemID()) : nullptr;
+                        if (shipSE == nullptr || containerSE == nullptr ||
+                            !std::isfinite(maxDistance) || maxDistance < 0.0)
+                            throw UserError("NotCloseEnoughToOpen")
+                                .AddAmount("maxdist", maxDistance > 0.0 ? maxDistance : 2500.0);
+                        const double clearance = EVEmuMovement::SurfaceSeparation(
+                            shipSE->GetPosition().distance(containerSE->GetPosition()),
+                            shipSE->GetRadius(), containerSE->GetRadius());
+                        if (clearance > maxDistance)
+                            throw UserError("NotCloseEnoughToOpen")
+                                .AddAmount("maxdist", maxDistance);
                     }
                     break;
                 }

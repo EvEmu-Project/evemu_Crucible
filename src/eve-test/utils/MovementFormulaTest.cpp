@@ -12,6 +12,8 @@ int utils_MovementFormulaTest(int argc, char* argv[])
 
     const double normal = EVEmuMovement::SurfaceSeparation(500.0, 50.0, 100.0);
     const double touching = EVEmuMovement::SurfaceSeparation(150.0, 50.0, 100.0);
+    const double wreckInRange = EVEmuMovement::SurfaceSeparation(2550.0, 25.0, 50.0);
+    const double wreckOutOfRange = EVEmuMovement::SurfaceSeparation(2600.0, 25.0, 50.0);
     const double overlapping = EVEmuMovement::SurfaceSeparation(80.0, 50.0, 100.0);
     const double invalid = EVEmuMovement::SurfaceSeparation(
         std::numeric_limits<double>::quiet_NaN(), 50.0, 100.0);
@@ -29,7 +31,9 @@ int utils_MovementFormulaTest(int argc, char* argv[])
     const double fallbackType = EVEmuMovement::CrucibleWarpSpeedAU(0.0, 6.0);
     const double fallbackMissing = EVEmuMovement::CrucibleWarpSpeedAU(0.0, 0.0);
     const bool passed =
-        normal == 350.0 && touching == 0.0 && overlapping == 0.0 &&
+        normal == 350.0 && touching == 0.0 &&
+        wreckInRange == 2475.0 && wreckOutOfRange == 2525.0 &&
+        overlapping == 0.0 &&
         invalid == 0.0 && orbit == 1575.0 && zeroOrbit == 1075.0 &&
         invalidOrbit == 0.0 &&
         battleshipWarp == 3.0 && frigateWarp == 6.0 &&
