@@ -1,27 +1,26 @@
-# Crucible-era combat, mining, tractor and ship warp audit
+# Crucible-era combat ranges, mining, tractors and hull warp audit
 
-## Source-level corrections
-- **All ship hulls:** Destiny uses fitted/type-specific dogma `warpSpeedMultiplier` (attribute 600) as **AU/s directly**, without an erroneous extra 3x scaling. Invalid live values recover to the type default, then to 3 AU/s if the static type lacks one. Individual ship data is preserved; no broad class rewrite.
-- **Turrets:** Use effective fitted optimal and falloff at double precision and the live ship position. Beyond optimal is not an automatic miss; standard Crucible probability continues through falloff.
-- **Missiles:** Existing range is controlled by modified missile velocity and maximum flight time, not launcher optimal; the projectile still must physically reach the target before expiry.
-- **Mining lasers, strip miners, ice/gas harvesting and tractor beams:** Use live effective module attribute 54 for range. Activation is checked from hull surface to target surface (both radii). Mining now also checks range on completing a cycle, preventing remote ore yield after moving beyond the laser's range.
+## Source changes ready to test
+- Turret damage uses the fitted optimal and falloff values in full precision and the ship's live position. The existing Crucible hit formula remains in effect beyond optimal (no artificial hard cutoff).
+- Targeted mining lasers, strip miners and tractor beams check effective dogma range against distance from both hull surfaces. This corrects the old target-only-radius distance check.
+- Mining modules also verify actual fitted range when completing a cycle, and do not grant ore for a completed cycle outside range.
+- Existing missile range mechanics use the missile item's velocity and flight time including applied skills; no unverified static speed changes are made.
 
-## Verification against historical EVE
-- [Crucible patch notes](https://www.eveonline.com/news/view/patch-notes-for-crucible-1): Logistics warp speed increased **3.0 to 3.75 AU/s**.
-- [Warp Drive Active (Rubicon)](https://www.eveonline.com/news/view/warp-drive-active): late-2013 warp rebalance occurred after Crucible; do not use later values as 2011 truth.
-- [Revelations 2.2 patch](https://www.eveonline.com/news/view/patch-notes-for-revelations-2.2-1): Capital Tractor Beam I base **200 km**, **3000 m/s**.
-- [2012 tractor reference table](https://wikiwiki.jp/eveonlinejp/Module/Tractor%20Beam): Small Tractor Beam I **20 km**, **500 m/s**, capital **200 km**, **3000 m/s**.
+## Historical warp-speed investigation: intentionally not yet changed
+- Server `DestinyManager::UpdateShipVariables()` currently calculates `3.0 * warpSpeedMultiplier` for the relevant hull. The fallback value for a missing ship warp attribute is 1.0.
+- **Important:** This design suggests that attribute 600 in the 2011 data could be a *relative multiplier*, unlike some later displays of AU/s values. Removing the factor without checking archived data could incorrectly slow the entire ship fleet. A prior proposal to remove the factor was therefore reverted before merging.
+- [Official Crucible patch notes](https://www.eveonline.com/news/view/patch-notes-for-crucible-1): all Logistics hulls increased **3.0 to 3.75 AU/s**.
+- [January 2012 contemporary player reference](https://forums-archive.eveonline.com/message/610710): Battleships, battlecruisers, T1 cruisers and destroyers 3 AU/s; T2 cruisers 3.75 AU/s; industrials 4.5 AU/s; frigates typically 6 AU/s; interceptor/Covert Ops variants 9-13 AU/s; capitals 0.75-1.5 AU/s. *These are broad contemporary ranges, not a per-type authoritative SDE list.*
+- [CCP Rubicon warp rebalance](https://www.eveonline.com/news/view/warp-drive-active) postdates Crucible by ~2 years; do **not** import modern ship speeds.
 
-## Every hull and module static-data audit
-Run `sql/diagnostics/2026-11-17-crucible-ship-weapon-range-warp-audit.sql` on a database backup or read-only session. Query 1 enumerates every ship hull with its stored typeID/warp AU/s; queries 2-3 flag missing/invalid values and check 3.75 AU/s Logistics; query 4 lists each weapon/mining/tractor module's base range, falloff and velocity; query 5 computes unbonused missile theoretical ranges.
+## Database diagnostics
+`sql/diagnostics/2026-11-17-crucible-ship-weapon-range-warp-audit.sql` is **read only** and lists every ship typeID's raw attribute 600, plus the candidate 3x conversion, highlighting missing/odd values; it also lists relevant weapon/laser/tractor base ranges and missile theoretical range. A Logistics row of `1.25` maps to `3.75 AU/s` under the historical multiplier interpretation; a row of `3.75` implies direct AU/s. Export real database rows and compare to a pinned Crucible 2011/2012 SDE for **every hull and module typeID** before writing any static-attribute updates.
 
-**Important:** This work fixes runtime calculations but does not claim all static attribute rows have been reconciled against a pinned 2011 Crucible SDE. That requires a trustworthy historical data export and the live database results. It does NOT run the SQL, change static data, run in-game checks, or assign guessed values to ship hulls.
+## In-game QA (not run by this PR)
+- Turrets: lasers, hybrids, projectiles at optimal and 1x/2x falloff with ammo and ship bonuses.
+- Launchers: rockets, heavy/light/cruise missiles, torpedoes, defender and capital missiles, including velocity and flight-time skills.
+- Mining: 1 m inside/outside actual fitted effective range; ship moves beyond range mid-cycle, no out-of-range ore.
+- Tractors: standard around 20 km, capital around 200 km before bonuses; skill/hull bonuses separately.
+- Warp: per-hull speed of frigate, destroyer, cruiser, Logistics, battlecruiser, battleship, industrial, barge, Orca, freighter, capsule, capitals, interceptors and covert-ops; check against independent historical SDE `typeID` values.
 
-## In-game QA checklist
-1. Unmodified cruiser and Logistics hull: show actual attribute 600 in the database and verify their observed AU/s is no longer tripled.
-2. Sample ships in every class (frigate, interceptor, destroyer, cruiser, Logistics, battlecruiser, battleship, barge, Orca, industrial, freighter, capital, shuttle and capsule); compare each against the *same typeID* in the historical SDE.
-3. Check laser, hybrid and projectile turret damage at optimal, optimal+falloff and optimal+2 falloff while stationary, with ammo changes, skills and tracking.
-4. Verify missile skills modify each missile's velocity/time and therefore effective range, for light/heavy/cruise/rockets/torpedoes and applicable faction variants.
-5. Verify strip/mining/ice/gas laser cycles at exact effective range, one metre beyond, and when the ship moves beyond range during the cycle. Confirm no out-of-range ore credit.
-6. Test Small Tractor Beam I near 20 km and Capital Tractor Beam I near 200 km, with hull bonuses checked separately. Never override boosted effective ranges with static unbonused distances.
-7. Check the UI's maximum target range is not confused with module firing range, and that NPC combat and belt rat spawns are unchanged.
+The PR does not change live databases or claim that every historical hull/module row has been verified. The full per-hull value correction remains blocked by a missing pinned historical data inventory.
