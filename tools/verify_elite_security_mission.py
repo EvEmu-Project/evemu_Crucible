@@ -87,6 +87,7 @@ assert "EliteLootMetaGroupForNPCGroup(m_self->groupID())" in npc
 assert "wreckItemRef->AddItem(droppedItem);" in npc
 assert "InventoryItemRef droppedItem = sItemFactory.SpawnItem(rareDrop);" in npc
 assert "DropLoot(wreckItemRef, m_self->groupID(), killerID)" in npc
+assert "LOOT__WARNING" not in npc  # not defined by this EVEmu logtypes.h
 
 # Literal new client briefing and independent kill/turn-in path.
 assert "EliteSecurityMissionBriefing(const MissionOffer& offer)" in bound

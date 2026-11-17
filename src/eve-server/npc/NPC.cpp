@@ -388,7 +388,7 @@ void NPC::Killed(Damage &damage) {
                     wreckItemRef->itemID(), rareTypeID);
             }
         } else {
-            _log(LOOT__WARNING,
+            _log(LOOT__ERROR,
                 "DED/Officer mission NPC group %u has no valid rare loot for meta-group %u.",
                 m_self->groupID(), metaGroup);
         }
