@@ -585,6 +585,25 @@ void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)
     // unknown parameters at this time
 }
 
+bool SpawnMgr::ReleaseMissionBubble(SystemBubble* pBubble, uint32 offerID)
+{
+    if (pBubble == nullptr || offerID == 0 || !pBubble->IsMission()
+        || pBubble->GetMissionOfferID() != offerID)
+        return false;
+
+    const uint16 bubbleID = pBubble->GetID();
+    const std::size_t removedEntries = m_spawns.count(bubbleID);
+    m_spawns.erase(bubbleID);
+    m_bubbles.erase(std::remove(m_bubbles.begin(), m_bubbles.end(), pBubble),
+                    m_bubbles.end());
+    pBubble->ClearMissionData();
+    _log(SPAWN__MESSAGE,
+        "Retired mission offer %u in bubble %u: removed %u spawn registrations; "
+        "remaining NPCs and wrecks were not deleted.",
+        offerID, bubbleID, static_cast<uint32>(removedEntries));
+    return true;
+}
+
 bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 missionLevel,
                                   uint32 characterID, uint32 agentID, uint32 offerID, uint16 missionID,
                                   uint32 beaconID, uint32 factionID, uint32 dungeonID)

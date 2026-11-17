@@ -1,3 +1,9 @@
+## 17 November 2026 — PR #36 repeated mission pocket cleanup safeguards
+
+- After one eight-NPC expedition reached 8/8, operator reported server exit on a later run; the supplied FX and bound-object warnings do not include a native exception trace.
+- Retire the matching mission bubble's spawn registrations and flags on completion/quit; preserve wrecks and remaining NPCs. Prevent accepting a beacon into an unexpectedly occupied or mismatched bubble. Keep empty-bubble manager system/ID lookups consistent.
+- Add source checks and repeated acceptance playtest instructions. Mission reward, eight-NPC spawn mix, rare loot, Blockade, player data and database schema unchanged. CI and live confirmation required.
+
 ## 17 November 2026 — DED & Officer Expedition eight-NPC balance
 
 - PR #36 operator confirms actual elite ship types spawn correctly. Reduce only mission 65534 from 18 to **8 ships**: two each from DED/deadspace, faction commander, pirate officer and DED overseer categories, randomized across the existing 18 candidate NPC groups.

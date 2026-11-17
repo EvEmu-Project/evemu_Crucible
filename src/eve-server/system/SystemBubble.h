@@ -83,6 +83,20 @@ public:
         m_missionKillsRequired = killsRequired;
         m_mission = true;
     }
+    // Retire a completed or abandoned site without deleting NPCs, wrecks
+    // or salvage that may still exist inside the shared bubble.
+    void ClearMissionData() {
+        m_mission = false;
+        m_missionTypeID = 0;
+        m_missionCharacterID = 0;
+        m_missionAgentID = 0;
+        m_missionOfferID = 0;
+        m_missionBeaconID = 0;
+        m_missionKills = 0;
+        m_missionKillsRequired = 0;
+        m_spawned = false;
+        m_spawnTimer.Disable();
+    }
     bool RecordMissionKill() {
         // The mission pocket owns this kill objective. Count every NPC death
         // reported by SpawnMgr, regardless of whether the damage source can

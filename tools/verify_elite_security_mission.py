@@ -124,4 +124,25 @@ assert "return (data.courierAmount > 0 && data.courierTypeID >= data.courierAmou
 assert "Mission::kEliteSecurityMissionID != Mission::kBlockadeSecurityTestMissionID" in lifecycle
 assert "selectedBlockade && selectedExpedition" in lifecycle
 
+# Repeated mission cleanup/acceptance must not reuse stale bubble metadata.
+bubble_mgr = read("src/eve-server/system/BubbleManager.cpp")
+spawn_h = read("src/eve-server/system/cosmicMgrs/SpawnMgr.h")
+assert "void ClearMissionData()" in bubbleh
+assert "m_missionOfferID = 0;" in bubbleh
+assert "m_missionBeaconID = 0;" in bubbleh
+assert "bool ReleaseMissionBubble(SystemBubble* pBubble, uint32 offerID)" in spawn_h
+assert "bool SpawnMgr::ReleaseMissionBubble(SystemBubble* pBubble, uint32 offerID)" in spawn
+assert "pBubble->GetMissionOfferID() != offerID" in spawn
+assert "m_spawns.erase(bubbleID);" in spawn
+assert "pBubble->ClearMissionData();" in spawn
+assert "m_bubbles.erase(std::remove(m_bubbles.begin(), m_bubbles.end(), pBubble)" in spawn
+assert "m_bubbleIDMap.erase(idItr);" in bubble_mgr
+assert "m_sysBubbleMap.erase(itr);" in bubble_mgr
+assert "SystemBubble* beaconBubble = pBeacon->SysBubble();" in client
+assert "beaconBubble != pBubble" in client
+assert "beaconBubble->CountNPCs() != 0" in client
+assert "GetMissionOfferID() == offer.offerID" in client
+assert "GetMissionBeaconID() == offer.destinationID" in client
+assert "ReleaseMissionBubble(pBubble, offer.offerID);" in client
+
 print("PASS: independent 8-NPC Security Agent DED/officer mission and scoped rare wreck loot")

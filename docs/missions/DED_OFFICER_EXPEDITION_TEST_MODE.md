@@ -68,6 +68,16 @@ GROUP BY mt.metaGroupID ORDER BY mt.metaGroupID;
 
 After building the patched branch, restart the server and check startup logs for `Elite mission loot modules loaded:`. For a newly generated offer, acceptance should succeed only when all three tier counts are nonzero and all required NPC groups are available. Reopen an existing **unaccepted** offer normally; no manual `agtOffers` edits are needed.
 
+## Repeated acceptance and pocket lifecycle (17 November 2026)
+
+The operator reports a server exit on a later expedition run after an earlier encounter reached 8/8. The supplied log has module FX and bound-object warnings, but no native crash stack. Therefore the precise fault is not yet confirmed.
+
+The scoped remediation retires matching mission-bubble spawn registrations and flags when a mission beacon is removed on completion or quit. It preserves live NPCs, wrecks and salvage, checks character/agent/offer/beacon identity before cleanup, repairs inconsistent empty-bubble ID indexes, and prevents creating an encounter inside an occupied or mismatched beacon bubble.
+
+Test consecutive eight-NPC expeditions: accept, warp, kill 8/8, complete, confirm one 50M ISK payout, then repeat. Also test quitting a partially completed mission and standard belt/gate spawning. Check for orphan sites or stale spawn registrations. The absence of a crash in CI does not prove this real-client scenario is fixed.
+
+If the server exits again, collect the Windows Application Error event (exception code and faulting module), or a native dump of eve-server.exe, together with the last 30 server log lines and deployed commit SHA. The FX warnings by themselves are not proof of a crash cause.
+
 ## Test checklist
 
 - [ ] Windows UCRT64 server builds; Linux GCC server builds; Docker succeeds
