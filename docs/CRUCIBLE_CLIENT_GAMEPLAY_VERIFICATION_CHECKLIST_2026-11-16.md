@@ -6,6 +6,15 @@
 **Final master CI run to inspect:** [43808049188](https://github.com/xrizonx/evemu_Crucible/actions/runs/43808049188).  
 **Scope:** Crucible-era EVE client gameplay and MariaDB persistence. **All gameplay cases begin as NOT RUN.** CI success alone must not be recorded as a gameplay pass.
 
+## A01 status — completed and signed off (17 November 2026)
+
+- [x] **A01 — repeatable staging and client verification:** **RESOLVED / OPERATOR TESTED AND ACCEPTED.**
+- Original implementation: [PR #32](https://github.com/xrizonx/evemu_Crucible/pull/32), merged at `7f600be1fa06191707f4352d46f2240bfe3d2159`.
+- Automated evidence: [A01 MariaDB fixture CI 44072201705](https://github.com/xrizonx/evemu_Crucible/actions/runs/44072201705) passed; [merged-master Windows/Linux/Docker CI 44073936776](https://github.com/xrizonx/evemu_Crucible/actions/runs/44073936776) passed.
+- **Operator sign-off:** On 17 November 2026 the maintainer explicitly reported all their A01 live tests passed and requested A01 be closed. No private client logs or SQL before/after exports were independently attached to this repository; the optional full-server GitHub Actions smoke was not used. These are evidence boundaries, not failed tests.
+- A01's task-specific disposable fixture scripts, Docker Compose file and dedicated workflow were retired after sign-off to keep `master` free of completed temporary test scaffolding. Existing gameplay/C++ regression tests remain in place.
+- **Do not treat this A01 sign-off as PASS for unrelated gameplay checklist rows below.** Pending agent, contract, drone, POS and industry tests remain independently tracked.
+
 ## 0. Test discipline and environment
 
 - [ ] **P0-GATE-01** Record the actual installed `BUILD-INFO.txt` SHA, GitHub artifact name, EVE client build/version, platform (Windows 11 UCRT64/Linux/Docker), database schema version, config overrides and UTC start time. Do not test an older extracted ZIP by mistake.
