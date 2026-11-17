@@ -8,6 +8,7 @@
 
 #include "eve-server.h"
 #include "EVE_WeaponFormulas.h"
+#include "EVE_MovementFormulas.h"
 
 #include "StatisticMgr.h"
 #include "exploration/Probes.h"
@@ -1231,13 +1232,16 @@ bool ActiveModule::CanActivate() {
             } break;
         }
 
-        float distance = m_shipRef->position().distance(m_targetSE->GetPosition());
-        distance -= m_targetSE->GetRadius();
+        // Check effective module range against clearance between surfaces,
+        // not just target edge: the old check omitted our hull radius.
+        const double distance = EVEmuMovement::SurfaceSeparation(
+            m_shipRef->position().distance(m_targetSE->GetPosition()),
+            m_shipRef->radius(), m_targetSE->GetRadius());
 
         _log(MODULE__MESSAGE, "Activate::RangeTest - distance between %s and target %s: %.1f.  range of %s is %.1f", \
                     m_shipRef->name(), m_targetSE->GetName(), distance, m_modRef->name(), range);
 
-        if (distance > range) {
+        if (!std::isfinite(range) || range <= 0.0f || distance > range) {
             m_shipRef->GetPilot()->SendNotifyMsg("The %s is %.0f meters from you, outside the effective range of your %s, which is %.0f meters.", \
                     m_targetSE->GetName(), distance, m_modRef->name(), range);
             return false;

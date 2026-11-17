@@ -27,6 +27,17 @@ inline double MinimumOrbitRadius(double requestedRange, double selfRadius, doubl
         (targetRadius > 0.0 ? targetRadius : 0.0) + 25.0;
 }
 
+// In Crucible, dogma attribute 600 is already the ship's warp speed in AU/s.
+// Prefer the fitted value (which can include bonuses), then the type's
+// historical base value. Use the dogma default only for missing/invalid data.
+inline double ResolveCrucibleWarpSpeedAU(double fitted, double typeDefault) {
+    if (std::isfinite(fitted) && fitted > 0.1)
+        return fitted;
+    if (std::isfinite(typeDefault) && typeDefault > 0.1)
+        return typeDefault;
+    return 3.0;
+}
+
 } // namespace EVEmuMovement
 
 #endif // EVEMU_MOVEMENT_FORMULAS_H
