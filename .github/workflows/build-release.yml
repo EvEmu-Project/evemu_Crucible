@@ -87,7 +87,7 @@ jobs:
           cp sql/evedb.yaml.example sql/evedb.yaml
           (cd sql && ./evedbtool seed -force -dryrun) > "$RUNNER_TEMP/evedbtool-seed-dryrun.log" 2>&1
           for expected in "550000" "RAND() < @saturation" "officer" "deadspace" "faction" "storyline" "NOT EXISTS" "seededGroup.groupID IN (12, 340, 448, 649)" "ig.groupID IN (12, 340, 448, 649)" "marketGroupID IS NOT NULL" "NPC BUY SQL" "eligible.referencePrice * eligible.quantity" "1000125" "tExistingNPCBuySeed"; do
-            grep -qi "$expected" "$RUNNER_TEMP/evedbtool-seed-dryrun.log" || {
+            grep -Fqi -- "$expected" "$RUNNER_TEMP/evedbtool-seed-dryrun.log" || {
               echo "EVEDBTool dry-run output is missing expected SQL: $expected" >&2
               cat "$RUNNER_TEMP/evedbtool-seed-dryrun.log" >&2
               exit 1
@@ -241,8 +241,14 @@ jobs:
               throw "EVEDBTool dry-run output is missing expected SQL: $expected"
             }
           }
-          $buyOnlyOutput = & .\evedbtool.exe seed -buy-only -dryrun 2>&1 | Out-String
-          if ($LASTEXITCODE -ne 0 -or !$buyOnlyOutput.Contains("NPC BUY SQL") -or $buyOnlyOutput.Contains("NPC SELL SQL")) {
+          Push-Location sql
+          try {
+            $buyOnlyOutput = & .\evedbtool.exe seed -buy-only -dryrun 2>&1 | Out-String
+            $buyOnlyExitCode = $LASTEXITCODE
+          } finally {
+            Pop-Location
+          }
+          if ($buyOnlyExitCode -ne 0 -or !$buyOnlyOutput.Contains("NPC BUY SQL") -or $buyOnlyOutput.Contains("NPC SELL SQL")) {
             throw "EVEDBTool -buy-only dryrun is not isolated to NPC buys: $buyOnlyOutput"
           }
           Remove-Item sql/evedb.yaml -Force
