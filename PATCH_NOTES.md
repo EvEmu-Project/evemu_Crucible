@@ -2,8 +2,8 @@
 
 - Integrated fork [PR #36](https://github.com/xrizonx/evemu_Crucible/pull/36) into `master` at merge commit `97a98424d2ddcbbc885ec90ca753fa47cd1a5ca2`, preserving the original Blockade and the separate eight-NPC DED/Officer mission 65534 with 500M ISK turn-in, real faction/officer/deadspace loot and True Sansha type-name exclusion.
 - Prepared upstream team handoff [`docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-17.md`](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-17.md): 692 commits/241 changed paths versus upstream baseline; 280 commits/144 changed paths since the previous contribution baseline. Includes exact source file inventory, subsystem patch notes, verification matrix, runtime caveats and rollback guidance.
-- Preserve the [15 November upstream review dossier](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md) and [original contribution-branch patch note snapshot](docs/UPSTREAM_PATCH_NOTES_HISTORY_2026-11-15.md). PR #335 remains **draft**, with no upstream merge and no SQL execution.
-- Pre-merge CI [#575](https://github.com/xrizonx/evemu_Crucible/actions/runs/44142537989): Linux and MariaDB successful before merge; Windows and Docker not yet confirmed at time of update. Live confirmation of 500M payout and two consecutive crash-free elite encounters remains open.
+- Preserve the [15 November upstream review dossier](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md) and [original contribution-branch patch note snapshot](docs/UPSTREAM_PATCH_NOTES_HISTORY_2026-11-15.md). PR #335 remains **draft**, with no upstream merge and no SQL execution. Published source contribution included **696 commits and 244 changed paths** at first handoff; later documentation-only commits may increment that count.
+- Pre-merge CI [#575](https://github.com/xrizonx/evemu_Crucible/actions/runs/44142537989): Linux and MariaDB successful before merge; Windows UCRT64, Linux GCC, Docker and MariaDB insertion **all completed successfully** after the fork merge; release publication was skipped. Live confirmation of 500M payout and two consecutive crash-free elite encounters remains open.
 
 ## 17 November 2026 — PR #36 DED & Officer Expedition reward to 500M ISK
 

@@ -2,6 +2,12 @@
 
 > This document updates, not replaces, [the 15 November complete upstream dossier](UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md) and the full fork [PATCH_NOTES.md](../PATCH_NOTES.md). The historical snapshot is intentionally preserved. It is for maintainers reviewing **draft** [upstream PR #335](https://github.com/EvEmu-Project/evemu_Crucible/pull/335), not an approval or an upstream merge.
 
+## Current upstream PR #335 publication state
+
+- Existing [draft PR #335](https://github.com/EvEmu-Project/evemu_Crucible/pull/335) was verified **open**, **draft**, and mergeable at the Git comparison level, not merged. Its source is the original `xrizonx:contrib/upstream-crucible-maintenance-2026-11-15`, now incorporating fork `master` as a second-parent Git merge while preserving its previous three branch-only commits and review documents.
+- GitHub's published contribution-branch comparison immediately after that merge showed **696 commits ahead, 0 behind and 244 changed paths** relative to the upstream baseline. Later documentation-only commits may increment the commit count, so use the live GitHub PR count as the authoritative current value.
+- **Full latest CI result:** [fork Actions #575](https://github.com/xrizonx/evemu_Crucible/actions/runs/44142537989) completed **successfully** on the PR #36 head. **Windows UCRT64 GCC, Linux GCC, Docker image and MariaDB seed insertion all passed**; the optional release publish job was skipped. This build does not establish that the later server-crash scenario or 500M wallet transaction has been playtested.
+
 ## 1. Reproducible scope and provenance
 - Contributor: [xrizonx/evemu_Crucible](https://github.com/xrizonx/evemu_Crucible), merged `master` **`97a98424d2ddcbbc885ec90ca753fa47cd1a5ca2`** (fork PR [#36](https://github.com/xrizonx/evemu_Crucible/pull/36) merged on 17 November 2026).
 - Upstream target baseline: [EvEmu-Project/evemu_Crucible](https://github.com/EvEmu-Project/evemu_Crucible), `master` **`f55b488a006e3090470d3b481aee47a1d7a0dade`**, as checked for this submission.
@@ -59,7 +65,7 @@
 | `tools/verify_elite_security_mission.py` | CI source invariants for agent, spawn, loot and cleanup code |
 
 ## 4. CI evidence and verification boundaries
-- Pre-merge fork [GitHub Actions #575](https://github.com/xrizonx/evemu_Crucible/actions/runs/44142537989) on expedition head `256cf374bb1a04635573861465fbf73dc6faafdc`: **completed** / **success** as fetched for this dossier. Linux GCC and MariaDB insertion jobs had passed before fork PR #36 was merged; Windows and Docker were still running at that check. Re-query GitHub for their final conclusions.
+- Pre-merge fork [GitHub Actions #575](https://github.com/xrizonx/evemu_Crucible/actions/runs/44142537989) on expedition head `256cf374bb1a04635573861465fbf73dc6faafdc`: **completed** / **success** (all four build/seed jobs passed). Linux GCC and MariaDB had already passed before fork PR #36 merged; Windows and Docker passed shortly afterward. This is compile/static CI confirmation only, not a complete Crucible client playtest.
 - [Fork PR #36](https://github.com/xrizonx/evemu_Crucible/pull/36) merged into `master` via `97a98424d2ddcbbc885ec90ca753fa47cd1a5ca2`; an independent master post-merge CI run may be triggered and must be checked separately.
 - Older [15 Nov CI baseline #43747566528](https://github.com/xrizonx/evemu_Crucible/actions/runs/43747566528) passed Windows/Linux/Docker for an older baseline, **not** this current head.
 - Operator-reported evidence: valid module cache **605/490/346**, eight real NPC types, progress **8/8**; wallet confirmation for the updated **500M** payout, consecutive no-crash missions and all True Sansha targetability require new gameplay validation.
