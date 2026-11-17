@@ -446,7 +446,11 @@ uint32 MarketBotMgr::GetRandomQuantity(uint32 groupID) {
 
 double MarketBotMgr::CalculateBuyPrice(uint32 itemID) {
     const ItemType* type = sItemFactory.GetType(itemID);
-    return type ? type->basePrice() * GetRandomFloat(0.8f, 1.1f) : 1000.0;
+    // All NPC buy orders follow the same 100% static reference-price
+    // policy as the regional seed. No randomized 80%-110% adjustment.
+    return (type && type->basePrice() > 0.0)
+        ? std::max(0.01, static_cast<double>(type->basePrice()))
+        : 100.0;
 }
 
 double MarketBotMgr::CalculateSellPrice(uint32 itemID) {

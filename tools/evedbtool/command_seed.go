@@ -21,10 +21,13 @@ func (c *SeedCommand) Help() string {
 Usage: evedbtool seed [options] ...
   Seeds the configured EVEmu regions with NPC market data.
 Options:
+  -buy-only              Seed NPC buy orders without running the sell seed.
+                         Recommended when upgrading an existing database.
   -dryrun                Print SQL without applying it.
-  -force                 Rebuild seeded NPC sell orders in each configured region.
-                         This replaces existing NPC corporation sell orders for
-                         the seeded market item categories in those regions.
+  -force                 Refresh seeded NPC orders in configured regions.
+                         With -buy-only, replaces ONLY seed-managed NPC buy orders.
+                         Player buy/sell orders and bot-generated buy orders remain.
+                         Take a full database backup before using -force.
 `)
 }
 
@@ -33,14 +36,12 @@ func (c *SeedCommand) Synopsis() string {
 }
 
 func (c *SeedCommand) Run(args []string) int {
-	var dryrun bool
-	var force bool
-
+	var dryrun, force, buyOnly bool
 	cmdFlags := flag.NewFlagSet("seed", flag.ContinueOnError)
 	cmdFlags.Usage = func() { ui.Output(c.Help()) }
 	cmdFlags.BoolVar(&dryrun, "dryrun", false, "Print SQL without applying it.")
-	cmdFlags.BoolVar(&force, "force", false, "Replace seeded NPC market orders before reseeding.")
-
+	cmdFlags.BoolVar(&force, "force", false, "Replace seed-owned NPC market orders before reseeding.")
+	cmdFlags.BoolVar(&buyOnly, "buy-only", false, "Seed NPC buy orders only; leave the existing sell market untouched.")
 	if err := cmdFlags.Parse(args); err != nil {
 		return 1
 	}
@@ -56,33 +57,34 @@ func (c *SeedCommand) Run(args []string) int {
 		return 1
 	}
 
-	seedQueries := make([]string, 0, len(regionArray))
+	// The buy migration is separate from SEED_MARKET. Existing installations
+	// that already applied the sell seed can safely add the NPC buy side
+	// without re-running or deleting their existing sell/player orders.
+	buyQueries := make([]string, 0, len(regionArray))
+	sellQueries := make([]string, 0, len(regionArray))
 	for _, regionID := range regionArray {
-		log.Info("Preparing market seed for region ", regionID)
-		seedQueries = append(seedQueries, getQuery(regionID, saturation, force))
+		log.Info("Preparing NPC market orders for region ", regionID)
+		if !buyOnly {
+			sellQueries = append(sellQueries, getQuery(regionID, saturation, force))
+		}
+		buyQueries = append(buyQueries, getBuyQuery(regionID, saturation, force))
 	}
 
 	if dryrun {
 		log.Info("Dry run; no database changes will be made.")
-		for i, query := range seedQueries {
-			log.Info("SQL for region ", regionArray[i], ":\n---\n", query)
+		for i, region := range regionArray {
+			if !buyOnly {
+				log.Info("NPC SELL SQL for region ", region, ":\n---\n", sellQueries[i])
+			}
+			log.Info("NPC BUY SQL for region ", region, ":\n---\n", buyQueries[i])
 		}
 		return 0
 	}
 
-	tables := GetNumberOfTables()
-	if tables == 0 {
+	if GetNumberOfTables() == 0 {
 		log.Error("Database is not initialized; install the DB before seeding.")
 		return 1
 	}
-
-	migrationID := "SEED_MARKET"
-	if force {
-		// A new migration ID makes an explicit reseed repeatable without
-		// changing or deleting the migration history from earlier runs.
-		migrationID += "_" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	}
-
 	db := getDB()
 	defer db.Close()
 	if err := db.Ping(); err != nil {
@@ -91,37 +93,60 @@ func (c *SeedCommand) Run(args []string) int {
 	}
 
 	migrate.SetTable("seed_migrations")
-	// This dedicated seed history may contain IDs from older EVEDBTool builds.
-	// Each force run uses a unique ID and only moves forward; do not block it
-	// because a legacy seed ID is absent from this in-memory migration source.
 	migrate.SetIgnoreUnknown(true)
-	migrations, err := buildSeedMigrations(db, migrationID, seedQueries)
-	if err != nil {
-		log.Error("Unable to prepare market seed migration history: ", err)
-		return 1
+	stamp := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	apply := func(id string, queries []string) (int, error) {
+		migrations, err := buildSeedMigrations(db, id, queries)
+		if err != nil {
+			return 0, fmt.Errorf("prepare seed history for %s: %w", id, err)
+		}
+		return migrate.Exec(db, "mysql", &migrate.MemoryMigrationSource{Migrations: migrations}, migrate.Up)
 	}
-	source := &migrate.MemoryMigrationSource{Migrations: migrations}
-	log.Info("Executing market seed migration ", migrationID, "...")
-	n, err := migrate.Exec(db, "mysql", source, migrate.Up)
+
+	if !buyOnly {
+		id := "SEED_MARKET"
+		if force {
+			id += "_" + stamp
+		}
+		n, err := apply(id, sellQueries)
+		if err != nil {
+			log.Error("NPC sell seed failed: ", err)
+			return 1
+		}
+		if n == 0 {
+			log.Info("NPC sell seed already applied; existing orders were preserved.")
+		} else {
+			log.Info("NPC sell seed applied to ", len(regionArray), " region(s).")
+		}
+		if force {
+			_, err = db.Exec("DELETE FROM seed_migrations WHERE LEFT(id, 12) = 'SEED_MARKET_' AND id <> ?", id)
+			if err != nil {
+				log.Warn("Could not prune older sell seed markers: ", err)
+			}
+		}
+	}
+
+	// First standard invocation installs buy orders even on databases whose
+	// legacy SEED_MARKET migration is already recorded. Never debit a player:
+	// NPC owner 1000125 is the same non-player buyer used by Trader Joe.
+	buyID := "SEED_NPC_BUY_100PCT"
+	if force {
+		buyID += "_" + stamp
+	}
+	n, err := apply(buyID, buyQueries)
 	if err != nil {
-		log.Error("Market seed failed: ", err)
+		log.Error("NPC buy seed failed: ", err)
 		return 1
 	}
 	if n == 0 {
-		log.Info("Market seed was already applied. Use 'evedbtool seed -force' to rebuild the configured regions.")
+		log.Info("NPC buy seed already applied; use 'seed -buy-only -force' to refresh its orders.")
 	} else {
-		log.Info("Successfully applied market seed to ", len(regionArray), " configured region(s).")
+		log.Info("NPC buy orders at 100% reference price applied to ", len(regionArray), " region(s).")
 	}
-
-	// Force runs use a unique timestamped migration ID. Retain only the latest
-	// successful force marker so seed_migrations does not grow indefinitely.
-	// This also removes stale IDs left by earlier EVEDBTool versions.
 	if force {
-		result, cleanupErr := db.Exec("DELETE FROM seed_migrations WHERE LEFT(id, 12) = 'SEED_MARKET_' AND id <> ?", migrationID)
-		if cleanupErr != nil {
-			log.Warn("Market seed succeeded, but old force migration markers could not be cleaned up: ", cleanupErr)
-		} else if removed, rowsErr := result.RowsAffected(); rowsErr == nil && removed > 0 {
-			log.Info("Removed ", removed, " obsolete market seed migration marker(s).")
+		_, err = db.Exec("DELETE FROM seed_migrations WHERE LEFT(id, LENGTH('SEED_NPC_BUY_100PCT_')) = 'SEED_NPC_BUY_100PCT_' AND id <> ?", buyID)
+		if err != nil {
+			log.Warn("Could not prune older NPC buy seed markers: ", err)
 		}
 	}
 	return 0
@@ -177,7 +202,7 @@ func buildSeedMigrations(db *sql.DB, currentID string, seedQueries []string) ([]
 	return migrations, nil
 }
 
-func getQuery(regionValue string, saturation int, force bool) string {
+func resolveSeedRegionID(regionValue string) string {
 	regionMap := map[string]int{
 		"Derelik": 10000001, "The Forge": 10000002, "Vale of the Silent": 10000003,
 		"UUA-F4": 10000004, "Detorid": 10000005, "Wicked Creek": 10000006,
@@ -223,6 +248,12 @@ func getQuery(regionValue string, saturation int, force bool) string {
 		}
 		regionID = strconv.Itoa(value)
 	}
+
+	return regionID
+}
+
+func getQuery(regionValue string, saturation int, force bool) string {
+	regionID := resolveSeedRegionID(regionValue)
 
 	timestamp := mstypes.GetFileTime(time.Now()).MSEpoch()
 	var cleanup string
@@ -395,3 +426,128 @@ WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN ('officer', 'deadspace', 'faction
 	)
 	return replacer.Replace(query)
 }
+
+ // getBuyQuery uses a separate migration marker and station-local NPC bids.
+ // No private/unpublished or non-market-listed inventory types are seeded.
+ func getBuyQuery(regionValue string, saturation int, force bool) string {
+ 	regionID := resolveSeedRegionID(regionValue)
+ 	timestamp := mstypes.GetFileTime(time.Now()).MSEpoch()
+ 	var cleanup string
+ 	if force {
+ 		cleanup = `
+ -- Force-refresh only prior STATIC NPC buy orders generated by this seed:
+ -- duration 250 days and station-only range -1. Random Trader Joe orders
+ -- use regional range 32767 and shorter lifetimes, so are preserved.
+ -- Every player-owned order and all NPC sell orders are preserved.
+ DELETE oldOrder
+ FROM mktOrders AS oldOrder
+ INNER JOIN staStations AS station
+     ON station.stationID = oldOrder.stationID
+    AND station.regionID = oldOrder.regionID
+ WHERE oldOrder.regionID = @regionid
+   AND oldOrder.bid = 1
+   AND oldOrder.ownerID = 1000125
+   AND oldOrder.isCorp = 0
+   AND oldOrder.orderRange = -1
+   AND oldOrder.duration = 250;
+ `
+ 	}
+ 
+ 	query := `
+ SET @regionid = RVAL;
+ SET @saturation = SVAL;
+ 
+ CREATE TEMPORARY TABLE IF NOT EXISTS tNPCBuyStations (
+     stationId INT NOT NULL PRIMARY KEY,
+     solarSystemID INT NOT NULL,
+     regionID INT NOT NULL
+ ) ENGINE=InnoDB;
+ TRUNCATE TABLE tNPCBuyStations;
+ 
+ -- Seed all eligible published, market-listed types in configured regions.
+ -- The existing seed-saturation setting limits the proportion of stations.
+ INSERT INTO tNPCBuyStations (stationId, solarSystemID, regionID)
+ SELECT stationID, solarSystemID, regionID
+ FROM staStations
+ WHERE regionID = @regionid AND RAND() < @saturation;
+ 
+ CLEANUP
+ 
+ CREATE TEMPORARY TABLE IF NOT EXISTS tExistingNPCBuySeed (
+     stationID INT NOT NULL,
+     typeID INT NOT NULL,
+     PRIMARY KEY (stationID, typeID)
+ ) ENGINE=InnoDB;
+ TRUNCATE TABLE tExistingNPCBuySeed;
+ 
+ INSERT IGNORE INTO tExistingNPCBuySeed (stationID, typeID)
+ SELECT o.stationID, o.typeID
+ FROM tNPCBuyStations AS st
+ INNER JOIN mktOrders AS o ON o.stationID = st.stationId
+ WHERE o.bid = 1
+   AND o.ownerID = 1000125
+   AND o.isCorp = 0
+   AND o.orderRange = -1
+   AND o.duration = 250;
+ 
+ -- Price is exactly 100% of invTypes.basePrice to the nearest market cent.
+ -- Zero/NULL/negative base prices cannot define a percentage, so retain the
+ -- established explicit 100 ISK fallback. Cap each order's notional escrow
+ -- at 10 trillion ISK, so even expensive ships do not overflow SQL decimals.
+ -- NPC orders use pseudo-escrow, like Trader Joe: there is no player wallet
+ -- withdrawal; the server pays the seller directly from the non-player owner.
+
+ INSERT INTO mktOrders
+     (typeID, ownerID, regionID, stationID, solarSystemID, orderRange,
+      bid, price, escrow, minVolume, volEntered, volRemaining,
+      issued, contraband, duration, jumps, isCorp, accountKey, memberID)
+ SELECT
+     eligible.typeID,
+     1000125,
+     eligible.regionID,
+     eligible.stationId,
+     eligible.solarSystemID,
+     -1,
+     1,
+     eligible.referencePrice,
+     eligible.referencePrice * eligible.quantity,
+     1,
+     eligible.quantity,
+     eligible.quantity,
+     TSTAMP,
+     0,
+     250,
+     1,
+     0,
+     1000,
+     0
+ FROM (
+     SELECT priced.stationId, priced.regionID, priced.solarSystemID, priced.typeID, priced.referencePrice,
+            LEAST(priced.standardQuantity,
+                  GREATEST(1, FLOOR(10000000000000.00 / priced.referencePrice))) AS quantity
+     FROM (
+         SELECT st.stationId, st.regionID, st.solarSystemID,
+                it.typeID,
+                CASE WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100.00
+                     ELSE GREATEST(0.01, ROUND(it.basePrice, 2)) END AS referencePrice,
+                CASE WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END AS standardQuantity
+         FROM tNPCBuyStations AS st
+         CROSS JOIN invTypes AS it
+         INNER JOIN invGroups AS ig ON it.groupID = ig.groupID
+         WHERE it.published = 1 AND it.marketGroupID IS NOT NULL
+     ) AS priced
+     WHERE priced.referencePrice <= 10000000000000.00
+ ) AS eligible
+ LEFT JOIN tExistingNPCBuySeed AS existing
+     ON existing.stationID = eligible.stationId
+    AND existing.typeID = eligible.typeID
+ WHERE existing.stationID IS NULL;
+ `
+ 	replacer := strings.NewReplacer(
+ 		"SVAL", fmt.Sprintf("%.2f", float32(saturation)/100),
+ 		"RVAL", regionID,
+ 		"TSTAMP", strconv.FormatInt(timestamp, 10),
+ 		"CLEANUP", cleanup,
+ 	)
+ 	return replacer.Replace(query)
+ }

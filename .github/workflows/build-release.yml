@@ -54,6 +54,8 @@ jobs:
         run: python3 tools/verify_station_crash_safety.py
       - name: Verify NPC market prices are exactly 100 percent of base value
         run: python3 tools/verify_npc_market_baseprice.py
+      - name: Verify standard NPC buy orders at 100 percent
+        run: python3 tools/verify_npc_buy_seed.py
       - name: Verify gameplay subsystem source invariants
         run: python3 tools/verify_subsystems_audit.py
       - name: Verify 12-ship cruiser and battlecruiser Blockade mission
@@ -84,7 +86,7 @@ jobs:
         run: |
           cp sql/evedb.yaml.example sql/evedb.yaml
           (cd sql && ./evedbtool seed -force -dryrun) > "$RUNNER_TEMP/evedbtool-seed-dryrun.log" 2>&1
-          for expected in "550000" "RAND() < @saturation" "officer" "deadspace" "faction" "storyline" "NOT EXISTS" "seededGroup.groupID IN (12, 340, 448, 649)" "ig.groupID IN (12, 340, 448, 649)" "marketGroupID IS NOT NULL"; do
+          for expected in "550000" "RAND() < @saturation" "officer" "deadspace" "faction" "storyline" "NOT EXISTS" "seededGroup.groupID IN (12, 340, 448, 649)" "ig.groupID IN (12, 340, 448, 649)" "marketGroupID IS NOT NULL" "NPC BUY SQL" "eligible.referencePrice * eligible.quantity" "1000125" "tExistingNPCBuySeed"; do
             grep -qi "$expected" "$RUNNER_TEMP/evedbtool-seed-dryrun.log" || {
               echo "EVEDBTool dry-run output is missing expected SQL: $expected" >&2
               cat "$RUNNER_TEMP/evedbtool-seed-dryrun.log" >&2
@@ -169,6 +171,11 @@ jobs:
         run: |
           python tools/verify_npc_market_baseprice.py
           if ($LASTEXITCODE -ne 0) { throw "NPC market base price regression" }
+      - name: Verify standard NPC buy orders at 100 percent
+        shell: pwsh
+        run: |
+          python tools/verify_npc_buy_seed.py
+          if ($LASTEXITCODE -ne 0) { throw "NPC buy seed regression" }
       - name: Verify gameplay subsystem source invariants
         shell: pwsh
         run: |
@@ -223,7 +230,7 @@ jobs:
           $exitCode = $LASTEXITCODE
           Pop-Location
           if ($exitCode -ne 0) { throw "EVEDBTool seed dry-run failed: $output" }
-          foreach ($expected in @("550000", "RAND() < @saturation", "officer", "deadspace", "faction", "storyline", "NOT EXISTS", "seededGroup.groupID IN (12, 340, 448, 649)", "ig.groupID IN (12, 340, 448, 649)", "marketGroupID IS NOT NULL")) {
+          foreach ($expected in @("550000", "RAND() < @saturation", "officer", "deadspace", "faction", "storyline", "NOT EXISTS", "seededGroup.groupID IN (12, 340, 448, 649)", "ig.groupID IN (12, 340, 448, 649)", "marketGroupID IS NOT NULL", "NPC BUY SQL", "eligible.referencePrice * eligible.quantity", "1000125", "tExistingNPCBuySeed")) {
             if (!$output.Contains($expected, [StringComparison]::OrdinalIgnoreCase)) {
               throw "EVEDBTool dry-run output is missing expected SQL: $expected"
             }
