@@ -31,7 +31,11 @@ Each destroyed mission NPC spawns a wreck. An extra **one-unit premium module** 
 
 If any rarity tier or required NPC group has no supported type in the installed static data, the encounter is refused at acceptance rather than replacing elite spawns with normal rats. If an individual NPC fails to load/spawn, the actual spawned count determines the objective, and the ordinary final-pocket-clear check lets the agent complete the mission without a stuck kill target. A loot item may fail to materialize if the item factory cannot spawn it; such failures are logged and must be tested.
 
-**Mission payout:** 50,000,000 ISK, copied from Blockade, paid once on the normal agent turn-in path. **Timer:** 120 minutes from acceptance. Bounty, security standings, wreck ownership, salvage and mission persistence otherwise use the existing encounter engine.
+**Mission payout:** 500,000,000 ISK, paid once on the normal agent turn-in path. The separate Blockade remains 50,000,000 ISK. **Timer:** 120 minutes from acceptance. Bounty, security standings, wreck ownership, salvage and mission persistence otherwise use the existing encounter engine.
+
+## DED expedition reward increase (17 November 2026)
+
+Mission **65534** pays **500,000,000 ISK** at successful agent turn-in (not per NPC). The existing reward normalization in `Agent::HasMission` / `Agent::GetOffer` updates pending or accepted elite offers when accessed, while Blockade mission **65535** continues paying **50,000,000 ISK**. The literal Security Agent briefing and source regression tests now agree with the higher amount. The eight-NPC target, premium wreck loot, 120-minute completion window and one-time reward transfer behavior are unchanged. No database migration is needed.
 
 ## Eight-NPC balance update (17 November 2026)
 
@@ -80,7 +84,7 @@ The operator reports a server exit on a later expedition run after an earlier en
 
 The scoped remediation also guards AnomalyMgr signal registration against null beacon bubbles, which otherwise could crash during mission acceptance before its own log appears. It retires matching mission-bubble spawn registrations and flags when a mission beacon is removed on completion or quit. It preserves live NPCs, wrecks and salvage, checks character/agent/offer/beacon identity before cleanup, repairs inconsistent empty-bubble ID indexes, and prevents creating an encounter inside an occupied or mismatched beacon bubble.
 
-Test consecutive eight-NPC expeditions: accept, warp, kill 8/8, complete, confirm one 50M ISK payout, then repeat. Also test quitting a partially completed mission and standard belt/gate spawning. Check for orphan sites or stale spawn registrations. The absence of a crash in CI does not prove this real-client scenario is fixed.
+Test consecutive eight-NPC expeditions: accept, warp, kill 8/8, complete, confirm one 500M ISK payout, then repeat. Also test quitting a partially completed mission and standard belt/gate spawning. Check for orphan sites or stale spawn registrations. The absence of a crash in CI does not prove this real-client scenario is fixed.
 
 If the server exits again, collect the Windows Application Error event (exception code and faulting module), or a native dump of eve-server.exe, together with the last 30 server log lines and deployed commit SHA. The FX warnings by themselves are not proof of a crash cause.
 
@@ -90,7 +94,7 @@ If the server exits again, collect the Windows Application Error event (exceptio
 - [ ] `MissionLifecycleTest` and `tools/verify_elite_security_mission.py` pass
 - [ ] Security Agent offers Blockade **and** DED & Officer Expedition as separate missions
 - [ ] A non-Security Agent does not offer the synthetic elite mission
-- [ ] Mission briefing and journal show the literal name, 8-kill objective, 50 million ISK reward and 120-minute limit
+- [ ] Mission briefing and journal show the literal name, 8-kill objective, 500 million ISK reward and 120-minute limit
 - [ ] Warp bookmark points to new pocket; 8 NPCs spawn: two per elite category (hull classes vary across runs)
 - [ ] Every ship is the correct pirate faction; 2 commanders, 2 officers, 2 DED ships and 2 overseers present
 - [ ] NPC kills generate their wreck, bounty and premium meta-group module type; ordinary loot/salvage remains available

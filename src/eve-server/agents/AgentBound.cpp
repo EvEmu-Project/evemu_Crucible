@@ -80,7 +80,7 @@ std::string EliteSecurityMissionBriefing(const MissionOffer& offer)
     briefing += " / ";
     briefing += std::to_string(offer.courierAmount);
     briefing += "\n\nCOMPLETION\nReturn to the issuing Security Agent when the pocket is cleared."
-                "\n\nREWARD\n50,000,000 ISK"
+                "\n\nREWARD\n500,000,000 ISK"
                 "\nTIME LIMIT\n120 minutes from acceptance.";
     return briefing;
 }

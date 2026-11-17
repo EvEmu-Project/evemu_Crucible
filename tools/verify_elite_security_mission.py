@@ -27,7 +27,8 @@ assert "kBlockadeSecurityTestMissionID = 65535" in mission
 assert "kBlockadeSecurityTestRequiredKills = 12" in mission
 assert "kEliteSecurityMissionID = 65534" in mission
 assert "kEliteSecurityRequiredKills = 8" in mission
-assert "kEliteSecurityRewardISK = 50000000" in mission
+assert "kEliteSecurityRewardISK = 500000000" in mission
+assert "kBlockadeSecurityTestRewardISK = 50000000" in mission
 assert "kEliteSecurityDurationMinutes = 120" in mission
 assert "#include <random>" in mission
 assert "std::uniform_int_distribution<std::size_t>" in mission
@@ -56,6 +57,11 @@ assert "securityAgent = IsSecurityMissionDivision" in agent
 assert "NormalizeEliteTestOffer" in agent
 assert "offer.courierAmount = Mission::kEliteSecurityRequiredKills;" in agent
 assert "offer.rewardISK = Mission::kEliteSecurityRewardISK;" in agent
+assert "if (offer.rewardISK != Mission::kEliteSecurityRewardISK)" in agent
+assert 'eliteMission.rewardISK = Mission::kEliteSecurityRewardISK' in data
+assert r'"\n\nREWARD\n500,000,000 ISK"' in bound
+assert "Mission::kEliteSecurityRewardISK == 500000000" in lifecycle
+assert "Mission::kBlockadeSecurityTestRewardISK == 50000000" in lifecycle
 
 # Retain all 18 real candidate groups, but select only two from each
 # of four encounter categories for eight NPCs per new expedition.

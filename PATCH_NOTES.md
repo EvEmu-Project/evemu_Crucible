@@ -1,3 +1,9 @@
+## 17 November 2026 — PR #36 DED & Officer Expedition reward to 500M ISK
+
+- Increase only synthetic Security Agent mission 65534 reward to **500,000,000 ISK** (from 50,000,000). Mission 65535 Blockade remains **50,000,000 ISK**.
+- Keep the existing single payout at successful mission turn-in, 8-NPC target, premium faction/officer/deadspace loot and two-hour time limit.
+- Update agent briefing, C++ lifecycle test, static regression script and operator playtest guide. Existing uncompleted DED offers get the reward through normal offer normalization; no SQL migration or player-record rewrite is required.
+
 ## 17 November 2026 — Exclude untargetable True Sansha NPCs from PR #36
 
 - Operator reported that True Sansha NPCs are invalid player targets in elite Security Agent mission 65534. Filter NPC candidate type names containing "True Sansha" case-insensitively, only during the new mission's selection. Preserve other legitimate Sansha NPCs.
