@@ -60,6 +60,8 @@ jobs:
         run: python3 tools/verify_subsystems_audit.py
       - name: Verify 12-ship cruiser and battlecruiser Blockade mission
         run: python3 tools/verify_blockade_12_ship_fleet.py
+      - name: Verify independent DED and Officer Security Agent mission
+        run: python3 tools/verify_elite_security_mission.py
       - name: Verify Crucible-era weapon ranges and hull warp speed
         run: python3 tools/verify_crucible_range_and_warp.py
       - name: Test
@@ -192,6 +194,11 @@ jobs:
         run: |
           python tools/verify_blockade_12_ship_fleet.py
           if ($LASTEXITCODE -ne 0) { throw "Blockade 12-ship fleet regression" }
+      - name: Verify independent DED and Officer Security Agent mission
+        shell: pwsh
+        run: |
+          python tools/verify_elite_security_mission.py
+          if ($LASTEXITCODE -ne 0) { throw "DED/Officer mission regression" }
       - name: Verify Crucible-era weapon ranges and hull warp speed
         shell: pwsh
         run: |

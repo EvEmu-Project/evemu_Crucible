@@ -73,6 +73,7 @@ m_spawnTimer(0)
     m_missionCharacterID = 0;
     m_missionAgentID = 0;
     m_missionOfferID = 0;
+    m_missionTypeID = 0;
     m_missionBeaconID = 0;
     m_missionKills = 0;
     m_missionKillsRequired = 0;

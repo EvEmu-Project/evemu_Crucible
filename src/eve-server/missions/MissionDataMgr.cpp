@@ -290,6 +290,17 @@ void MissionDataMgr::Populate()
         MissionData importantBlockadeTest = blockadeTest;
         importantBlockadeTest.important = true;
         m_missionsImp.emplace(testLevel, importantBlockadeTest);
+
+        // A separate, deliberately difficult DED / faction / officer
+        // mission is offered by the same Security Agent divisions and tiers.
+        // Clone the proven encounter reward/offer lifecycle, not its spawns.
+        MissionData eliteMission = blockadeTest;
+        eliteMission.missionID = Mission::kEliteSecurityMissionID;
+        eliteMission.name = "DED & Officer Expedition (TEST)";
+        eliteMission.rewardISK = Mission::kEliteSecurityRewardISK;
+        m_missions.emplace(testLevel, eliteMission);
+        eliteMission.important = true;
+        m_missionsImp.emplace(testLevel, eliteMission);
     }
 
     sLog.Cyan("   MissionDataMgr", "%lu(%lu) Unsorted Mission Data Sets loaded in %.3fms.", m_missions.size(), m_missionsImp.size(), (GetTimeMSeconds() - start));
@@ -653,7 +664,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 const bool notCompletedStarter = (level != 0)
                     || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
                         == completedStarterMissionIDs.end());
-                if (securityAgent && mission.missionID == Mission::kBlockadeSecurityTestMissionID) {
+                if (securityAgent && Mission::IsSyntheticSecurityEncounter(mission.missionID)) {
                     candidates.push_back(mission);
                 } else if (!securityAgent && mission.typeID == Mission::Type::Encounter
                         && raceMatches && notStoryline && notCompletedStarter) {
@@ -673,7 +684,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                     const bool notCompletedStarter = (level != 0)
                         || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
                             == completedStarterMissionIDs.end());
-                    if (securityAgent && mission.missionID == Mission::kBlockadeSecurityTestMissionID) {
+                    if (securityAgent && Mission::IsSyntheticSecurityEncounter(mission.missionID)) {
                         candidates.push_back(mission);
                     } else if (!securityAgent && mission.typeID == Mission::Type::Encounter
                             && raceMatches && notStoryline && notCompletedStarter) {
@@ -689,7 +700,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 return;
             }
 
-            const MissionData& mission = candidates[MakeRandomInt(0, static_cast<uint32>(candidates.size() - 1))];
+            const MissionData& mission = candidates[Mission::RandomCandidateIndex(candidates.size())];
             data.typeID = Mission::Type::Encounter;
             data.name = mission.name;
             if (level == 0)

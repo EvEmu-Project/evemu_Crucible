@@ -46,6 +46,8 @@ public:
                             uint32 characterID, uint32 agentID, uint32 offerID, uint16 missionID, uint32 beaconID,
                             uint32 factionID, uint32 dungeonID = 0);
     void DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID);
+    // Remove a finished mission's spawn tracking without deleting entities.
+    bool ReleaseMissionBubble(SystemBubble* pBubble, uint32 offerID);
 
     // primitive test for chained spawns
     bool IsChaining(uint16 bubbleID);

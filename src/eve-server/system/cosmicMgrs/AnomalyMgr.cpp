@@ -503,8 +503,20 @@ GPoint AnomalyMgr::GetAnomalyPos(std::string& sigID)
 
 void AnomalyMgr::AddSignal(SystemEntity* pSE, uint32 id/*0*/)
 {
-    if (!m_initalized)
+    if (!m_initalized || pSE == nullptr)
         return;
+
+    // A failed beacon/bubble placement must not terminate the whole server.
+    // SystemManager::AddEntity may call us even if BubbleManager::Add could
+    // not attach the new mission beacon to a valid bubble.
+    SystemBubble* signalBubble = pSE->SysBubble();
+    if (signalBubble == nullptr) {
+        _log(COSMIC_MGR__ERROR,
+            "AnomalyMgr::AddSignal() - entity %u has no assigned bubble in system %u; "
+            "skipping signal registration.",
+            pSE->GetID(), m_system->GetID());
+        return;
+    }
 
     //  shouldnt need this while `check(IsTestServer)` is disabled
     //if (!m_procTimer.Enabled())
@@ -538,7 +550,7 @@ void AnomalyMgr::AddSignal(SystemEntity* pSE, uint32 id/*0*/)
         if (iRef->groupID() == EVEDB::invGroups::Cosmic_Anomaly)
             sig.sigStrength = 1.0f;
         // get bubbleID, which is only used for .siglist command
-        sig.bubbleID = pSE->SysBubble()->GetID();
+        sig.bubbleID = signalBubble->GetID();
 
 /* Signal Strength Base Data
  * Band        1/5     1/10    1/15    1/20    1/25    1/40    1/45    1/60    1/80

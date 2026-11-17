@@ -292,15 +292,23 @@ void BubbleManager::ClearSystemBubbles(uint32 systemID)
 
 void BubbleManager::RemoveBubble(uint32 systemID, SystemBubble* pSB)
 {
+    if (pSB == nullptr)
+        return;
+
+    // Remove both lookup indexes; the old early return left retired
+    // bubble IDs reachable after the periodic empty-bubble sweep.
+    const auto idItr = m_bubbleIDMap.find(pSB->GetID());
+    if (idItr != m_bubbleIDMap.end() && idItr->second == pSB)
+        m_bubbleIDMap.erase(idItr);
+
     auto range = m_sysBubbleMap.equal_range(systemID);
-    for (auto itr = range.first; itr != range.second; ++itr)
+    for (auto itr = range.first; itr != range.second; ++itr) {
         if (itr->second == pSB) {
             m_sysBubbleMap.erase(itr);
-            return;
+            break;
         }
-    std::map<uint32, SystemBubble*>::iterator itr = m_bubbleIDMap.find(pSB->GetID());
-    if (itr != m_bubbleIDMap.end())
-        m_bubbleIDMap.erase(itr);
+    }
+    m_spawnIDs.erase(pSB->GetID());
 }
 
 /* for beltmgr */

@@ -2037,8 +2037,26 @@ bool Client::StartEncounterMission(MissionOffer& offer)
     if (sMissionDataMgr.GetMissionData(offer.missionID, missionTemplate))
         missionDungeonID = missionTemplate.dungeonID;
 
-    // Use the beacon's actual bubble so the warpable signal and NPC wave are co-located.
-    pBubble = pBeacon->SysBubble();
+    // The placed beacon must occupy the empty bubble validated above.
+    // Bubble overlap adjustments can otherwise put it into a live pocket.
+    SystemBubble* beaconBubble = pBeacon->SysBubble();
+    if (beaconBubble == nullptr || beaconBubble != pBubble
+        || beaconBubble->IsMission() || beaconBubble->IsBelt()
+        || beaconBubble->IsGate() || beaconBubble->IsAnomaly()
+        || beaconBubble->CountNPCs() != 0
+        || beaconBubble->CountPlayers() != 0
+        || beaconBubble->CountDynamics() > 1) {
+        _log(AGENT__ERROR,
+            "Client::StartEncounterMission() - offer %u rejected unsafe beacon bubble: "
+            "expected %u, actual %u. Beacon rolled back.",
+            offer.offerID, pBubble->GetID(),
+            (beaconBubble != nullptr ? beaconBubble->GetID() : 0));
+        m_system->RemoveEntity(pBeacon);
+        beacon->Delete();
+        SafeDelete(pBeacon);
+        return false;
+    }
+    pBubble = beaconBubble;
     _log(AGENT__MESSAGE,
         "Client::StartEncounterMission() - accepting offer %u mission %u (level %u, agent %u, faction %u, dungeon %u).",
         offer.offerID, offer.missionID, offer.range, offer.agentID, agentFactionID, missionDungeonID);
@@ -2098,9 +2116,27 @@ void Client::RemoveEncounterMissionSite(const MissionOffer& offer)
         return;
 
     SystemEntity* pSite = m_system->GetSE(offer.destinationID);
+    // Even if its beacon is gone, a mission bubble may retain stale spawns.
+    SystemBubble* pBubble = (pSite != nullptr ? pSite->SysBubble() : nullptr);
+    if (pBubble == nullptr && offer.dungeonLocationID != 0)
+        pBubble = sBubbleMgr.FindBubbleByID(static_cast<uint16>(offer.dungeonLocationID));
+    if (pBubble != nullptr && pBubble->GetSystem() == m_system
+        && pBubble->IsMission()
+        && pBubble->GetMissionCharacterID() == offer.characterID
+        && pBubble->GetMissionAgentID() == offer.agentID
+        && pBubble->GetMissionOfferID() == offer.offerID
+        && pBubble->GetMissionBeaconID() == offer.destinationID
+        && m_system->GetSpawnMgr() != nullptr) {
+        m_system->GetSpawnMgr()->ReleaseMissionBubble(pBubble, offer.offerID);
+    } else {
+        _log(AGENT__WARNING,
+            "Client::RemoveEncounterMissionSite() - no matching live bubble for "
+            "offer %u beacon %u; another mission was not modified.",
+            offer.offerID, offer.destinationID);
+    }
+
     if (pSite == nullptr)
         return;
-
     InventoryItemRef siteItem = pSite->GetSelf();
     m_system->RemoveEntity(pSite);
     if (siteItem.get() != nullptr)

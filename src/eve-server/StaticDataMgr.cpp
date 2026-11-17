@@ -16,6 +16,7 @@
 #include "../eve-common/EVE_POS.h"
 
 #include "StaticDataMgr.h"
+#include "EVE_Missions.h"
 #include "EVEServerConfig.h"
 #include "database/EVEDBUtils.h"
 #include "manufacturing/FactoryDB.h"
@@ -57,6 +58,7 @@ m_npcDivisions(nullptr)
     m_corpFaction.clear();
     m_typeAttrMap.clear();
     m_LootGroupMap.clear();
+    m_eliteMissionLootTypes.clear();
     m_stationCount.clear();
     m_stationConst.clear();
     m_stationRegion.clear();
@@ -115,6 +117,7 @@ void StaticDataMgr::Clear()
     m_corpFaction.clear();
     m_typeAttrMap.clear();
     m_LootGroupMap.clear();
+    m_eliteMissionLootTypes.clear();
     m_stationCount.clear();
     m_stationConst.clear();
     m_stationRegion.clear();
@@ -254,6 +257,53 @@ void StaticDataMgr::Populate()
         m_typeData.emplace(row.GetUInt(0), data);
     }
     sLog.Cyan("    StaticDataMgr", "%lu Inventory Types loaded in %.3fms.", m_typeData.size(), (GetTimeMSeconds() - startTime));
+    // Mission 65534 uses invMetaTypes.metaGroupID (4=Faction, 5=Officer,
+    // 6=Deadspace), NOT dogma meta level. The 2012 SDE can contain valid
+    // rarity-tagged modules without a marketGroupID or published flag.
+    // Prefer market-listed modules per tier, but allow real tagged modules
+    // as a fallback instead of preventing mission acceptance outright.
+    // Every choice must exist in invTypes and belong to category Module.
+    // This cache affects only the new expedition, not ordinary NPC loot.
+    std::map<uint8, std::vector<uint16>> allTaggedModules;
+    std::map<uint8, std::vector<uint16>> marketListedModules;
+    m_eliteMissionLootTypes.clear();
+    for (const auto& entry : m_typeData) {
+        const Inv::TypeData& item = entry.second;
+        if (item.id == 0
+            || (item.metaLvl != 4 && item.metaLvl != 5 && item.metaLvl != 6))
+            continue;
+        const auto groupItr = m_grpData.find(item.groupID);
+        if (groupItr == m_grpData.end()
+            || groupItr->second.catID != EVEDB::invCategories::Module)
+            continue;
+        const uint8 tier = item.metaLvl;
+        allTaggedModules[tier].push_back(entry.first);
+        if (item.published && item.marketGroupID != 0)
+            marketListedModules[tier].push_back(entry.first);
+    }
+    for (uint8 tier = 4; tier <= 6; ++tier) {
+        const auto& preferred = marketListedModules[tier];
+        const auto& available = allTaggedModules[tier];
+        if (!preferred.empty()) {
+            m_eliteMissionLootTypes[tier] = preferred;
+        } else if (!available.empty()) {
+            m_eliteMissionLootTypes[tier] = available;
+            sLog.Warning("    StaticDataMgr",
+                "Elite mission meta group %u has no published market-listed modules; "
+                "using %u valid rarity-tagged Module types from the installed SDE.",
+                tier, static_cast<uint32>(available.size()));
+        } else {
+            sLog.Error("    StaticDataMgr",
+                "Elite mission meta group %u has no Module-category types in "
+                "loaded invMetaTypes/invTypes. Check the static-data import.",
+                tier);
+        }
+    }
+    sLog.Cyan("    StaticDataMgr",
+        "Elite mission loot modules loaded: %u faction, %u officer, %u deadspace.",
+        static_cast<uint32>(m_eliteMissionLootTypes[4].size()),
+        static_cast<uint32>(m_eliteMissionLootTypes[5].size()),
+        static_cast<uint32>(m_eliteMissionLootTypes[6].size()));
 
     startTime = GetTimeMSeconds();
     ManagerDB::GetAttributeTypes(*res);
@@ -927,6 +977,16 @@ uint32 StaticDataMgr::GetWreckID(uint32 typeID)
     if (itr != m_WrecksToTypesMap.end())
         return itr->second;
     return 0;
+}
+
+bool StaticDataMgr::GetEliteMissionLootType(uint8 metaGroupID, uint16& typeID)
+{
+    typeID = 0;
+    const auto it = m_eliteMissionLootTypes.find(metaGroupID);
+    if (it == m_eliteMissionLootTypes.end() || it->second.empty())
+        return false;
+    typeID = it->second[Mission::RandomCandidateIndex(it->second.size())];
+    return true;
 }
 
 void StaticDataMgr::GetLoot(uint32 groupID, std::vector<LootList>& lootList) {

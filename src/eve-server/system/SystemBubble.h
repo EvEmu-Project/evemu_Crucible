@@ -71,6 +71,8 @@ public:
     // these are set in spawnMgr.
     void SetAnomaly(bool set=true)                      { m_anomaly = set; }
     void SetMission(bool set=true)                      { m_mission = set; }
+    void SetMissionTypeID(uint16 missionID)             { m_missionTypeID = missionID; }
+    uint16 GetMissionTypeID() const                     { return m_missionTypeID; }
     void SetMissionData(uint32 characterID, uint32 agentID, uint32 offerID,
                         uint32 beaconID, uint16 killsRequired) {
         m_missionCharacterID = characterID;
@@ -80,6 +82,20 @@ public:
         m_missionKills = 0;
         m_missionKillsRequired = killsRequired;
         m_mission = true;
+    }
+    // Retire a completed or abandoned site without deleting NPCs, wrecks
+    // or salvage that may still exist inside the shared bubble.
+    void ClearMissionData() {
+        m_mission = false;
+        m_missionTypeID = 0;
+        m_missionCharacterID = 0;
+        m_missionAgentID = 0;
+        m_missionOfferID = 0;
+        m_missionBeaconID = 0;
+        m_missionKills = 0;
+        m_missionKillsRequired = 0;
+        m_spawned = false;
+        m_spawnTimer.Disable();
     }
     bool RecordMissionKill() {
         // The mission pocket owns this kill objective. Count every NPC death
@@ -225,6 +241,7 @@ private:
     uint32 m_missionCharacterID;
     uint32 m_missionAgentID;
     uint32 m_missionOfferID;
+    uint16 m_missionTypeID;
     uint32 m_missionBeaconID;
     uint16 m_missionKills;
     uint16 m_missionKillsRequired;

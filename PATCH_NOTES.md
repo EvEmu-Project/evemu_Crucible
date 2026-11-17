@@ -1,3 +1,35 @@
+## 17 November 2026 — PR #36 DED & Officer Expedition reward to 500M ISK
+
+- Increase only synthetic Security Agent mission 65534 reward to **500,000,000 ISK** (from 50,000,000). Mission 65535 Blockade remains **50,000,000 ISK**.
+- Keep the existing single payout at successful mission turn-in, 8-NPC target, premium faction/officer/deadspace loot and two-hour time limit.
+- Update agent briefing, C++ lifecycle test, static regression script and operator playtest guide. Existing uncompleted DED offers get the reward through normal offer normalization; no SQL migration or player-record rewrite is required.
+
+## 17 November 2026 — Exclude untargetable True Sansha NPCs from PR #36
+
+- Operator reported that True Sansha NPCs are invalid player targets in elite Security Agent mission 65534. Filter NPC candidate type names containing "True Sansha" case-insensitively, only during the new mission's selection. Preserve other legitimate Sansha NPCs.
+- Validate candidate NPCs within each category before selecting two distinct groups; skip groups with no eligible types, fail clearly if any category cannot fill its two slots, and keep the objective at eight kills.
+- No change to the Blockade, global spawns, inventories, reward or rare loot. Add source regression checks and a two-run in-game verification checklist.
+
+## 17 November 2026 — PR #36 repeated mission pocket cleanup safeguards
+
+- After one eight-NPC expedition reached 8/8, operator reported server exit on a later run; the supplied FX and bound-object warnings do not include a native exception trace.
+- Retire the matching mission bubble's spawn registrations and flags on completion/quit; preserve wrecks and remaining NPCs. Prevent accepting a beacon into an unexpectedly occupied or mismatched bubble. Keep empty-bubble manager system/ID lookups consistent.
+- Add source checks and repeated acceptance playtest instructions. Mission reward, eight-NPC spawn mix, rare loot, Blockade, player data and database schema unchanged. CI and live confirmation required.
+
+## 17 November 2026 — DED & Officer Expedition eight-NPC balance
+
+- PR #36 operator confirms actual elite ship types spawn correctly. Reduce only mission 65534 from 18 to **8 ships**: two each from DED/deadspace, faction commander, pirate officer and DED overseer categories, randomized across the existing 18 candidate NPC groups.
+- Align briefing, journal kill target, static assertions, lifecycle tests and source tests. Already accepted 18-NPC encounters keep their recorded target. Do not change original 12-NPC Blockade, 50-million-ISK reward, 120-minute limit or rare wreck loot.
+- No database migration or modifications to player, item or market records. CI and real-client playtesting remain required.
+
+## 17 November 2026 — Separate DED & Officer Security Agent Expedition (pending client acceptance)
+
+- Added synthetic Security Agent mission `65534` **DED & Officer Expedition (TEST)** alongside unchanged `65535` Blockade. Both are randomly offered by the same Security Agent divisions and tiers.
+- The new mission spawns up to 18 real Crucible NPC ships: five DED/deadspace, five faction commander, five pirate officer and three DED overseer types spanning frigates through battleships and all five pirate factions.
+- Each elite mission NPC adds a matched-tier, market-listed **Faction (meta group 4), Officer (5) or Deadspace (6)** module to its wreck via the static type catalogue. Normal NPC loot, bounty, salvage and all non-elite missions are unchanged.
+- Agent briefing, journal, mission-pocket kill count and two-hour turn-in timer reuse the established Blockade lifecycle; reward remains 50 million ISK.
+- Added `MissionLifecycleTest` assertions, Windows/Linux source regression checks and [gameplay test guide](docs/missions/DED_OFFICER_EXPEDITION_TEST_MODE.md). Real player-client verification still required.
+
 ## 17 Nov 2026 — Repair NPC buy-order seed MariaDB Error 1264 (PR #35)
 
 - Fixed `evedbtool seed -buy-only -force` failure `Out of range value for column 'orderRange'`: the seed wrote `-1`, which the deployed MariaDB column cannot represent. New static bids use **`orderRange=0`** and both refresh-deletion and duplicate detection use that value.
