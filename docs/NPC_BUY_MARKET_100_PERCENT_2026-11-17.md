@@ -10,11 +10,19 @@ The standard `evedbtool seed` now seeds NPC **buy and sell** orders in configure
 
 ## Implementation details
 
-- Seed NPC buyer identity `ownerID = 4000000` (reserved Trader Joe pseudo-character ID recognized by `IsTraderJoe`), `bid=1`, `orderRange=-1` (station-local), `duration=250`, `isCorp=0`. This combination marks **seed-managed** bids; dynamic random bot orders are not overwritten.
+- Seed NPC buyer identity `ownerID = 4000000` (reserved Trader Joe pseudo-character ID recognized by `IsTraderJoe`), `bid=1`, `orderRange=0` (database-compatible system-range marker; server instant-sell matching remains **station-specific**), `duration=250`, `isCorp=0`. This combination marks **seed-managed** bids; dynamic random bot orders are not overwritten.
 - Orders initially offer **550,000** charge-category items or **550** of other types, capped to keep each initial order's synthetic notional escrow within **10 trillion ISK**. Types whose single-unit reference price is above that cap are skipped; the audit lists gaps. No player wallet is charged to create NPC orders.
 - A one-time migration `SEED_NPC_BUY_100PCT` is separate from legacy `SEED_MARKET`. Once applied, a regular `seed` command leaves seeded bids unchanged. Repeatable `seed -buy-only -force` deliberately replaces only marker-matched NPC bids in configured regions.
 - Trader Joe's future randomly created buys use 100% reference prices. The one-time seed also **repairs legacy regional-range NPC bids** under the old unsupported NPC corporation owner `1000125`: it changes only these NPC buy orders to owner `4000000`, recalculates their reference price and their **nonfunded NPC pseudo-escrow**. Player-owned bids, NPC sells, actual wallets, player escrow, and historical transactions are not modified. This scoped change appears in `-dryrun`; review the legacy-bid preview query before applying.
 - NPC matching uses the **stored bid price** for actual seller payout, not an arbitrary lower price entered by the selling client. Market order and transaction internal price fields have been widened from float to double so expensive ship/module bids do not lose material precision when read from `mktOrders`. Order type/station and requested stack quantity are validated before inventory mutation; full-stack and partial-stack sales are differentiated. Other market transfers remain non-transactional in the existing engine and must still be tested in the client.
+
+## MariaDB Error 1264 (17 November 2026): upgrade and recovery
+
+The initial version of PR #35 attempted to insert `orderRange=-1`, the EVE station sentinel, but existing `mktOrders.orderRange` rejects negative values. The corrected seed inserts **`orderRange=0`**, which the deployed column can represent; static-order matching and force-refresh use `0` consistently. No destructive `ALTER TABLE` is needed.
+
+If you previously ran `seed -buy-only -force` and it failed: **do not assume the whole run rolled back**. A prior `DELETE` (for static NPC bids) or legacy Trader Joe NPC `UPDATE` may have happened before the failing `INSERT`. Stop the game server, take a fresh backup for diagnosis, and compare the database with the pre-run backup before applying anything else. Do not restore the backup over fresh player progress without a conscious plan. Use the updated read-only audit below to count rows, inspect `seed_migrations` and check legacy owner IDs.
+
+After the corrected EVEDBTool build is ready and the backup is verified, review `seed -buy-only -dryrun`. For an **interrupted seed that has no successful migration marker**, running `seed -buy-only` will install the new bid seed. Use `-force` **only if you deliberately want to replace existing seed-managed NPC buy orders**; it deletes/recreates these NPC bids. The source change does not touch existing player characters, inventory, wallets or player-owned orders.
 
 ## Existing database rollout (recommended)
 
@@ -52,7 +60,7 @@ The standard `evedbtool seed` now seeds NPC **buy and sell** orders in configure
 
 ## Known limitations
 
-- NPC bids are station-local and limited to configured regions; they do not provide universal cross-region remote purchasing.
+- NPC bids are inserted with range `0` because the deployed `mktOrders.orderRange` schema rejects negative `-1`. The Crucible UI may label range `0` as **system**, but the existing `MarketDB::FindBuyOrder` logic still requires the **same station ID** for an immediate sale. Test from the same station; neither cross-station nor cross-region remote delivery is implemented.
 - `basePrice` may not reflect a desirable supply-and-demand economy price, particularly for rare items; there is no reliable universal 100% player-market average for items with zero trades.
 - Existing player and corporation order settlement has other transaction/rollback gaps (see the repair checklist). This change does not make the entire market escrow system atomic.
 - The order seeder does not rerun automatically on every login or respawn exhausted orders. Repeat `seed -buy-only -force` only when intentionally refreshing backed-up NPC stock.

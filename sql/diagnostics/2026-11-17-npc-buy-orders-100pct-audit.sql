@@ -7,6 +7,21 @@
 -- current regional weighted average or player market price.
 SET @npc_owner_id = 4000000;
 
+-- 0. Verify the installed range type and any incomplete legacy run.
+SHOW COLUMNS FROM mktOrders LIKE 'orderRange';
+
+SELECT regionID, ownerID, bid, orderRange, duration, COUNT(*) AS order_count
+FROM mktOrders
+WHERE regionID IN (10000001,10000002,10000033)
+  AND ownerID IN (1000125,4000000)
+GROUP BY regionID, ownerID, bid, orderRange, duration
+ORDER BY regionID, ownerID, bid, orderRange, duration;
+
+-- The table exists if EVEDBTool seed was started at least once.
+SELECT id, applied_at FROM seed_migrations
+WHERE id LIKE 'SEED_NPC_BUY_100PCT%'
+ORDER BY applied_at DESC LIMIT 20;
+
 -- 1. Every eligible published market-listed item type.
 SELECT COUNT(*) AS eligible_market_types
 FROM invTypes AS it

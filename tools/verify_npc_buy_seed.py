@@ -66,6 +66,10 @@ assert "oInfo.price      = row.GetDouble(1);" in market_db
 assert "sellerWalletOwnerID = useCorp ?" in sale
 
 assert workflow.count("verify_npc_buy_seed.py") == 2
+assert "npc-buy-mariadb:" in workflow
+assert "tools/tests/npc_buy_seed_unsigned_schema.sql" in workflow
+assert "seed -buy-only -force" in workflow
+assert "needs: [linux, windows, docker, npc-buy-mariadb]" in workflow
 assert "SELECT" in audit and "DELETE " not in audit and "UPDATE " not in audit
 assert "SET @npc_owner_id = 4000000" in audit
 print("PASS: NPC buy migration, idempotence, pricing, settlement, and read-only audit invariants")
