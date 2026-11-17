@@ -483,39 +483,61 @@ PyResult PosMgrBound::SetStarbasePermissions(PyCallArgs &call, PyInt* itemID, Py
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
-    // decode deployFlags object
-    PyRep* rep = deployFlags->arguments()->AsDict()->GetItemString("line");
-    if (!rep->IsList()) {
-        codelog(POS__ERROR, "deployFlags 'line' item is not PyList: %s", rep->TypeString());
-        return nullptr;
+    // Validate both payloads completely before applying any tower changes.
+    // A malformed client row used to dereference missing fields or apply
+    // deploy flags before rejecting the usage list, leaving partial state.
+    PyRep* deployArgs = deployFlags != nullptr ? deployFlags->arguments() : nullptr;
+    PyRep* usageArgs = usageFlagsList != nullptr ? usageFlagsList->arguments() : nullptr;
+    if (deployArgs == nullptr || !deployArgs->IsDict()
+        || usageArgs == nullptr || !usageArgs->IsDict()) {
+        _log(POS__WARNING, "SetStarbasePermissions() - invalid flag containers.");
+        return PyStatic.NewNone();
     }
 
-    PyList* list = rep->AsList();
-    //list->Dump(POS__RSP_DUMP, "    ");
-    pTSE->SetDeployFlags(list->GetItem(0)->AsInt()->value(),
-                         list->GetItem(1)->AsInt()->value(),
-                         list->GetItem(2)->AsInt()->value(),
-                         list->GetItem(3)->AsInt()->value() );
-
-
-    // decode usageFlagsList object
-    PyRep* rep2 = usageFlagsList->arguments()->AsDict()->GetItemString("lines");
-    if (!rep2->IsList()) {
-        codelog(POS__ERROR, "usageFlagsList 'lines' item is not PyList: %s", rep2->TypeString());
-        return nullptr;
+    PyRep* deployLine = deployArgs->AsDict()->GetItemString("line");
+    PyRep* usageLines = usageArgs->AsDict()->GetItemString("lines");
+    if (deployLine == nullptr || !deployLine->IsList()
+        || usageLines == nullptr || !usageLines->IsList()) {
+        _log(POS__WARNING, "SetStarbasePermissions() - missing list fields.");
+        return PyStatic.NewNone();
     }
 
-    PyList* list2 = rep2->AsList();
-    //list2->Dump(POS__RSP_DUMP, "    ");
-    for (PyList::const_iterator itr = list2->begin(); itr != list2->end(); ++itr) {
-        if (!(*itr)->IsList()) {
-            codelog(POS__ERROR, "usageFlagsList - itr item is not PyList: %s", (*itr)->TypeString());
-            continue;
+    PyList* deploy = deployLine->AsList();
+    PyList* usage = usageLines->AsList();
+    if (deploy->size() < 4) {
+        _log(POS__WARNING, "SetStarbasePermissions() - truncated deploy flags.");
+        return PyStatic.NewNone();
+    }
+    for (size_t i = 0; i < 4; ++i) {
+        if (deploy->GetItem(i) == nullptr || !deploy->GetItem(i)->IsInt()) {
+            _log(POS__WARNING, "SetStarbasePermissions() - invalid deploy flag.");
+            return PyStatic.NewNone();
         }
-        pTSE->SetUseFlags((*itr)->AsList()->GetItem(0)->AsInt()->value(),
-                          (*itr)->AsList()->GetItem(1)->AsInt()->value(),
-                          (*itr)->AsList()->GetItem(2)->AsInt()->value(),
-                          (*itr)->AsList()->GetItem(3)->AsInt()->value());
+    }
+    for (PyList::const_iterator itr = usage->begin(); itr != usage->end(); ++itr) {
+        if (*itr == nullptr || !(*itr)->IsList() || (*itr)->AsList()->size() < 4) {
+            _log(POS__WARNING, "SetStarbasePermissions() - invalid usage row.");
+            return PyStatic.NewNone();
+        }
+        PyList* row = (*itr)->AsList();
+        for (size_t i = 0; i < 4; ++i) {
+            if (row->GetItem(i) == nullptr || !row->GetItem(i)->IsInt()) {
+                _log(POS__WARNING, "SetStarbasePermissions() - invalid usage field.");
+                return PyStatic.NewNone();
+            }
+        }
+    }
+
+    pTSE->SetDeployFlags(deploy->GetItem(0)->AsInt()->value(),
+                         deploy->GetItem(1)->AsInt()->value(),
+                         deploy->GetItem(2)->AsInt()->value(),
+                         deploy->GetItem(3)->AsInt()->value());
+    for (PyList::const_iterator itr = usage->begin(); itr != usage->end(); ++itr) {
+        PyList* row = (*itr)->AsList();
+        pTSE->SetUseFlags(row->GetItem(0)->AsInt()->value(),
+                          row->GetItem(1)->AsInt()->value(),
+                          row->GetItem(2)->AsInt()->value(),
+                          row->GetItem(3)->AsInt()->value());
     }
 
     return PyStatic.NewNone();
@@ -626,6 +648,8 @@ PyResult PosMgrBound::SetTowerPassword(PyCallArgs &call, PyInt* itemID, PyRep* p
         pTSE->UpdatePassword();
     }
 
+    if (allowCorp == nullptr || allowAlliance == nullptr)
+        return PyStatic.NewNone();
     pTSE->SetCorpAccess(allowCorp->value());
     pTSE->SetAllyAccess(allowAlliance->value());
     pTSE->UpdateAccess();
