@@ -48,16 +48,29 @@ namespace {
 std::string EliteSecurityMissionBriefing(const MissionOffer& offer)
 {
     const uint32 kills = std::min<uint32>(offer.courierTypeID, offer.courierAmount);
+    // Existing accepted 18-NPC sites retain their actual target and briefing.
+    const bool legacyFleet = offer.stateID == Mission::State::Accepted
+        && offer.courierAmount > Mission::kEliteSecurityRequiredKills;
     std::string briefing =
         "DED & OFFICER EXPEDITION\n\n"
         "HIGH-THREAT SECURITY ENCOUNTER\n"
         "An organized DED/overseer and pirate-officer force has been detected.\n"
-        "Expect frigates, destroyers, cruisers, battlecruisers and battleships.\n\n"
-        "OBJECTIVES\n"
-        "- Defeat DED and deadspace ships (5)\n"
-        "- Destroy faction commander ships (5)\n"
-        "- Eliminate pirate officers (5)\n"
-        "- Destroy DED overseers (3)\n\n"
+        "Expect varied ship classes, including powerful officers and overseers.\n\n"
+        "OBJECTIVES\n";
+    if (legacyFleet) {
+        briefing +=
+            "- Defeat DED and deadspace ships (5)\n"
+            "- Destroy faction commander ships (5)\n"
+            "- Eliminate pirate officers (5)\n"
+            "- Destroy DED overseers (3)\n\n";
+    } else {
+        briefing +=
+            "- Defeat DED and deadspace ships (2)\n"
+            "- Destroy faction commander ships (2)\n"
+            "- Eliminate pirate officers (2)\n"
+            "- Destroy DED overseers (2)\n\n";
+    }
+    briefing +=
         "WRECK LOOT\n"
         "Elite NPC wrecks carry an appropriate faction, officer or deadspace\n"
         "module from this server's item catalogue. Salvage remains normal.\n\n"

@@ -1,3 +1,9 @@
+## 17 November 2026 — DED & Officer Expedition eight-NPC balance
+
+- PR #36 operator confirms actual elite ship types spawn correctly. Reduce only mission 65534 from 18 to **8 ships**: two each from DED/deadspace, faction commander, pirate officer and DED overseer categories, randomized across the existing 18 candidate NPC groups.
+- Align briefing, journal kill target, static assertions, lifecycle tests and source tests. Already accepted 18-NPC encounters keep their recorded target. Do not change original 12-NPC Blockade, 50-million-ISK reward, 120-minute limit or rare wreck loot.
+- No database migration or modifications to player, item or market records. CI and real-client playtesting remain required.
+
 ## 17 November 2026 — Separate DED & Officer Security Agent Expedition (pending client acceptance)
 
 - Added synthetic Security Agent mission `65534` **DED & Officer Expedition (TEST)** alongside unchanged `65535` Blockade. Both are randomly offered by the same Security Agent divisions and tiers.

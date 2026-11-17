@@ -68,7 +68,7 @@ bool NormalizeEliteTestOffer(MissionOffer& offer)
         changed = true;
     }
     // The accepted pocket owns its true kill target. Only pending offers
-    // receive the configured 18-ship target during a server restart.
+    // receive the configured 8-ship target during a server restart.
     if (Mission::IsAwaitingAcceptance(offer.stateID)
         && offer.courierAmount != Mission::kEliteSecurityRequiredKills) {
         offer.courierAmount = Mission::kEliteSecurityRequiredKills;

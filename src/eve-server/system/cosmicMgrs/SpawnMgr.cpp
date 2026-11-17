@@ -58,11 +58,10 @@ static const BlockadeTestShipClass kAngelCartelBlockadeTestMix[] = {
     {576, "Asteroid Angel Cartel BattleCruiser", 4}
 };
 
-// A second Security Agent combat mission: 5 DED/deadspace ships covering
-// frigate through battleship, 5 faction commander hull classes, one officer
-// from each of the five pirate factions, and 3 DED overseers. Every group
-// is a static Crucible invGroups ID, not a guessed typeID or fake NPC.
-// This roster does not replace the original 12-ship Blockade above.
+// Mission 65534 retains 18 valid Crucible NPC candidate groups, but selects
+// only 8 ships per new pocket: 2 DED/deadspace, 2 commanders, 2 officers
+// and 2 overseers. Factions and hull classes vary between offers.
+// The original 12-NPC Blockade is unchanged.
 struct EliteSecurityShipSpec {
     uint16 groupID;
     uint32 factionID;
@@ -93,8 +92,16 @@ static const EliteSecurityShipSpec kEliteSecurityFleet[] = {
     {820, factionAngel,       "Overseer"},
     {821, factionAngel,       "Overseer"}
 };
-static_assert(sizeof(kEliteSecurityFleet) / sizeof(kEliteSecurityFleet[0])
-    == Mission::kEliteSecurityRequiredKills, "Elite mission encounter target must match its roster");
+// Four category buckets in the 18-element candidate roster:
+ // Deadspace, Commander, Officer, Overseer.
+static constexpr std::size_t kEliteSecurityCategoryOffsets[] = {0, 5, 10, 15, 18};
+static constexpr uint8 kEliteSecurityShipsPerCategory = 2;
+static_assert(sizeof(kEliteSecurityFleet) / sizeof(kEliteSecurityFleet[0]) == 18,
+    "Keep all 18 validated Crucible NPC candidate groups");
+static_assert(Mission::kEliteSecurityRequiredKills
+    == kEliteSecurityShipsPerCategory
+        * (sizeof(kEliteSecurityCategoryOffsets) / sizeof(kEliteSecurityCategoryOffsets[0]) - 1),
+    "Elite mission kill target must match its 8 selected ships");
 
 /** @todo  this can be updated to spawn mission, anomaly and deadspace rats.
  *   change all *roidRat* to *somethingelse* to better explain/describe the maps and how they're used.
@@ -629,35 +636,52 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
             uint16 groupID;
             uint32 factionID;
         };
+        // Choose two distinct NPC groups in each rarity category; the wider
+        // original roster remains available for variation between missions.
+        std::vector<const EliteSecurityShipSpec*> chosenSpecs;
+        for (std::size_t category = 0; category + 1
+                < sizeof(kEliteSecurityCategoryOffsets) / sizeof(kEliteSecurityCategoryOffsets[0]);
+                ++category) {
+            std::vector<const EliteSecurityShipSpec*> available;
+            for (std::size_t i = kEliteSecurityCategoryOffsets[category];
+                    i < kEliteSecurityCategoryOffsets[category + 1]; ++i)
+                available.push_back(&kEliteSecurityFleet[i]);
+            for (uint8 i = 0; i < kEliteSecurityShipsPerCategory; ++i) {
+                const std::size_t index = Mission::RandomCandidateIndex(available.size());
+                chosenSpecs.push_back(available[index]);
+                available[index] = available.back();
+                available.pop_back();
+            }
+        }
+
         std::vector<SelectedEliteShip> selectedFleet;
-        for (const EliteSecurityShipSpec& spec : kEliteSecurityFleet) {
+        for (const EliteSecurityShipSpec* spec : chosenSpecs) {
             Inv::GrpData group = {};
-            sDataMgr.GetGroup(spec.groupID, group);
+            sDataMgr.GetGroup(spec->groupID, group);
             if (group.id == 0 || group.catID != EVEDB::invCategories::Entity
-                || group.name.find(spec.groupNameToken) == std::string::npos) {
+                || group.name.find(spec->groupNameToken) == std::string::npos) {
                 _log(SPAWN__ERROR,
                     "DED/Officer mission %u missing expected entity group %u (%s).",
-                    offerID, spec.groupID, spec.groupNameToken);
+                    offerID, spec->groupID, spec->groupNameToken);
                 pBubble->SetMission(false);
                 pBubble->SetMissionTypeID(0);
                 return false;
             }
             std::vector<uint16> candidates;
             for (const auto& candidate : allTypes) {
-                if (candidate.second.id != 0 && candidate.second.groupID == spec.groupID)
+                if (candidate.second.id != 0 && candidate.second.groupID == spec->groupID)
                     candidates.push_back(candidate.first);
             }
             if (candidates.empty()) {
                 _log(SPAWN__ERROR,
                     "DED/Officer mission %u has no NPC types in group %u (%s).",
-                    offerID, spec.groupID, group.name.c_str());
+                    offerID, spec->groupID, group.name.c_str());
                 pBubble->SetMission(false);
                 pBubble->SetMissionTypeID(0);
                 return false;
             }
-            const uint16 typeID =
-                candidates[static_cast<size_t>(rand()) % candidates.size()];
-            selectedFleet.push_back({typeID, spec.groupID, spec.factionID});
+            const uint16 typeID = candidates[Mission::RandomCandidateIndex(candidates.size())];
+            selectedFleet.push_back({typeID, spec->groupID, spec->factionID});
         }
 
         uint16 spawnedCount = 0;
@@ -755,7 +779,7 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
             static_cast<uint16>(npcCount));
         pBubble->SetSpawned(true);
         _log(SPAWN__MESSAGE,
-            "DED/Officer mission %u spawned %u/%u NPCs (%u failures), all hull classes eligible.",
+            "DED/Officer mission %u spawned %u/%u NPCs (%u failures), two from each elite category selected.",
             offerID, spawnedCount, Mission::kEliteSecurityRequiredKills, failedCount);
         return true;
     }

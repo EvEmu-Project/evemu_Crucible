@@ -62,7 +62,7 @@ int utils_MissionLifecycleTest(int argc, char* argv[]) {
         && Mission::kBlockadeSecurityTestRequiredKills == 12
         && Mission::kEliteSecurityMissionID == 65534
         && Mission::kEliteSecurityMissionID != Mission::kBlockadeSecurityTestMissionID
-        && Mission::kEliteSecurityRequiredKills == 18
+        && Mission::kEliteSecurityRequiredKills == 8
         && Mission::IsSyntheticSecurityEncounter(Mission::kBlockadeSecurityTestMissionID)
         && Mission::IsSyntheticSecurityEncounter(Mission::kEliteSecurityMissionID)
         && !Mission::IsSyntheticSecurityEncounter(100)

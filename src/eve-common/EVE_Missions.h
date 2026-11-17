@@ -103,7 +103,7 @@ namespace Mission {
     // Separate Security Agent encounter; the working 65535 Blockade is untouched.
     // Each high-value kill has a DED, faction, or officer loot-table tier.
     constexpr uint16 kEliteSecurityMissionID = 65534;
-    constexpr uint16 kEliteSecurityRequiredKills = 18;
+    constexpr uint16 kEliteSecurityRequiredKills = 8;
     constexpr uint32 kEliteSecurityRewardISK = 50000000;
     constexpr uint32 kEliteSecurityDurationMinutes = 120;
 

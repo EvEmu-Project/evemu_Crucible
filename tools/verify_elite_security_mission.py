@@ -26,7 +26,7 @@ lifecycle = read("src/eve-test/utils/MissionLifecycleTest.cpp")
 assert "kBlockadeSecurityTestMissionID = 65535" in mission
 assert "kBlockadeSecurityTestRequiredKills = 12" in mission
 assert "kEliteSecurityMissionID = 65534" in mission
-assert "kEliteSecurityRequiredKills = 18" in mission
+assert "kEliteSecurityRequiredKills = 8" in mission
 assert "kEliteSecurityRewardISK = 50000000" in mission
 assert "kEliteSecurityDurationMinutes = 120" in mission
 assert "#include <random>" in mission
@@ -57,8 +57,8 @@ assert "NormalizeEliteTestOffer" in agent
 assert "offer.courierAmount = Mission::kEliteSecurityRequiredKills;" in agent
 assert "offer.rewardISK = Mission::kEliteSecurityRewardISK;" in agent
 
-# Roster: 5 faction commanders, 5 officers, 5 deadspace hulls, 3 DED
-# overseers. Each ID must exist in the Crucible static group's enum.
+# Retain all 18 real candidate groups, but select only two from each
+# of four encounter categories for eight NPCs per new expedition.
 roster = spawn.split("static const EliteSecurityShipSpec kEliteSecurityFleet[] = {", 1)[1].split("};", 1)[0]
 entries = re.findall(r'\{\s*(\d+)\s*,\s*(faction\w+)\s*,\s*"([^"]+)"\s*\}', roster)
 assert len(entries) == 18, entries
@@ -69,6 +69,12 @@ assert len([e for e in entries if e[2] == "Commander"]) == 5
 assert len([e for e in entries if e[2] == "Officer"]) == 5
 assert len([e for e in entries if e[2] == "Overseer"]) == 3
 assert len({faction for _, faction, _ in entries}) == 5
+assert "kEliteSecurityCategoryOffsets[] = {0, 5, 10, 15, 18}" in spawn
+assert "kEliteSecurityShipsPerCategory = 2" in spawn
+assert "Mission::RandomCandidateIndex(available.size())" in spawn
+assert "available.pop_back();" in spawn
+assert "for (const EliteSecurityShipSpec* spec : chosenSpecs)" in spawn
+assert "Mission::RandomCandidateIndex(candidates.size())" in spawn
 assert all(re.search(r'=\s*' + str(i) + r',', groups) for i in ids)
 assert all(re.search(r'case ' + str(i) + r':', mission) for i in ids)
 assert "group.catID != EVEDB::invCategories::Entity" in spawn
@@ -105,6 +111,11 @@ assert "LOOT__WARNING" not in npc  # not defined by this EVEmu logtypes.h
 
 # Literal new client briefing and independent kill/turn-in path.
 assert "EliteSecurityMissionBriefing(const MissionOffer& offer)" in bound
+assert '"- Defeat DED and deadspace ships (2)' in bound
+assert '"- Destroy faction commander ships (2)' in bound
+assert '"- Eliminate pirate officers (2)' in bound
+assert '"- Destroy DED overseers (2)' in bound
+assert "offer.stateID == Mission::State::Accepted" in bound
 assert bound.count("EliteSecurityMissionBriefing(offer)") >= 5
 assert "Mission::kEliteSecurityDurationMinutes" in bound
 assert "Mission::IsSyntheticSecurityEncounter(offer.missionID)" in bound
@@ -113,4 +124,4 @@ assert "return (data.courierAmount > 0 && data.courierTypeID >= data.courierAmou
 assert "Mission::kEliteSecurityMissionID != Mission::kBlockadeSecurityTestMissionID" in lifecycle
 assert "selectedBlockade && selectedExpedition" in lifecycle
 
-print("PASS: independent 18-NPC Security Agent DED/officer mission and scoped rare wreck loot")
+print("PASS: independent 8-NPC Security Agent DED/officer mission and scoped rare wreck loot")
