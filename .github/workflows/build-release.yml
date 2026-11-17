@@ -93,6 +93,12 @@ jobs:
               exit 1
             }
           done
+          (cd sql && ./evedbtool seed -buy-only -dryrun) > "$RUNNER_TEMP/evedbtool-buy-only.log" 2>&1
+          grep -q 'NPC BUY SQL' "$RUNNER_TEMP/evedbtool-buy-only.log"
+          if grep -q 'NPC SELL SQL' "$RUNNER_TEMP/evedbtool-buy-only.log"; then
+            echo "Buy-only dryrun would unexpectedly include NPC sells" >&2
+            exit 1
+          fi
           rm -f sql/evedb.yaml
       - name: Add runtime files and package
         run: |
@@ -234,6 +240,10 @@ jobs:
             if (!$output.Contains($expected, [StringComparison]::OrdinalIgnoreCase)) {
               throw "EVEDBTool dry-run output is missing expected SQL: $expected"
             }
+          }
+          $buyOnlyOutput = & .\evedbtool.exe seed -buy-only -dryrun 2>&1 | Out-String
+          if ($LASTEXITCODE -ne 0 -or !$buyOnlyOutput.Contains("NPC BUY SQL") -or $buyOnlyOutput.Contains("NPC SELL SQL")) {
+            throw "EVEDBTool -buy-only dryrun is not isolated to NPC buys: $buyOnlyOutput"
           }
           Remove-Item sql/evedb.yaml -Force
       - name: Bundle UCRT64 runtime DLLs beside executables
