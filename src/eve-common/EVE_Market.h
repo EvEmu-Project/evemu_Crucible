@@ -82,7 +82,7 @@ namespace Market {
         uint32 accountKey;   // corp account key (default 1000 (cash))
         uint32 memberID;     // corp member that placed order (0 for char order)
         int64 time;
-        float price;
+        double price;
     };
 
     // used to save order data
@@ -110,8 +110,8 @@ namespace Market {
         uint32 duration;
         uint32 memberID;
         int64 issued;
-        float price;
-        float escrow;
+        double price;
+        double escrow;
     };
 
     // used to query sell orders when buy is requested

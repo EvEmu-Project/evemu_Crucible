@@ -9,6 +9,8 @@ root = Path(__file__).resolve().parents[1]
 go = (root / "tools/evedbtool/command_seed.go").read_text(encoding="utf-8")
 bot = (root / "src/eve-server/market/MarketBotMgr.cpp").read_text(encoding="utf-8")
 mgr = (root / "src/eve-server/market/MarketMgr.cpp").read_text(encoding="utf-8")
+market_types = (root / "src/eve-common/EVE_Market.h").read_text(encoding="utf-8")
+market_db = (root / "src/eve-server/market/MarketDB.cpp").read_text(encoding="utf-8")
 workflow = (root / ".github/workflows/build-release.yml").read_text(encoding="utf-8")
 audit = (root / "sql/diagnostics/2026-11-17-npc-buy-orders-100pct-audit.sql").read_text(encoding="utf-8")
 
@@ -58,6 +60,9 @@ assert "data.price          = executionPrice" in sale
 assert "oInfo.typeID != typeID" in sale and "oInfo.stationID != stationID" in sale
 assert "Check corporation wallet authorization before an inventory transfer" in sale
 assert "if (shouldDeleteItem)" in sale
+assert market_types.count("double price;") >= 3
+assert "double escrow;" in market_types
+assert "oInfo.price      = row.GetDouble(1);" in market_db
 assert "sellerWalletOwnerID = useCorp ?" in sale
 
 assert workflow.count("verify_npc_buy_seed.py") == 2
