@@ -46,3 +46,9 @@ invbroker = source("src/eve-server/inventory/InvBrokerService.cpp")
 assert "case EVEDB::invGroups::Wreck:" in invbroker
 assert "shipSE->GetPosition().distance(containerSE->GetPosition())" in invbroker
 assert "shipSE->GetRadius(), containerSE->GetRadius()" in invbroker
+
+remaining = source("sql/diagnostics/2026-11-17-crucible-warp-speed-remaining-14-repair.sql")
+assert "tmp_crucible_remaining_hulls" in remaining
+for typeID in (22448,22466,22468,22474,22442,22470,22444,22446,29986,29990,29988,29984,2863,2998):
+    assert f"({typeID},'" in remaining
+assert "WHERE a.typeID IS NULL" in remaining and "t.published=1" in remaining
