@@ -1,3 +1,7 @@
+## 17 November 2026 — POS requested-position distance validation
+
+- POS-10: SBU and orbital-platform anchor distance rules previously compared the stargate/planet to the structure old stored position, not the requested target. Use the target position for both checks; extend the Windows/Linux source regression guard.
+
 ## 17 November 2026 — Sovereignty and POS source integrity and access fixes
 
 - SOV-01/02/03: write 64-bit FILETIME claimTime as BIGINT instead of mismatched %f, preserve cached sovereignty on failed DB insert/delete/query, and count unique online SBU-controlled gates to prevent false contested states.

@@ -34,6 +34,11 @@ assert "if (deploy->size() < 4)" in pos
 assert "if (row->GetItem(i) == nullptr || !row->GetItem(i)->IsInt())" in pos
 assert "local.toItemID != 0 || remote.toItemID != 0" in pos
 assert "INNER JOIN posTowerData AS d USING (itemID)" in db
+structure = read("src/eve-server/pos/Structure.cpp")
+assert "m_gateSE->GetPosition().distance(pos)" in structure
+assert "m_planetSE->GetPosition().distance(pos)" in structure
+assert "m_gateSE->GetPosition().distance(m_self->position())" not in structure
+assert "m_planetSE->GetPosition().distance(m_self->position())" not in structure
 assert '" SET standing=%f, status=%f, statusDrop=%i' in db
 assert '" SET anchor=%i, unanchor=%i, online=%i' in db
 assert '"INNER JOIN posJumpBridgeData AS local "' in db

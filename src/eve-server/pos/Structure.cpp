@@ -739,7 +739,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             pClient->SendErrorMsg("Cannot anchor this blockade unit because its stargate is missing.");
             return;
         }
-        uint32 distance(m_gateSE->GetPosition().distance(m_self->position()));
+        uint32 distance(m_gateSE->GetPosition().distance(pos));
         //uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
         uint32 anchorMax(m_self->GetAttribute(AttrAnchorDistanceMax).get_uint32());
 
@@ -774,7 +774,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             pClient->SendErrorMsg("Cannot anchor this structure because its planet is missing.");
             return;
         }
-        uint32 distance(m_planetSE->GetPosition().distance(m_self->position()));
+        uint32 distance(m_planetSE->GetPosition().distance(pos));
         uint32 anchorMax = (m_planetSE->GetRadius() + 150000000);
 
         if (distance > anchorMax) {

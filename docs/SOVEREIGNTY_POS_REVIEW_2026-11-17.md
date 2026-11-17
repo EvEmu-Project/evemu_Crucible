@@ -19,6 +19,8 @@ Repository: xrizonx/evemu_Crucible. Branch: fix/sovereignty-pos-integrity-2026-1
 | POS-08 | Bridge unlink | MariaDB prohibits UPDATE with scalar subquery from the same target table in this form. Use a joined update, updating only a reciprocal remote endpoint. | PosMgrDB.cpp; link/unlink in MariaDB |
 | POS-09 | Bridge link/unlink | Callers could specify arbitrary bridge IDs and two databases rows would change without owner, alliance and occupied-link validation. Check current system, local permission, both persisted endpoints, alliance match, reciprocal/unlinked status before editing. | PosMgr.cpp; cross-corp link tests |
 
+| POS-10 | Structure placement limits | SBU and orbital platform checked maximum/minimum anchor distance using the structure original stored position rather than the new client-requested target, allowing an out-of-range placement. They now validate distance to the requested position. | Structure.cpp; source invariant and in-game boundary check |
+
 ## Existing fixes preserved
 
 The fork already had TCU claim ownership validation, NPC sovereign system rejection, SBU zero-gate protection, infrastructure hub claim checks, missing POS initialization guards and security-specific belt/NPC fixes. No duplicate code changes or rollback of those existing fixes were made. See docs/CRUCIBLE_SOV_SECURITY_BELTS_RATS_AUDIT_2026-11-16.md.
