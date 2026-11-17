@@ -1,3 +1,9 @@
+## 17 November 2026 — Exclude untargetable True Sansha NPCs from PR #36
+
+- Operator reported that True Sansha NPCs are invalid player targets in elite Security Agent mission 65534. Filter NPC candidate type names containing "True Sansha" case-insensitively, only during the new mission's selection. Preserve other legitimate Sansha NPCs.
+- Validate candidate NPCs within each category before selecting two distinct groups; skip groups with no eligible types, fail clearly if any category cannot fill its two slots, and keep the objective at eight kills.
+- No change to the Blockade, global spawns, inventories, reward or rare loot. Add source regression checks and a two-run in-game verification checklist.
+
 ## 17 November 2026 — PR #36 repeated mission pocket cleanup safeguards
 
 - After one eight-NPC expedition reached 8/8, operator reported server exit on a later run; the supplied FX and bound-object warnings do not include a native exception trace.

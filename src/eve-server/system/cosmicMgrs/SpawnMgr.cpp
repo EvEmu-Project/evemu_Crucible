@@ -10,6 +10,7 @@
 
 #include "EVEServerConfig.h"
 #include <algorithm>
+#include <cctype>
 
 #include "StaticDataMgr.h"
 #include "EVE_Missions.h"
@@ -94,6 +95,18 @@ static const EliteSecurityShipSpec kEliteSecurityFleet[] = {
 };
 // Four category buckets in the 18-element candidate roster:
  // Deadspace, Commander, Officer, Overseer.
+// Name-based exclusion applies only to the synthetic elite expedition.
+// True Sansha inventory types were observed in game as invalid targets.
+static bool IsTrueSanshaEliteMissionTarget(const std::string& typeName)
+{
+    static const std::string forbidden = "true sansha";
+    return std::search(typeName.begin(), typeName.end(),
+        forbidden.begin(), forbidden.end(),
+        [](unsigned char a, unsigned char b) {
+            return std::tolower(a) == std::tolower(b);
+        }) != typeName.end();
+}
+
 static constexpr std::size_t kEliteSecurityCategoryOffsets[] = {0, 5, 10, 15, 18};
 static constexpr uint8 kEliteSecurityShipsPerCategory = 2;
 static_assert(sizeof(kEliteSecurityFleet) / sizeof(kEliteSecurityFleet[0]) == 18,
@@ -655,16 +668,62 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
             uint16 groupID;
             uint32 factionID;
         };
-        // Choose two distinct NPC groups in each rarity category; the wider
-        // original roster remains available for variation between missions.
+        // Validate NPC types before choosing two distinct groups per category.
+        // Some installed SDE types (notably "True Sansha") are not valid
+        // combat targets. Exclude only those types, keeping the other valid
+        // Sansha NPCs and the full eight-hostile mission objective.
+        std::map<uint16, std::vector<uint16>> eligibleTypesByGroup;
         std::vector<const EliteSecurityShipSpec*> chosenSpecs;
+        uint32 excludedTrueSansha = 0;
         for (std::size_t category = 0; category + 1
                 < sizeof(kEliteSecurityCategoryOffsets) / sizeof(kEliteSecurityCategoryOffsets[0]);
                 ++category) {
             std::vector<const EliteSecurityShipSpec*> available;
             for (std::size_t i = kEliteSecurityCategoryOffsets[category];
-                    i < kEliteSecurityCategoryOffsets[category + 1]; ++i)
-                available.push_back(&kEliteSecurityFleet[i]);
+                    i < kEliteSecurityCategoryOffsets[category + 1]; ++i) {
+                const EliteSecurityShipSpec& spec = kEliteSecurityFleet[i];
+                Inv::GrpData group = {};
+                sDataMgr.GetGroup(spec.groupID, group);
+                if (group.id == 0 || group.catID != EVEDB::invCategories::Entity
+                    || group.name.find(spec.groupNameToken) == std::string::npos) {
+                    _log(SPAWN__WARNING,
+                        "DED/Officer mission %u skips missing/invalid entity group %u (%s).",
+                        offerID, spec.groupID, spec.groupNameToken);
+                    continue;
+                }
+
+                std::vector<uint16> candidates;
+                for (const auto& candidate : allTypes) {
+                    if (candidate.second.id == 0 || candidate.second.groupID != spec.groupID)
+                        continue;
+                    if (IsTrueSanshaEliteMissionTarget(candidate.second.name)) {
+                        ++excludedTrueSansha;
+                        continue;
+                    }
+                    candidates.push_back(candidate.first);
+                }
+                if (candidates.empty()) {
+                    _log(SPAWN__WARNING,
+                        "DED/Officer mission %u skips NPC group %u (%s): "
+                        "no eligible targetable NPC types after True Sansha filtering.",
+                        offerID, spec.groupID, group.name.c_str());
+                    continue;
+                }
+                eligibleTypesByGroup.emplace(spec.groupID, candidates);
+                available.push_back(&spec);
+            }
+
+            if (available.size() < kEliteSecurityShipsPerCategory) {
+                _log(SPAWN__ERROR,
+                    "DED/Officer mission %u has only %u eligible NPC groups in category %u; "
+                    "needs %u for the eight-target encounter.",
+                    offerID, static_cast<uint32>(available.size()),
+                    static_cast<uint32>(category),
+                    static_cast<uint32>(kEliteSecurityShipsPerCategory));
+                pBubble->SetMission(false);
+                pBubble->SetMissionTypeID(0);
+                return false;
+            }
             for (uint8 i = 0; i < kEliteSecurityShipsPerCategory; ++i) {
                 const std::size_t index = Mission::RandomCandidateIndex(available.size());
                 chosenSpecs.push_back(available[index]);
@@ -675,33 +734,15 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
 
         std::vector<SelectedEliteShip> selectedFleet;
         for (const EliteSecurityShipSpec* spec : chosenSpecs) {
-            Inv::GrpData group = {};
-            sDataMgr.GetGroup(spec->groupID, group);
-            if (group.id == 0 || group.catID != EVEDB::invCategories::Entity
-                || group.name.find(spec->groupNameToken) == std::string::npos) {
-                _log(SPAWN__ERROR,
-                    "DED/Officer mission %u missing expected entity group %u (%s).",
-                    offerID, spec->groupID, spec->groupNameToken);
-                pBubble->SetMission(false);
-                pBubble->SetMissionTypeID(0);
-                return false;
-            }
-            std::vector<uint16> candidates;
-            for (const auto& candidate : allTypes) {
-                if (candidate.second.id != 0 && candidate.second.groupID == spec->groupID)
-                    candidates.push_back(candidate.first);
-            }
-            if (candidates.empty()) {
-                _log(SPAWN__ERROR,
-                    "DED/Officer mission %u has no NPC types in group %u (%s).",
-                    offerID, spec->groupID, group.name.c_str());
-                pBubble->SetMission(false);
-                pBubble->SetMissionTypeID(0);
-                return false;
-            }
+            const auto& candidates = eligibleTypesByGroup.at(spec->groupID);
             const uint16 typeID = candidates[Mission::RandomCandidateIndex(candidates.size())];
             selectedFleet.push_back({typeID, spec->groupID, spec->factionID});
         }
+        if (excludedTrueSansha != 0)
+            _log(SPAWN__MESSAGE,
+                "DED/Officer mission %u excluded %u True Sansha NPC candidates; "
+                "selected %u valid enemies from other eligible types.",
+                offerID, excludedTrueSansha, static_cast<uint32>(selectedFleet.size()));
 
         uint16 spawnedCount = 0;
         uint16 failedCount = 0;

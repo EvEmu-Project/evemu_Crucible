@@ -8,7 +8,7 @@ A separate, high-difficulty combat encounter cloned from the working Blockade of
 
 ## Elite NPC roster: 8 ships
 
-Each new mission selects two distinct NPC groups from each of the four encounter categories, then one actual type per group from installed Crucible static data. The 18 original groups remain eligible across runs, but only **8 ships spawn per new encounter**. No invented type IDs or schema inserts are used.
+Each new mission selects two distinct NPC groups from each of the four encounter categories, then one actual type per group from installed Crucible static data. The 18 original groups are inspected across runs; groups without eligible NPC types are skipped. Only **8 ships spawn per new encounter**. No invented type IDs or schema inserts are used.
 
 | Encounter | Groups and faction | Target hulls |
 |---|---|---|
@@ -18,6 +18,12 @@ Each new mission selects two distinct NPC groups from each of the four encounter
 | 2 DED overseers (from 3 candidate groups) | `819`, `820`, `821` | Frigate, cruiser, battleship |
 
 NPC ownership, faction and corporation are set per selected faction, with ships dispersed around the encounter pocket, not stacked on top of the warp-in point.
+
+## True Sansha target exclusion (17 November 2026)
+
+The operator reported that **True Sansha NPCs were not valid attack targets** in the eight-ship expedition. The mission now excludes all installed NPC type names containing `True Sansha` (case-insensitive) from its own candidate selection. Other Sansha types may still appear if their names do not match. Before picking two distinct groups from each category, the mission confirms there are eligible target types in each group; it skips empty groups and uses other eligible groups so the target remains **8 ships, 2 per category**. If a category has fewer than two valid groups, acceptance fails clearly rather than inserting fake NPCs or spawning fewer enemies.
+
+This filtering is scoped to mission **65534**. It does not alter invTypes, ordinary belts, anomaly rats, the Blockade, mission rewards, or rare-loot tier selection. Existing already accepted mission sites remain unchanged. Run two consecutive newly accepted expeditions and verify there are no True Sansha names, all eight hostiles can be targeted and killed, and the mission reaches 8/8.
 
 ## Loot and rewards
 

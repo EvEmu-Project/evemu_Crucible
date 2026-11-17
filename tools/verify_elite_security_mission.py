@@ -78,7 +78,16 @@ assert "Mission::RandomCandidateIndex(candidates.size())" in spawn
 assert all(re.search(r'=\s*' + str(i) + r',', groups) for i in ids)
 assert all(re.search(r'case ' + str(i) + r':', mission) for i in ids)
 assert "group.catID != EVEDB::invCategories::Entity" in spawn
-assert "group.name.find(spec->groupNameToken)" in spawn
+assert "group.name.find(spec.groupNameToken)" in spawn
+assert "IsTrueSanshaEliteMissionTarget(const std::string& typeName)" in spawn
+assert 'static const std::string forbidden = "true sansha";' in spawn
+assert "std::search(typeName.begin(), typeName.end()" in spawn
+assert "IsTrueSanshaEliteMissionTarget(candidate.second.name)" in spawn
+assert "eligibleTypesByGroup.emplace(spec.groupID, candidates)" in spawn
+assert "if (available.size() < kEliteSecurityShipsPerCategory)" in spawn
+assert "eligibleTypesByGroup.at(spec->groupID)" in spawn
+assert "no eligible targetable NPC types after True Sansha filtering." in spawn
+assert "candidate.second.groupID != spec.groupID" in spawn
 assert "selectedFleet.size()" not in spawn.split("if (missionID == Mission::kEliteSecurityMissionID)", 1)[1].split("// Mission 65535", 1)[0] or "static_assert" in spawn
 assert "pBubble->SetMissionData(characterID, agentID, offerID, beaconID" in spawn
 assert "pBubble->SetMissionTypeID(missionID);" in spawn
