@@ -36,9 +36,9 @@ class SovereigntyDB
 {
 public:
     static void GetSovereigntyData(DBQueryResult& res);
-    static void GetSovereigntyDataForSystem(DBQueryResult& res, uint32 systemID);
-    static void AddSovereigntyData(SovereigntyData data, uint32& claimID);
-    static void RemoveSovereigntyData(uint32 systemID);
+    static bool GetSovereigntyDataForSystem(DBQueryResult& res, uint32 systemID);
+    static bool AddSovereigntyData(SovereigntyData data, uint32& claimID);
+    static bool RemoveSovereigntyData(uint32 systemID);
     static void SetContested(uint32 systemID, bool contested);
     static void SetHubID(uint32 systemID, uint32 hubID);
     static void SetJammerID(uint32 systemID, uint32 jammerID);

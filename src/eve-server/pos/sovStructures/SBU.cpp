@@ -23,6 +23,7 @@
 #include "EVEServerConfig.h"
 #include "planet/Planet.h"
 #include "pos/sovStructures/SBU.h"
+#include "EVE_SovPosIntegrity.h"
 #include "pos/sovStructures/TCU.h"
 #include "system/Container.h"
 #include "system/Damage.h"
@@ -176,17 +177,15 @@ float SBUSE::GetGates()
 // Calculate number of SBUs in the system
 float SBUSE::GetSBUs()
 {
-    int numberOfSBUs = 0;
-    for (auto cur : m_system->GetOperationalStatics())
-    {
-        if (cur.second != nullptr && cur.second->IsSBUSE())
-        {
-            //Only increment the number of SBUs if they are online
-            if (cur.second->GetSBUSE()->GetState() == EVEPOS::StructureState::Online)
-            {
-                numberOfSBUs++;
-            }
-        }
+    // Multiple online SBUs at one gate count as only one blocked gate.
+    std::vector<uint32> activeGateIDs;
+    for (const auto& entry : m_system->GetOperationalStatics()) {
+        if (entry.second == nullptr || !entry.second->IsSBUSE())
+            continue;
+        SBUSE* unit = entry.second->GetSBUSE();
+        if (unit != nullptr && unit->GetState() == EVEPOS::StructureState::Online
+            && unit->GetGateSE() != nullptr)
+            activeGateIDs.push_back(unit->GetGateSE()->GetID());
     }
-    return (float)numberOfSBUs;
+    return static_cast<float>(EvESovPos::CountDistinctNonzeroGateIDs(activeGateIDs));
 }
