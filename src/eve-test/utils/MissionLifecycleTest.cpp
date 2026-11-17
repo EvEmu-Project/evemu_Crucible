@@ -43,7 +43,8 @@ int utils_MissionLifecycleTest(int argc, char* argv[]) {
         && Mission::RemainingItemQuantity(10, 10) == 0
         && Mission::RemainingItemQuantity(10, 20) == 0
         && Mission::RemainingItemQuantity(100000, 1) == 99999
-        && Mission::RemainingItemQuantity(100000, 0) == 100000;
+        && Mission::RemainingItemQuantity(100000, 0) == 100000
+        && Mission::kBlockadeSecurityTestRequiredKills == 12;
 
     if (!passed) {
         ::printf("Mission lifecycle regression test failed.\n");
