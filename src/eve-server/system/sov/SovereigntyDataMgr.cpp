@@ -10,6 +10,8 @@
 
 #include <boost/range/iterator_range.hpp>
 #include "system/sov/SovereigntyDataMgr.h"
+#include <algorithm>
+#include <limits>
 #include "database/EVEDBUtils.h"
 #include "packets/Sovereignty.h"
 #include "StaticDataMgr.h"
@@ -49,6 +51,17 @@ void SovereigntyDataMgr::Clear()
     //m_sovPyData.clear();
 }
 
+// The client's claimedFor field is claim age in days, not allianceID.
+static int32 ClaimedForDays(const SovereigntyData& sov)
+{
+    if (sov.claimTime <= 0)
+        return 0;
+    const double days = (GetFileTimeNow() - sov.claimTime) / Win32Time_Day;
+    if (days <= 0.0)
+        return 0;
+    return static_cast<int32>(std::min(days, static_cast<double>(std::numeric_limits<int32>::max())));
+}
+
 void SovereigntyDataMgr::Populate()
 {
     double start = GetTimeMSeconds();
@@ -59,6 +72,7 @@ void SovereigntyDataMgr::Populate()
 
     //This data is added by solar system, so we need to use that tag here
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
+    bySolar.clear(); // Safe when reinitialized after DB reconnect.
 
     SovereigntyDB::GetSovereigntyData(*res);
     while (res->GetRow(row))
@@ -119,18 +133,17 @@ SovereigntyData SovereigntyDataMgr::GetSovereigntyData(uint32 systemID)
     } else
     {
         //Return empty object in case we don't find anything
-        SovereigntyData sData;
-        return sData;
+        return SovereigntyData();
     }
 }
 
 PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
 {
     SystemData sysData = SystemData();
-    PyDict *args = new PyDict();
+    if (!sDataMgr.GetSystemData(systemID, sysData))
+        return new PyNone();
 
-    //Figure out if this system is in empire space
-    sDataMgr.GetSystemData(systemID, sysData);
+    // Figure out if this system is in empire space.
 
     if (sysData.factionID)
     {   // If we have a factionID, the system is not claimable.
@@ -153,6 +166,7 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
             _log(SOV__DEBUG, "allianceID: %u", sData.allianceID);
             _log(SOV__DEBUG, "claimStructureID: %u", sData.claimStructureID);
             _log(SOV__DEBUG, "==========");
+            PyDict *args = new PyDict();
             args->SetItemString("contested", new PyInt(sData.contested));
             args->SetItemString("corporationID", new PyInt(sData.corporationID));
             args->SetItemString("claimTime", new PyLong(sData.claimTime));
@@ -160,6 +174,7 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
             args->SetItemString("hubID", new PyInt(sData.hubID));
             args->SetItemString("allianceID", new PyInt(sData.allianceID));
             args->SetItemString("solarSystemID", new PyInt(sData.solarSystemID));
+            return new PyObject("util.KeyVal", args);
         }
         else
         {
@@ -168,7 +183,7 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
             return new PyNone();
         }
     }
-    return new PyObject("util.KeyVal", args);
+    return new PyNone();
 }
 
 PyRep *SovereigntyDataMgr::GetAllianceSystems() //Get all systems associated with all alliances?
@@ -236,7 +251,7 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
             row->SetField("stationCount", new PyInt(sData.stationCount));
             row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
             row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
-            row->SetField("claimedFor", new PyInt(sData.allianceID));
+            row->SetField("claimedFor", new PyInt(ClaimedForDays(sData)));
         }
     }
     //Get all unique alliances in the region who hold sovereignty
@@ -254,23 +269,26 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
                 row->SetField("stationCount", new PyInt(sData.stationCount));
                 row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
                 row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
-                row->SetField("claimedFor", new PyInt(sData.allianceID));
+                row->SetField("claimedFor", new PyInt(ClaimedForDays(sData)));
                 cv.push_back(sData.constellationID);
             }
         }
     }
     else if (sDataMgr.IsSolarSystem(locationID))
     {
-        for (SovereigntyData const &sData : boost::make_iterator_range(
-                 m_sovData.get<SovDataByRegion>().equal_range(locationID)))
+        // Solar-system IDs belong to the solar index, not the region index.
+        const auto& bySolar = m_sovData.get<SovDataBySolarSystem>();
+        const auto it = bySolar.find(locationID);
+        if (it != bySolar.end())
         {
+            const SovereigntyData& sData = *it;
             PyPackedRow *row = rowset->NewRow();
             row->SetField("locationID", new PyInt(sData.solarSystemID));
             row->SetField("allianceID", new PyInt(sData.allianceID));
             row->SetField("stationCount", new PyInt(sData.stationCount));
             row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
             row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
-            row->SetField("claimedFor", new PyInt(sData.allianceID));
+            row->SetField("claimedFor", new PyInt(ClaimedForDays(sData)));
         }
     }
 

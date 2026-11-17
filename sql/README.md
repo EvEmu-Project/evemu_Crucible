@@ -52,11 +52,23 @@ The `seed-regions` and `seed-saturation` settings in `evedb.yaml` control which 
 
 The patched `seed` command generates SQL from the same market rules as the repository's market seed scripts:
 
+**New: NPC buy orders for the full published market catalogue, at 100% static reference price.** The same standard `seed` invocation now seeds both NPC sells and NPC buys, each using its own `seed_migrations` marker so an already seeded database can add the buy side independently. It does **not** automatically modify previously placed player orders. Only items with `invTypes.published = 1` and a non-NULL `marketGroupID` can be bought: hidden, unpublished, or nonmarket types cannot appear in the game's normal market. All items with a positive `basePrice` use exactly 100% of that static value rounded to cents; zero/NULL prices use the existing 100 ISK fallback. NPC buy orders are owned by the existing nonplayer market owner `4000000`, with station-only range and a scoped 250-day marker. The buy and sell catalogues may not be identical because the legacy sell seeder supports older non-market-listed types.
+
+**Safest first use on an existing populated database:** Stop EVEmu and Trader Joe, take a verified backup, then review and execute only NPC buy seeding:
+
+```powershell
+.\evedbtool.exe seed -buy-only -dryrun
+# After inspecting generated SQL and a verified backup:
+.\evedbtool.exe seed -buy-only
+```
+
+**Never use `seed -force` on a populated server just to add the new buy orders.** `seed -buy-only -force` deliberately rebuilds **only** this seed's static NPC bids in configured regions (not dynamic Trader Joe bids or player orders), but deletes/replaces those static bids and therefore still requires a backup and a server stop. Ordinary `seed -force` continues to rebuild NPC sell orders **as well as** these static NPC buys. For the initial upgrade, omit `-force` entirely. The buy seed also repairs **only legacy regional-range NPC bids** with `ownerID=1000125`, `bid=1`, `isCorp=0`, `orderRange=32767` to the supported pseudo-buyer ID `4000000` and 100% reference prices. Its simulated NPC escrow is adjusted; no player wallet, player escrow or historical transactions are touched. Review this in `-dryrun`. The buy seed uses `seed-saturation` and `seed-regions`; it is not automatically active in regions you have not configured. A separate, read-only coverage/price audit is at [sql/diagnostics/2026-11-17-npc-buy-orders-100pct-audit.sql](diagnostics/2026-11-17-npc-buy-orders-100pct-audit.sql). See [deployment and in-game checklist](../docs/NPC_BUY_MARKET_100_PERCENT_2026-11-17.md).
+
 - Published market items are seeded across the selected stations.
 - Charge/ammunition category items receive 550,000 units; other standard items receive 550.
 - Officer, Deadspace, Faction and Storyline meta-group equipment receive 10 units each where no sell order already exists, regardless of inventory category.
 - Prices are guarded against null/zero base prices and zero/negative station security.
-- A normal first seed uses the existing `SEED_MARKET` migration marker. To explicitly rebuild the configured regional markets, use `-force`.
+- The sell seed uses `SEED_MARKET`; the buy seed uses the independent `SEED_NPC_BUY_100PCT` marker. To intentionally refresh these markets, use `-force` with a verified backup.
 
 Windows PowerShell (from the `sql` directory):
 
@@ -76,7 +88,7 @@ Linux:
 ./evedbtool seed -force
 ```
 
-**Important:** `seed -force` deletes existing NPC corporation sell orders in the configured regions for the market item categories managed by the seed, then rebuilds them at a newly selected station set. It retains player-owned orders. It is a destructive market refresh: stop the server and take a verified database backup first. Always inspect `-dryrun` output before applying it. Each forced run is recorded under a unique seed-migration ID so it can be repeated on demand.
+**Important:** `seed -force` deletes/recreates both existing NPC corporation sell orders and the seed-managed static NPC buy orders in the configured regions, at newly selected stations. It retains player-owned orders and dynamic Trader Joe orders. It is a destructive market refresh: stop the server and take a verified database backup first. Always inspect `-dryrun` output before applying it. Each forced run is recorded under a unique seed-migration ID so it can be repeated on demand.
 
 ## Applying migrations manually with a SQL client
 

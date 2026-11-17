@@ -67,6 +67,7 @@ public:
      * Primary public interface:
      */
     virtual void Delete();
+    virtual void Rename(std::string name) override;
 
     double GetCapacity(EVEItemFlags flag) const;
     /*
@@ -111,7 +112,8 @@ protected:
             && (type.groupID() != EVEDB::invGroups::Audit_Log_Secure_Container)
             && (type.groupID() != EVEDB::invGroups::Freight_Container)
             && (type.groupID() != EVEDB::invGroups::Secure_Cargo_Container)
-            && (type.groupID() != EVEDB::invGroups::Spawn_Container) )
+            && (type.groupID() != EVEDB::invGroups::Spawn_Container)
+            && (type.groupID() != EVEDB::invGroups::Mission_Container) )
         {
             _log(ITEM__ERROR, "Trying to load %s as Container.", sDataMgr.GetCategoryName(type.categoryID()));
             if (sConfig.debug.StackTrace)

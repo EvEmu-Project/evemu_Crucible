@@ -1,4 +1,183 @@
+## 17 November 2026 — Upstream draft PR #335 refreshed with merged expedition + complete delta dossier
+
+- Integrated fork [PR #36](https://github.com/xrizonx/evemu_Crucible/pull/36) into `master` at merge commit `97a98424d2ddcbbc885ec90ca753fa47cd1a5ca2`, preserving the original Blockade and the separate eight-NPC DED/Officer mission 65534 with 500M ISK turn-in, real faction/officer/deadspace loot and True Sansha type-name exclusion.
+- Prepared upstream team handoff [`docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-17.md`](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-17.md): 692 commits/241 changed paths versus upstream baseline; 280 commits/144 changed paths since the previous contribution baseline. Includes exact source file inventory, subsystem patch notes, verification matrix, runtime caveats and rollback guidance.
+- Preserve the [15 November upstream review dossier](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md) and [original contribution-branch patch note snapshot](docs/UPSTREAM_PATCH_NOTES_HISTORY_2026-11-15.md). PR #335 remains **draft**, with no upstream merge and no SQL execution.
+- Pre-merge CI [#575](https://github.com/xrizonx/evemu_Crucible/actions/runs/44142537989): Linux and MariaDB successful before merge; Windows and Docker not yet confirmed at time of update. Live confirmation of 500M payout and two consecutive crash-free elite encounters remains open.
+
+## 17 November 2026 — PR #36 DED & Officer Expedition reward to 500M ISK
+
+- Increase only synthetic Security Agent mission 65534 reward to **500,000,000 ISK** (from 50,000,000). Mission 65535 Blockade remains **50,000,000 ISK**.
+- Keep the existing single payout at successful mission turn-in, 8-NPC target, premium faction/officer/deadspace loot and two-hour time limit.
+- Update agent briefing, C++ lifecycle test, static regression script and operator playtest guide. Existing uncompleted DED offers get the reward through normal offer normalization; no SQL migration or player-record rewrite is required.
+
+## 17 November 2026 — Exclude untargetable True Sansha NPCs from PR #36
+
+- Operator reported that True Sansha NPCs are invalid player targets in elite Security Agent mission 65534. Filter NPC candidate type names containing "True Sansha" case-insensitively, only during the new mission's selection. Preserve other legitimate Sansha NPCs.
+- Validate candidate NPCs within each category before selecting two distinct groups; skip groups with no eligible types, fail clearly if any category cannot fill its two slots, and keep the objective at eight kills.
+- No change to the Blockade, global spawns, inventories, reward or rare loot. Add source regression checks and a two-run in-game verification checklist.
+
+## 17 November 2026 — PR #36 repeated mission pocket cleanup safeguards
+
+- After one eight-NPC expedition reached 8/8, operator reported server exit on a later run; the supplied FX and bound-object warnings do not include a native exception trace.
+- Retire the matching mission bubble's spawn registrations and flags on completion/quit; preserve wrecks and remaining NPCs. Prevent accepting a beacon into an unexpectedly occupied or mismatched bubble. Keep empty-bubble manager system/ID lookups consistent.
+- Add source checks and repeated acceptance playtest instructions. Mission reward, eight-NPC spawn mix, rare loot, Blockade, player data and database schema unchanged. CI and live confirmation required.
+
+## 17 November 2026 — DED & Officer Expedition eight-NPC balance
+
+- PR #36 operator confirms actual elite ship types spawn correctly. Reduce only mission 65534 from 18 to **8 ships**: two each from DED/deadspace, faction commander, pirate officer and DED overseer categories, randomized across the existing 18 candidate NPC groups.
+- Align briefing, journal kill target, static assertions, lifecycle tests and source tests. Already accepted 18-NPC encounters keep their recorded target. Do not change original 12-NPC Blockade, 50-million-ISK reward, 120-minute limit or rare wreck loot.
+- No database migration or modifications to player, item or market records. CI and real-client playtesting remain required.
+
+## 17 November 2026 — Separate DED & Officer Security Agent Expedition (pending client acceptance)
+
+- Added synthetic Security Agent mission `65534` **DED & Officer Expedition (TEST)** alongside unchanged `65535` Blockade. Both are randomly offered by the same Security Agent divisions and tiers.
+- The new mission spawns up to 18 real Crucible NPC ships: five DED/deadspace, five faction commander, five pirate officer and three DED overseer types spanning frigates through battleships and all five pirate factions.
+- Each elite mission NPC adds a matched-tier, market-listed **Faction (meta group 4), Officer (5) or Deadspace (6)** module to its wreck via the static type catalogue. Normal NPC loot, bounty, salvage and all non-elite missions are unchanged.
+- Agent briefing, journal, mission-pocket kill count and two-hour turn-in timer reuse the established Blockade lifecycle; reward remains 50 million ISK.
+- Added `MissionLifecycleTest` assertions, Windows/Linux source regression checks and [gameplay test guide](docs/missions/DED_OFFICER_EXPEDITION_TEST_MODE.md). Real player-client verification still required.
+
+## 17 Nov 2026 — Repair NPC buy-order seed MariaDB Error 1264 (PR #35)
+
+- Fixed `evedbtool seed -buy-only -force` failure `Out of range value for column 'orderRange'`: the seed wrote `-1`, which the deployed MariaDB column cannot represent. New static bids use **`orderRange=0`** and both refresh-deletion and duplicate detection use that value.
+- `0` denotes a system-range marker to the client; immediate execution remains restricted by **stationID** in `MarketDB::FindBuyOrder`. This is a compatibility workaround, not implementation of remote sales.
+- Expanded the source regression checks and a read-only post-failure audit. Previous interrupted `-force` executions may have partially changed NPC orders before the failed insert; compare with your backup before rerunning.
+- Windows/Linux/Docker CI and a real MariaDB insert smoke test must pass before merging. No database migration or player-data changes are included in this fix.
+
+## 17 Nov 2026 — Standard NPC buy seed at 100% static market reference (pending client validation)
+
+- Added NPC **buy** orders to standard EVEDBTool market seed using independent `SEED_NPC_BUY_100PCT` migration so existing `SEED_MARKET` databases can add bids with `seed -buy-only` without rewriting sell/player orders. Bids cover every published, market-listed Crucible inventory type in configured regions.
+- New bids use exactly `invTypes.basePrice` rounded to cents (100 ISK fallback when missing/nonpositive). Existing Trader Joe bot's future buy prices likewise no longer vary randomly from 80% to 110%. A narrowly scoped one-time normalization repairs old regional-range NPC bids under `ownerID=1000125`, which the server cannot execute, to supported `4000000` at 100% reference value and adjusted non-funded NPC pseudo-escrow.
+- NPC buy orders are recognizable by `ownerID=4000000`, `bid=1`, database-compatible order range `0`, duration 250 days. Full refresh is explicit via `seed -buy-only -force`; default seed is once-only/idempotent. Orders limit notional escrow to 10 trillion ISK per order and cannot draw from player wallets.
+- Market settlement uses stored NPC bid price and caps a sale to the requested inventory quantity. [Read-only SQL audit](sql/diagnostics/2026-11-17-npc-buy-orders-100pct-audit.sql) and [operator test plan](docs/NPC_BUY_MARKET_100_PERCENT_2026-11-17.md) document coverage, pricing, duplicates, rollback boundaries and live client tests. CI / real MariaDB / 2012 client outcomes must be recorded before merging to master.
+
+## 17 Nov 2026 — A01 operator acceptance, merged validation and staging cleanup
+
+- **A01 is RESOLVED (operator reported all A01 tests passed)** on the existing-data live test. Original [PR #32](https://github.com/xrizonx/evemu_Crucible/pull/32) was already merged into `master` at `7f600be1fa06191707f4352d46f2240bfe3d2159`.
+- [A01 MariaDB 11.8 fixture CI 44072201705](https://github.com/xrizonx/evemu_Crucible/actions/runs/44072201705) and [post-merge master Windows/Linux/Docker CI 44073936776](https://github.com/xrizonx/evemu_Crucible/actions/runs/44073936776) passed. Real-client test acceptance is the operator's report; no private gameplay evidence was uploaded here, and the opt-in full-server GitHub Actions job was skipped.
+- Retired only the A01-specific temporary fixture, isolated Docker harness, Python unit helpers and dedicated CI workflow; removed A01-only steps from the standard build. **Preserved `src/eve-test/`, CTest registration, normal Windows/Linux/Docker CI, existing game services, production Compose, SQL migrations and data.** Git history retains all A01 implementation files for reproducibility if needed.
+- [A01 archived completion record](docs/A01_STAGING_HARNESS.md) and the [living repair status](docs/REPAIR_CHECKLIST.md) preserve the sign-off and next tasks.
+
+## 16 Nov 2026 — PR #25 runtime-confirmed station container fix and 0.8.7-Rizonx server revision
+
+- **Operator runtime-confirmed:** assembled Giant Secure Container **140002461** (named `Test`) can be renamed, loaded with items, and emptied into the station hangar without crashing the server or the Crucible client. Stack splitting works and contents persist over server restarts.
+- **SQL evidence:** eight valid-looking mineral stacks with owner **90000000** and container location **140002461**; an indexed inventory lookup uses existing `idx_entity_location_item` (`ref` access), so no duplicate index or data repair is indicated.
+- Set the human-readable `EVEMU_REVISION` display to **0.8.7-Rizonx**; EVE Crucible client version **7.31**, build **360229** and MachoNet **320** remain unchanged. Windows/Linux packages label their `BUILD-INFO.txt` accordingly.
+- **Still pending:** POS tower/module lifecycle, inventory edge cases and nested-container rejections, customs-office persistence, multi-character permissions, end-to-end Windows packaging, and CI verification for the new version-bump head. Full operator-checkable list: [PR #25 in-game QA acceptance checklist](docs/PR25_INGAME_VALIDATION_CHECKLIST.md).
+- Do not conflate a tested in-station container fix with blanket approval of all POS/ship/corp inventory systems. The earlier source/audit notes below are historical and were written before the user confirmed the in-game fix.
+
+---
+
+## 16 Nov 2026 — Maurasi station assembled container transfer crash triage
+
+The operator confirms station entry now works with locally served character portraits, but moving items into an assembled container crashes the **server**. The 209-line attached log shows sixteen identical unsymbolized stack traces during initial station load (before subsequent normal services); the actual fatal instruction cannot be established from those traces alone.
+
+Source audit and defensive fixes on PR #25:
+- Fix `Mission_Container` group mismatch in `CargoContainer::_LoadItem` that could emit `traceStack()` when this group is loaded.
+- Protect `Inventory::ValidateAddItem` from null source inventory references and missing in-space ship sessions; refuse self-insertion.
+- Stop ignoring failed capacity checks in `InventoryBound::MoveItems`, reject missing source items/destination inventories, and skip null/empty multi-add sort entries.
+- Prevent dereference of a missing parent cache entry in `ItemFactory::GetItemContainerRef` and `GetItemContainerInventory`.
+- Fix undefined uninitialized `std::pair` use and duplicate flag entries in `Inventory::AddItem`.
+- Reject `InventoryBound` creation for objects without an inventory; preserve assembled hangar containers when empty instead of auto-deleting them.
+- Emit `StationContainerTransfer BEGIN/END` logs around the destination capacity check and item donation; extend CI source safety checks.
+- Step-by-step QA and dump guidance: [Station assembled container transfer runbook](docs/CRUCIBLE_STATION_CONTAINER_TRANSFER_CRASH_TRIAGE_2026-11-16.md).
+
+**Caution:** These are real source defects and defensive corrections, but without a symbolized crash dump and live reproduction we cannot claim a confirmed fix for the fatal exception. No schema changes or reseeding.
+
+---
+
+## 16 Nov 2026 update — file-backed 50px agent portraits (PR #25 follow-up)
+
+- The initial PR #25 embedded 322-byte 50x50 JPEG did not prevent the user's Crucible client crash. It also intercepted every NPC agent 50px request **before filesystem access**.
+- Replaced that forced placeholder with a **local-file-first** lookup: `image_cache/Character/<agentID>_50.jpg` then optional `image_cache/Character/agent_fallback_50.jpg`. No external redirects or 512px substitution for NPC agent 50px requests. Valid player portraits and other image categories continue to work as before.
+- Kept the explicit HTTP Content-Length fix; added the Windows JPEG generation utility `tools/prepare-crucible-agent-portrait.ps1` and [file-backed station-agent A/B test](docs/CRUCIBLE_LOCAL_AGENT_PORTRAIT_TEST_2026-11-16.md).
+- This latest item **supersedes the previous embedded-322-byte test description below**. There is still no client exception dump or evidence of a successful in-game station load.
+
 # Live Patch Notes — xrizonx/evemu_Crucible
+
+## 2026-11-16 — Exact 50x50 baseline agent HTTP image and crash-safety audit
+
+- Operator confirms **HTTP 404 for `Character/3011918_50` immediately before Crucible client disconnect**, despite replacing newest .exe and DLLs. A preceding 301 and an oversized embedded fallback also coincided with crashes; no actual client minidump or exception has been supplied.
+- The Crucible 2012 50px NPC portrait loader now receives **200 OK with an actual 50×50 baseline JPEG**, not 301/404 or the old incorrectly sized placeholder. Deterministic neutral 322-byte image is compiled into server for NPC IDs 3000000–3999999 at size 50 only; no file-system or external CDN dependency, no real NPC likenesses reintroduced.
+- Image server 200 replies now include explicit `Content-Length`, `Content-Type`, `Connection: close` and `Cache-Control: no-store`, with a connection-owned async header buffer. The older split header/body response had no content length. Other Character IDs/sizes and non-Character image fallbacks retain prior behavior.
+- CTest `ImageCompatibilityTest` verifies the actual compiled JPEG byte count, baseline SOF0 50×50 dimensions, JPEG markers and tight NPC request matching.
+- Agent services: prevent null bind parameter and null mission-bookmark dereferences in agent manager and bound journal.
+- Inventory: guard missing container `GetMyInventory()`; `Split` reserves the new item *before* decrementing the original, compensates if decrement fails, and refuses full/singleton splits; `AlterQuantity` no longer deletes whole stacks on quantity underflow.
+- Added Linux/Windows source-safety invariants for these fixes. Maintains PR #20 container assembly, PR #23 station-office fix, mission/Blockade rewards, drones, weapons, market and warp.
+- Reclassified the unconditional `TCPConnection` destructor warning as trace, formatted `std::thread::id` safely instead of passing it to `%X`, preserved true thread ID before detach, and corrected pointer formatting to `%p` in the thread manager. The operator's `[ThreadWarning]` line was normal teardown logging, not proof of a client crash.
+- **Important:** automated tests confirm code safety only; the original station-load client crash has not been proven fixed. Validate HTTP 200 with exactly 322 bytes and 50×50 dimensions before loading the same station; if crash continues, obtain client minidump/fault module. [Runbook](docs/CRUCIBLE_STATION_AGENT_50PX_CLIENT_CRASH_TRIAGE_2026-11-16.md).
+
+## 2026-11-16 — Prevent modern portrait redirects during Crucible station loading
+
+- Operator verified that even after PR #22 fully removed experimental portraits and PR #23 fixed station offices, the 2012 Crucible client requested `Character/90000000_256` and `Character/3011918_50`; the latter **still received a 301 redirect** to `images.evetech.net` immediately before logout.
+- Root-cause candidate verified in source: `ImageServerConnection::ProcessHeaders` retained pre-experiment `EvEAgent::ModernImageUrl` fallback for missing NPC character portraits. Legacy clients may not support the modern external HTTPS destination; the earlier rollback did not disable this pre-existing redirect.
+- Missing **Character** pictures (player or NPC) now get HTTP **404**, with `Content-Length: 0`, `Connection: close` and `Cache-Control: no-store`; no external redirect and no newly bundled agent JPEG. Existing local player/agent JPEG files continue to load if present.
+- Before returning `image/jpeg`, `ImageServer::GetImage` now rejects an empty image or an obviously invalid JPEG signature, preventing mislabeled PNG files in `image_cache/Character` from being returned as JPEG. This signature check is **not** a full JPEG decoder.
+- Non-Character modern fallbacks, market container assembly, station office guard repairs, agent missions, Blockade reward, drones, weapons, and warp remain unchanged.
+- Extended existing `AgentHelpersTest` and added `ImageCompatibilityTest` for no character HTTPS fallback, preserved logo/icon URLs and JPEG signature checks.
+- **Crucible in-client crash fix not yet confirmed.** Earlier PR #21 404 responses did not stop the crash, so another cause or client-side cached redirects/images remain plausible. Clear only cached image data (not settings) and retest with the matching build; obtain client Event Viewer exception/minidump if it persists. See [Crucible portrait response diagnostic](docs/CRUCIBLE_IMAGE_REDIRECT_CRASH_TRIAGE_2026-11-16.md).
+
+## 2026-11-16 — Fix corporation office selection and station-load null dereferences
+
+- Investigated continuing Crucible station-load disconnects after full removal of experimental agent portraits. Supplied server excerpt contains 16 identical unsymbolized call stacks and station/faction-warfare RPCs; the actual client crash dump is not included, so the client-side root cause remains unconfirmed.
+- Corrected `StationItem::GetOfficeID`: its previous `if (cur.second.corporationID = corpID)` assignment always selected the station's first office for any player corporation. The new shared `EvEStation::OfficeIDForCorporation` helper performs a read-only ID match and returns 0 when the corporation has no office.
+- Prevented `StationItem::LoadStationOffice` from dereferencing a missing office or inventory, and only marks an office as loaded after `LoadContents` actually succeeds.
+- Guarded missing station references while constructing system statics and cleaning up a disconnected/docked character; a partial/failed station load no longer causes an additional null dereference during logout.
+- Guarded missing cached office PyRep before returning office data to the client.
+- Corrected `StationDB::GetStationOfficeIDs` for office-folder locations: `officeFolderID` is already the encoded folder ID, so subtracting `STATION_OFFICE_OFFSET` produced an incorrect SQL filter and hid office rows.
+- Added `StationOfficeIntegrityTest` CTest for multiple corporations, missing offices, empty office indexes and no cross-corporation mutation. No image, market, agents, weapon, drone, warp or container-assembly logic changed.
+- See [station-load failure source audit and client testing](docs/STATION_LOGIN_OFFICE_CRASH_AUDIT_2026-11-16.md). CI success does **not** imply that the live client crash has been reproduced and resolved.
+
+## 2026-11-16 — Completely remove experimental agent image feature and restore original HTTP handler
+
+- The 2012 Crucible client still crashes on station load even after PR #21 blocked all NPC agent JPEGs. The attached 08:11 log shows **repeated unsymbolized server-side stacks** while initializing Maurasi, then station-service RPCs and client logout; it contains no Image Server request. **No image-related root cause is proven.**
+- **Fully restored** `ImageServerConnection.cpp`, `ImageServer.cpp` and `ImageServer.h` to the pre-offline-agent-portrait implementation. Removed the agent-ID-specific helper and its tests, the external portrait import scripts and the generic JPEG fallback asset. No new 404 guard or other new image response behavior remains; the original image handler's cached images and external redirects are unchanged.
+- **Preserved** PR #20 cargo container assembly, the existing agent lifecycle/missions, 50 million ISK Blockade test reward, market containers, drones, weapons and warp tunnel.
+- CI asserts the absence of experimental portrait code and files. This is a **full rollback**, not an assertion that the client crash is fixed; the repeat `traceStack` pattern may indicate a stale executable, as a related `DynamicEntityFactory::BuildEntity` stack-print loop was removed in commit `9a3a317068cf` on 15 November.
+- See [Windows deployment and server/client crash evidence checklist](docs/AGENT_PORTRAIT_FULL_REMOVAL_2026-11-16.md).
+
+## 2026-11-16 — Disable crash-prone station NPC portrait delivery
+
+- Reported **immediate Crucible client crash when entering a station** after PR #20 embedded a generic agent JPEG. The client-side decoder root cause is not yet proven; this is a conservative compatibility rollback.
+- Image server now returns local **404** for every NPC agent portrait ID in **3,000,000–3,999,999** *before loading a cached, custom or generic JPEG*, so stale image_cache files cannot reactivate the fault. No HTTP redirect is sent for these IDs; agent pictures intentionally remain blank.
+- Restored pre-offline-portrait `ImageServer.cpp` and `ImageServer.h`, dropped installation of fallback JPEG and removed its runtime usage; player portraits and unrelated image categories retain earlier behavior.
+- **Preserved PR #20 cargo container assembly**, all agent station metadata and mission lifecycle fixes, Blockade reward/market seeding, drones, weapons and warp tunnel behavior.
+- Added source-level regression for the early image block and new [station-load rollback guide](docs/AGENT_STATION_PORTRAIT_ROLLBACK_2026-11-16.md); live Crucible client confirmation still required.
+
+## 2026-11-16 — Fix container assembly and working-directory-dependent agent portrait fallback
+
+- Implemented the existing Crucible `invbroker.AssembleCargoContainer(itemID, None, 0.0)` RPC. Previously it only logged a warning and returned without assembling. Restricts operations to personally owned station containers in historical groups **12/340/448/649**, splitting **one** item from multi-item packaged stacks, setting the singleton state and updated volume, notifying inventory and explicitly saving to DB.
+- Preserved client-owned items and station checks; non-container, already assembled, corp-owned and remote items are not mutated by the new path. Existing generic inventory splitting remains nontransactional on DB failure; run on a backed-up staging server first.
+- Fixed image-server warnings such as agent **3011918** by embedding the exact neutral JPEG `assets/agent_portraits/agent_missing_512.jpg` directly into the executable as the last fallback for uncached NPC agent images, rather than relying on `../share/evemu` relative to the process working directory. Local per-agent portraits and operator-supplied placeholder files still take precedence, with no HTTP redirect.
+- Added `ContainerAssemblyTest` to CTest and exact-byte embedded-JPEG Python regression coverage. Gameplay verification remains pending; see [implementation and operator verification](docs/CONTAINER_ASSEMBLY_AND_AGENT_FALLBACK_FIX_2026-11-16.md).
+
+## 2026-11-15 — Offline Crucible station-agent portraits
+
+- Removed external HTTPS redirection for missing NPC station-agent character portraits (legacy 3,000,000–3,999,999 IDs); the local image server now serves exact or alternative cached JPEG sizes, or a bundled original generic silhouette when no historic portrait exists.
+- Added a portable placeholder at `share/evemu/agent_portraits/agent_missing_512.jpg` via CMake, with a custom override under `image_cache/Character/`. The packaged fallback remains accessible even if Docker mounts an existing `image_cache` volume.
+- Added opt-in `tools/agent_portraits/sync_portraits.py` to import available genuine JPEGs as local files using `sql/base/agtAgents.sql.gz` without live MariaDB. It validates responses and preserves existing cached portraits; a `--local-import ... --offline-only` mode imports an existing historical JPEG folder/ZIP entirely without network. **No network access is required from the server during agent image requests**; the importer uses the official image service only when intentionally run.
+- Added offline Python cache/JPEG tests and an expanded `AgentHelpersTest` NPC portrait-ID check; Windows/Linux CI verifies the importer against the actual packaged agent SQL dump.
+- Documentation: [offline portrait setup and verification](docs/AGENT_LOCAL_PORTRAITS_2026-11-15.md). Complete historical NPC portrait coverage and a 2012 client visual test are not yet proven, and downloaded copyrighted CCP assets are not automatically added to the public GitHub source.
+
+## 2026-11-15 — Blockade test reward and cargo containers in NPC market seed
+
+- Increased the synthetic Level 0 Blockade test mission's ISK reward from **150,000 to 50,000,000 ISK**, without altering official Crucible-era mission templates or unrelated rewards.
+- Updated five hard-coded Blockade briefing, conversation and journal text occurrences. Existing Blockade offers use the already-implemented normalization on retrieval; previously completed missions are not retroactively paid.
+- Added published, market-group-assigned cargo containers to EVEDBTool's regional seed and force-reseed filters: inventory groups **12 (cargo), 340 (secure), 448 (audit-log secure), 649 (freight)**. This avoids wholesale seeding of the Celestial category.
+- Applied the same container allowlist to both legacy region and single-station market seed SQL scripts.
+- Expanded Windows and Linux EVEDBTool dry-run CI checks to verify both container insertion and force-cleanup SQL. Added a Blockade reward assertion to `AgentHelpersTest` and [rollout/audit instructions](docs/BLOCKADE_REWARD_AND_CONTAINER_MARKET_SEED_2026-11-15.md).
+- **Verification:** build and live market/client gameplay tests must be checked on this branch. Run `evedbtool seed -force -dryrun` before applying a `-force` reseed; existing NPC orders may be replaced.
+
+## 2026-11-15 — Mission offer lifecycle and offline-item integrity
+
+- Fixed periodic expired-offer crashes when agent lookup fails; persistent state cleanup continues without client notifications.
+- Fixed shared-agent cache invalidation by matching persistent offer IDs and character IDs rather than erasing an arbitrary entry for the same agent.
+- Deferred (`Allocated`) offers now expire correctly; stale previous offers no longer remove a newly issued same-agent mission.
+- Completed offers are immediately archived to mission history instead of lingering in active indexes. Mission cache update/remove paths now match offer IDs.
+- A failed `agtOffers` insert no longer produces a non-persistent zero-ID mission.
+- Offline mission item cleanup now preserves the unconsumed stack remainder, supports 32-bit quantities and stops on SQL errors.
+- Added `MissionLifecycleTest` and [dedicated source audit](docs/MISSION_EXPIRY_AND_OFFLINE_STACK_AUDIT_2026-11-15.md).
+- **Verification:** new branch CI and live client/DB verification pending. Earlier successful master CI does not verify this patch.
 
 ## 2026-11-15 — Agent data, station portraits and mission safety
 
@@ -10,19 +189,6 @@
 - Fixed time-bonus calculation: compare the current FILETIME with the acceptance timestamp plus the configured minutes, and show the actual bonus ISK rather than an estimated multiple of the base reward. Broken bonus check previously never paid eligible bonuses.
 - Error handling now returns early if loading agent skill data from SQL fails.
 - Added `AgentHelpersTest` for image URL mapping and bonus-time math and a dedicated [agent image/mission audit](docs/AGENT_STATION_IMAGE_AUDIT_2026-11-15.md). GitHub build and Crucible client gameplay verification pending for the new code.
-
-This file tracks fixes and maintenance changes made on this fork's `master` branch. Entries describe code changes, not a guarantee that every gameplay path has been manually tested.
-
-
-## 2026-11-15 — Complete upstream submission review snapshot
-
-- Source: `xrizonx/evemu_Crucible:master`, commit `96450674fae13954e52009f88517a006d1c68a3b`, versus `EvEmu-Project/evemu_Crucible:master` `f55b488a006e3090470d3b481aee47a1d7a0dade`.
-- **410 commits ahead, 0 behind, 137 changed paths, +9,316/−1,748 textual lines.** Earlier patch-note counts (e.g. 183) and pending CI notes were historical snapshots.
-- [CI run 43742655629](https://github.com/xrizonx/evemu_Crucible/actions/runs/43742655629): **all passed** — Linux GCC + CTest + packaging, Windows UCRT64 GCC + CTest + portable ZIP, Docker image.
-- New upstream-review inventory: [`docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md`](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md). This contains detailed changes by subsystem, current test evidence, full file inventory and a reviewer acceptance matrix.
-- Updates through the source head: missions/Blockade, NPC spawning, ship warp/approach and orbit/collision fixes, drone targeting/control range/return, turret and missile Crucible-era mechanics, defender/smartbomb, image server, null/data safeguards, CI packaging and EVEDBTool market seeding.
-- **Still unverified or incomplete:** in-game 24/24 mission completion and payout; mining drone harvesting; full bomb and doomsday systems; continuous physical collision resolution; individual ship/module historical balance. Reviewers should not treat a green CI result as full gameplay verification.
-- This is an upstream submission **for maintainer review** only; it does not merge the upstream branch or execute/approve database changes.
 
 This file tracks fixes and maintenance changes made on this fork's `master` branch. Entries describe code changes, not a guarantee that every gameplay path has been manually tested.
 

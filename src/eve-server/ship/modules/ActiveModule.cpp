@@ -8,6 +8,7 @@
 
 #include "eve-server.h"
 #include "EVE_WeaponFormulas.h"
+#include "EVE_MovementFormulas.h"
 
 #include "StatisticMgr.h"
 #include "exploration/Probes.h"
@@ -752,7 +753,7 @@ void ActiveModule::DeactivateCycle(bool abort/*false*/)
 
     switch (groupID()) {
         case EVEDB::invGroups::Tractor_Beam: {
-            if (m_targetSE != nullptr)
+            if (m_targetSE != nullptr && m_targetSE->DestinyMgr() != nullptr)
                 m_targetSE->DestinyMgr()->TractorBeamStop();
         } break;
         case EVEDB::invGroups::Afterburner:
@@ -1118,6 +1119,7 @@ bool ActiveModule::CanActivate() {
 
         // test for specific targets and distance here
         float range(0.0f);
+        bool startTractor = false;
         using namespace EVEDB::invGroups;
         switch (groupID()) {
             case Tractor_Beam: {
@@ -1145,18 +1147,25 @@ bool ActiveModule::CanActivate() {
                     bool owner(false), fleet(false), corp(false), ally(false), war(false);
                     if (m_targetSE->GetOwnerID() == m_shipRef->ownerID())
                         owner = true;
-                    if (m_targetSE->GetCorporationID() == m_shipRef->GetPilot()->GetCorporationID())
-                        corp = true;
-                    if (m_targetSE->GetAllianceID() == m_shipRef->GetPilot()->GetAllianceID())
-                        ally = true;
-                    if (m_targetSE->GetWarFactionID() == m_shipRef->GetPilot()->GetWarFactionID())
-                        war = true;
-                    if (m_shipRef->GetPilot()->InFleet())
-                        if (m_shipRef->GetPilot()->GetFleetID() == m_targetSE->GetFleetID())
-                            fleet = true;
+                    const uint32 pilotCorp = m_shipRef->GetPilot()->GetCorporationID();
+                    const uint32 pilotAlliance = m_shipRef->GetPilot()->GetAllianceID();
+                    const uint32 pilotFaction = m_shipRef->GetPilot()->GetWarFactionID();
+                    // An ID of 0 denotes "no alliance/faction/fleet", not
+                    // shared membership. Matching two zero IDs gave virtually
+                    // anyone permission to tractor someone else's wreck.
+                    corp = pilotCorp != 0 && m_targetSE->GetCorporationID() == pilotCorp;
+                    ally = pilotAlliance != 0 && m_targetSE->GetAllianceID() == pilotAlliance;
+                    war = pilotFaction != 0 && m_targetSE->GetWarFactionID() == pilotFaction;
+                    if (m_shipRef->GetPilot()->InFleet()) {
+                        const uint32 pilotFleet = m_shipRef->GetPilot()->GetFleetID();
+                        fleet = pilotFleet != 0 && pilotFleet == m_targetSE->GetFleetID();
+                    }
 
-                    if (owner or fleet or corp or ally or war) {
-                        m_targetSE->DestinyMgr()->TractorBeamStart(m_shipRef->GetPilot()->GetShipSE(), GetAttribute(AttrMaxTractorVelocity));
+                    if (owner || fleet || corp || ally || war) {
+                        // Start movement only after the common range check.
+                        // Previously an out-of-range activation started the
+                        // tractor BEFORE rejecting the module activation.
+                        startTractor = true;
                     } else {
                         int id = m_targetSE->GetID ();
 
@@ -1223,16 +1232,29 @@ bool ActiveModule::CanActivate() {
             } break;
         }
 
-        float distance = m_shipRef->position().distance(m_targetSE->GetPosition());
-        distance -= m_targetSE->GetRadius();
+        // Check effective module range against clearance between surfaces,
+        // not just target edge: the old check omitted our hull radius.
+        ShipSE* rangeSource = m_shipRef->GetPilot()->GetShipSE();
+        if (rangeSource == nullptr)
+            return false;
+        const double distance = EVEmuMovement::SurfaceSeparation(
+            rangeSource->GetPosition().distance(m_targetSE->GetPosition()),
+            rangeSource->GetRadius(), m_targetSE->GetRadius());
 
         _log(MODULE__MESSAGE, "Activate::RangeTest - distance between %s and target %s: %.1f.  range of %s is %.1f", \
                     m_shipRef->name(), m_targetSE->GetName(), distance, m_modRef->name(), range);
 
-        if (distance > range) {
+        if (!std::isfinite(range) || range <= 0.0f || distance > range) {
             m_shipRef->GetPilot()->SendNotifyMsg("The %s is %.0f meters from you, outside the effective range of your %s, which is %.0f meters.", \
                     m_targetSE->GetName(), distance, m_modRef->name(), range);
             return false;
+        }
+        if (startTractor) {
+            ShipSE* source = m_shipRef->GetPilot()->GetShipSE();
+            if (source == nullptr || m_targetSE->DestinyMgr() == nullptr)
+                return false;
+            m_targetSE->DestinyMgr()->TractorBeamStart(
+                source, GetAttribute(AttrMaxTractorVelocity));
         }
     }
 

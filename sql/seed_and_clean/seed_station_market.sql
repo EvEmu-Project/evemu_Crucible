@@ -11,13 +11,19 @@ insert into tStations values (60014137, 30000053, 10000001);
 -- actual seeding
 INSERT INTO mktOrders (typeID, ownerID, regionID, stationID, price, volEntered, volRemaining, issued,
 minVolume, duration, solarSystemID, jumps)
-  SELECT typeID, stationID, regionID, stationID, basePrice,
+  SELECT typeID, stationID, regionID, stationID,
+         CASE WHEN basePrice IS NULL OR basePrice <= 0 THEN 100 ELSE GREATEST(0.01, ROUND(basePrice, 2)) END,
          CASE WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
          CASE WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
          132478179209572976, 1, 250, solarSystemID, 1
   FROM tStations, invTypes inner join invGroups on invTypes.groupID=invGroups.groupID
   WHERE invTypes.published = 1
-  AND categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 20, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46);
-UPDATE mktOrders SET price = 100 WHERE price = 0;
+  AND (
+      invGroups.categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 20, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46)
+      -- Published, market-listed Celestial cargo/secure/audit/freight containers.
+      OR (invGroups.groupID IN (12, 340, 448, 649)
+          AND invTypes.marketGroupID IS NOT NULL)
+  );
+-- No unscoped UPDATE: preserve prices on all pre-existing player orders.
 -- 11004 orders per station
 

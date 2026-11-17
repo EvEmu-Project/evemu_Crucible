@@ -89,7 +89,12 @@ public:
     CargoContainerRef GetContainerFromInventory(uint32 contID);
 
     // station methods here for offices, reprocessing, and docking.
-    PyRep* GetOffices()                                 { PyIncRef(m_officePyData); return m_officePyData; }  // cached officeData for client call
+    PyRep* GetOffices() {  // cached office data for the client
+        if (m_officePyData == nullptr)
+            return PyStatic.NewNone();
+        PyIncRef(m_officePyData);
+        return m_officePyData;
+    }
     int8 GetAvalibleOfficeCount()                       { return maxRentableOffices - m_officeMap.size(); }
     int32 GetOfficeRentalFee()                          { return m_data.officeRentalFee; }
     uint32 GetOwnerID()                                 { return m_data.corporationID; }

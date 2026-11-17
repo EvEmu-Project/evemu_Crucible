@@ -61,49 +61,66 @@ void MissionDataMgr::GetInfo()
 // called every minute from EntityList::Process()
 void MissionDataMgr::Process()
 {
-    // process open offers every 5m
-    if (++m_procCount > 5) {
-        m_procCount = 0;
+    // Process open offers approximately every five minutes.
+    if (++m_procCount <= 5)
+        return;
+    m_procCount = 0;
 
-        Agent* pAgent(nullptr);
-        Client* pClient(nullptr);
-        std::multimap<uint32, MissionOffer>::iterator itr = m_offers.begin();
-        while (itr != m_offers.end()) {
-            if (itr->second.expiryTime < GetFileTimeNow()) {
-                pAgent = sEntityList.GetAgent(itr->second.agentID);
-                pClient = sEntityList.FindClientByCharID(itr->first);
-                // notify client if they are online.  eventaully we'll send mail also
-                if (itr->second.stateID == Mission::State::Accepted) {
-                    pAgent->SendMissionUpdate(pClient, "failed");
-                    itr->second.stateID = Mission::State::Failed;
-                    if (itr->second.typeID != Mission::Type::Encounter && itr->second.courierTypeID) {
-                        // remove item from player's possession
-                        if (pClient != nullptr) {
-                            pClient->RemoveMissionItem(itr->second.courierTypeID, itr->second.courierAmount);
-                        } else {
-                            MissionDB::RemoveMissionItem(itr->first, itr->second.courierTypeID, itr->second.courierAmount);
-                        }
-                    }
-                } else if (itr->second.stateID == Mission::State::Offered) {
-                    pAgent->SendMissionUpdate(pClient, "offer_expired");
-                    itr->second.stateID = Mission::State::Expired;
-                }
-                std::multimap<uint32, MissionOffer>::iterator itr2 = m_aoffers.find(itr->second.agentID);
-                if (itr2 != m_aoffers.end())
-                    m_aoffers.erase(itr2);
-                m_xoffers.emplace(itr->first, itr->second);
-                pAgent->RemoveOffer(itr->first);
-                MissionDB::UpdateMissionOffer(itr->second);
-                itr = m_offers.erase(itr);
-                pAgent = nullptr;
-                pClient = nullptr;
-            } else {
-                ++itr;
+    const double now = GetFileTimeNow();
+    auto itr = m_offers.begin();
+    while (itr != m_offers.end()) {
+        MissionOffer& offer = itr->second;
+        if (offer.expiryTime <= 0.0 || offer.expiryTime > now) {
+            ++itr;
+            continue;
+        }
+
+        const uint32 characterID = itr->first;
+        const uint32 agentID = offer.agentID;
+        const uint32 offerID = offer.offerID;
+        Agent* pAgent = sEntityList.GetAgent(agentID);
+        Client* pClient = sEntityList.FindClientByCharID(characterID);
+
+        if (offer.stateID == Mission::State::Accepted) {
+            if (pAgent != nullptr)
+                pAgent->SendMissionUpdate(pClient, "failed");
+            offer.stateID = Mission::State::Failed;
+            if (offer.typeID != Mission::Type::Encounter && offer.courierTypeID != 0) {
+                if (pClient != nullptr)
+                    pClient->RemoveMissionItem(offer.courierTypeID, offer.courierAmount);
+                else
+                    MissionDB::RemoveMissionItem(characterID, offer.courierTypeID, offer.courierAmount);
+            }
+        } else if (Mission::IsAwaitingAcceptance(offer.stateID)) {
+            if (pAgent != nullptr)
+                pAgent->SendMissionUpdate(pClient, "offer_expired");
+            offer.stateID = Mission::State::Expired;
+        }
+
+        // Only erase the matching offer, not the first entry for this agent.
+        auto agentOffers = m_aoffers.equal_range(agentID);
+        for (auto ai = agentOffers.first; ai != agentOffers.second; ++ai) {
+            if (Mission::MatchesOffer(ai->second, characterID, offerID)) {
+                m_aoffers.erase(ai);
+                break;
             }
         }
+
+        if (pAgent != nullptr) {
+            // A newer mission may have replaced a completed or expired offer.
+            MissionOffer activeOffer{};
+            if (pAgent->HasMission(characterID, activeOffer)
+                && activeOffer.offerID == offerID)
+                pAgent->RemoveOffer(characterID);
+        } else {
+            _log(AGENT__WARNING, "MissionDataMgr::Process() - agent %u unavailable while expiring offer %u.", agentID, offerID);
+        }
+
+        MissionDB::UpdateMissionOffer(offer);
+        m_xoffers.emplace(characterID, offer);
+        itr = m_offers.erase(itr);
     }
 }
-
 
 void MissionDataMgr::Populate()
 {
@@ -273,6 +290,17 @@ void MissionDataMgr::Populate()
         MissionData importantBlockadeTest = blockadeTest;
         importantBlockadeTest.important = true;
         m_missionsImp.emplace(testLevel, importantBlockadeTest);
+
+        // A separate, deliberately difficult DED / faction / officer
+        // mission is offered by the same Security Agent divisions and tiers.
+        // Clone the proven encounter reward/offer lifecycle, not its spawns.
+        MissionData eliteMission = blockadeTest;
+        eliteMission.missionID = Mission::kEliteSecurityMissionID;
+        eliteMission.name = "DED & Officer Expedition (TEST)";
+        eliteMission.rewardISK = Mission::kEliteSecurityRewardISK;
+        m_missions.emplace(testLevel, eliteMission);
+        eliteMission.important = true;
+        m_missionsImp.emplace(testLevel, eliteMission);
     }
 
     sLog.Cyan("   MissionDataMgr", "%lu(%lu) Unsorted Mission Data Sets loaded in %.3fms.", m_missions.size(), m_missionsImp.size(), (GetTimeMSeconds() - start));
@@ -452,17 +480,23 @@ void MissionDataMgr::RemoveMissionOffer(uint32 charID, MissionOffer& data)
 {
     auto itr = m_offers.equal_range(charID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if (it->second.agentID == data.agentID) {
+        if (it->second.agentID == data.agentID && it->second.offerID == data.offerID) {
             m_offers.erase(it);
             break;
         }
 
     itr = m_aoffers.equal_range(data.agentID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if (it->second.characterID == charID) {
+        if (Mission::MatchesOffer(it->second, charID, data.offerID)) {
             m_aoffers.erase(it);
             break;
         }
+}
+
+void MissionDataMgr::ArchiveMissionOffer(uint32 charID, MissionOffer& data)
+{
+    RemoveMissionOffer(charID, data);
+    m_xoffers.emplace(charID, data);
 }
 
 void MissionDataMgr::LoadAgentOffers(const uint32 agentID, std::map< uint32, MissionOffer >& data)
@@ -630,7 +664,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 const bool notCompletedStarter = (level != 0)
                     || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
                         == completedStarterMissionIDs.end());
-                if (securityAgent && mission.missionID == Mission::kBlockadeSecurityTestMissionID) {
+                if (securityAgent && Mission::IsSyntheticSecurityEncounter(mission.missionID)) {
                     candidates.push_back(mission);
                 } else if (!securityAgent && mission.typeID == Mission::Type::Encounter
                         && raceMatches && notStoryline && notCompletedStarter) {
@@ -650,7 +684,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                     const bool notCompletedStarter = (level != 0)
                         || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
                             == completedStarterMissionIDs.end());
-                    if (securityAgent && mission.missionID == Mission::kBlockadeSecurityTestMissionID) {
+                    if (securityAgent && Mission::IsSyntheticSecurityEncounter(mission.missionID)) {
                         candidates.push_back(mission);
                     } else if (!securityAgent && mission.typeID == Mission::Type::Encounter
                             && raceMatches && notStoryline && notCompletedStarter) {
@@ -666,7 +700,7 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 return;
             }
 
-            const MissionData& mission = candidates[MakeRandomInt(0, static_cast<uint32>(candidates.size() - 1))];
+            const MissionData& mission = candidates[Mission::RandomCandidateIndex(candidates.size())];
             data.typeID = Mission::Type::Encounter;
             data.name = mission.name;
             if (level == 0)
@@ -752,14 +786,14 @@ void MissionDataMgr::UpdateMissionData(uint32 charID, MissionOffer& data)
 {
     auto itr = m_offers.equal_range(charID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if (it->second.agentID == data.agentID) {
+        if (it->second.agentID == data.agentID && it->second.offerID == data.offerID) {
             it->second = data;
             break;
         }
 
     itr = m_aoffers.equal_range(data.agentID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if (it->second.characterID == charID) {
+        if (Mission::MatchesOffer(it->second, charID, data.offerID)) {
             it->second = data;
             break;
         }

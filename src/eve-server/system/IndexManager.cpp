@@ -24,6 +24,7 @@
 */
 
 #include "eve-server.h"
+#include <algorithm>
 
 
 #include "system/IndexManager.h"
@@ -63,8 +64,13 @@ PyResult IndexManager::GetDevelopmentIndicesForSystem(PyCallArgs& call, PyInt* s
     
     // Strategic
     row1->SetField("attributeID", new PyInt(EveAttrEnum::AttrdevIndexSovereignty));
-    double daysSinceClaim = (GetFileTimeNow() - sovData.claimTime) / Win32Time_Day;
-    row1->SetField("points", new PyInt(uint32(daysSinceClaim)));
+    // Unclaimed empire/low-sec systems have claimTime == 0. Reporting days
+    // since the Windows epoch would give a bogus strategic index.
+    const double daysSinceClaim = (sovData.claimStructureID && sovData.claimTime > 0)
+        ? (GetFileTimeNow() - sovData.claimTime) / Win32Time_Day : 0.0;
+    const uint32 strategicDays = daysSinceClaim > 0.0
+        ? static_cast<uint32>(std::min(daysSinceClaim, 65535.0)) : 0;
+    row1->SetField("points", new PyInt(strategicDays));
     row1->SetField("increasing", new PyBool(false));
 
     // Military

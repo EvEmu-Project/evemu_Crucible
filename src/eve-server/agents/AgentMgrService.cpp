@@ -68,8 +68,9 @@ AgentMgrService::AgentMgrService(EVEServiceManager& mgr) :
 }
 
 BoundDispatcher* AgentMgrService::BindObject(Client* client, PyRep* bindParameters) {
-    if (!bindParameters->IsInt()) {
-        _log(SERVICE__ERROR, "%s: Non-integer argument '%s'", client->GetName(), bindParameters->TypeString());
+    if (bindParameters == nullptr || !bindParameters->IsInt()) {
+        _log(SERVICE__ERROR, "%s: Invalid agent bind parameter '%s'",
+             client->GetName(), bindParameters == nullptr ? "null" : bindParameters->TypeString());
         return nullptr;
     }
 
@@ -147,7 +148,7 @@ PyResult AgentMgrService::GetMyJournalDetails(PyCallArgs &call) {
         mData->SetItem(3, new PyString(cur.name)); //missionName
         mData->SetItem(4, new PyInt(cur.agentID)); //agentID
         mData->SetItem(5, new PyLong(cur.expiryTime)); //expirationTime
-        mData->SetItem(6, cur.bookmarks->Clone()); //bookmarks -- if populated, this is PyList of PyDicts as defined below...
+        mData->SetItem(6, cur.bookmarks != nullptr ? cur.bookmarks->Clone() : new PyList()); //bookmarks -- if populated, this is PyList of PyDicts as defined below...
         mData->SetItem(7, new PyBool(cur.remoteOfferable)); //remoteOfferable
         mData->SetItem(8, new PyBool(cur.remoteCompletable)); //remoteCompletable
         missions->AddItem(mData);

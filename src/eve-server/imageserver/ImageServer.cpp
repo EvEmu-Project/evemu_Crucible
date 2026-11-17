@@ -25,6 +25,8 @@
 
 /** @todo  boost is the only system in this code that does NOT leak */
 
+#include "EVE_ImageHelpers.h"
+#include "EVE_LegacyAgentThumbnail.h"
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerListener.h"
 
@@ -120,17 +122,30 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     if (!ValidateCategory(category) || !ValidateSize(category, size))
         return std::shared_ptr<std::vector<char> >();
 
-    //std::ifstream stream;
+    // The client uses our local HTTP endpoint, but for station agents the
+    // actual JPEG must come from the server's image_cache/Character folder.
+    // Prefer <agentID>_50.jpg; permit an operator-supplied generic 50px
+    // fallback. Never send the previous 322-byte compiled-in placeholder,
+    // a mismatched 512px portrait, or a modern HTTPS redirect for this path.
+    const bool localAgent50 = EvEImage::IsLegacyAgentThumbnail50(category, id, size);
     std::string path(GetFilePath(category, id, size));
     FILE * fp = fopen(path.c_str(), "rb");
-    // Existing characters have only a 512px image. Serve that local file
-    // when a client requests a smaller portrait; new exact-size images win.
-    if (fp == NULL && category == "Character" && size != 512) {
+    if (fp == NULL && localAgent50) {
+        path = _basePath + "Character/agent_fallback_50.jpg";
+        fp = fopen(path.c_str(), "rb");
+    }
+    // Keep legacy 512px fallback for other Character requests only.
+    if (fp == NULL && category == "Character" && size != 512 && !localAgent50) {
         path = GetFilePath(category, id, 512);
         fp = fopen(path.c_str(), "rb");
     }
-    if (fp == NULL)
+    if (fp == NULL) {
+        if (localAgent50)
+            sLog.Warning("      ImageServer",
+                         "No local JPEG for agent %u; expected %s or Character/agent_fallback_50.jpg.",
+                         id, GetFilePath(category, id, size).c_str());
         return std::shared_ptr<std::vector<char> >();
+    }
     if (fseek(fp, 0, SEEK_END) != 0) {
         fclose(fp);
         return std::shared_ptr<std::vector<char>>();
@@ -147,6 +162,22 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     fclose(fp);
     if (bytesRead != length)
         return std::shared_ptr<std::vector<char>>();
+
+    // The legacy client expects JPEG bytes for Character images. The image
+    // cache and portrait-upload path can contain empty or mislabeled PNG
+    // data under a .jpg name. Reject an obviously non-JPEG payload rather
+    // than sending it as image/jpeg during station load. This is a signature
+    // check, not a full JPEG decoder/validity guarantee.
+    if (category == "Character" && !EvEImage::HasJpegSignature(*ret)) {
+        sLog.Warning("      ImageServer",
+                     "Ignoring non-JPEG or empty cached Character image %u_%u from %s.",
+                     id, size, path.c_str());
+        return std::shared_ptr<std::vector<char>>();
+    }
+    if (localAgent50)
+        sLog.Debug("      ImageServer",
+                   "Serving disk JPEG for agent %u at 50px from %s (%lu bytes).",
+                   id, path.c_str(), static_cast<unsigned long>(ret->size()));
     return ret;
 }
 

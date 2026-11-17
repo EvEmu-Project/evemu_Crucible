@@ -46,6 +46,17 @@
 #include "station/StationDataMgr.h"
 #include "manufacturing/FactoryDB.h"
 
+// Ensure a throwing validation or early RPC return cannot leave a stale
+// global client pointer in ItemFactory for the next inventory operation.
+class ScopedInventoryClient
+{
+public:
+    explicit ScopedInventoryClient(Client* client) { sItemFactory.SetUsingClient(client); }
+    ~ScopedInventoryClient() { sItemFactory.UnsetUsingClient(); }
+    ScopedInventoryClient(const ScopedInventoryClient&) = delete;
+    ScopedInventoryClient& operator=(const ScopedInventoryClient&) = delete;
+};
+
 InventoryBound::InventoryBound(EVEServiceManager &mgr, BoundServiceParent<InventoryBound>& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID, bool passive) :
     EVEBoundObject(mgr, parent),
     pInventory(item->GetMyInventory()),
@@ -194,7 +205,7 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
     _log(INV__MESSAGE, "IB::MultiMerge() called by %s(%u)", m_self->name(), m_itemID);
     call.Dump(INV__DUMP);
 
-    sItemFactory.SetUsingClient(call.client);
+    ScopedInventoryClient factoryClient(call.client);
     Inventory* pInv(nullptr); // = sItemFactory.GetInventoryFromId(args.locationID);
     /* args.locationID is NOT the destination...it is the source, and NOT what we're looking for here.
     if (pInv == nullptr) {
@@ -209,6 +220,10 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
             continue;
 
         PyTuple* tuple1 = (*itr)->AsTuple();
+        if (tuple1 == nullptr || tuple1->size() < 3) {
+            _log(INV__WARNING, "IB::MultiMerge - malformed merge tuple; skipping.");
+            continue;
+        }
 
         int32 sourceID = PyRep::IntegerValue(tuple1->GetItem(0));
         int32 destID = PyRep::IntegerValue(tuple1->GetItem(1));
@@ -217,6 +232,14 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
         InventoryItemRef srcItem = sItemFactory.GetItemRef( sourceID );
         if (srcItem.get() == nullptr) {
             _log(INV__WARNING, "Failed to load source item %u. Skipping.", sourceID);
+            continue;
+        }
+
+        // A zero quantity means merge the entire source stack.
+        if (qty == 0)
+            qty = srcItem->quantity();
+        if (qty < 1 || qty > srcItem->quantity()) {
+            _log(INV__WARNING, "IB::MultiMerge - invalid qty %d for source %u.", qty, srcItem->itemID());
             continue;
         }
 
@@ -237,7 +260,7 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
             destItem->Merge( srcItem, qty, true );
         // if false, error is thrown in ValidateAddItem() call
     }
-    sItemFactory.UnsetUsingClient();
+
 
     return nullptr;
 }
@@ -264,6 +287,14 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
     }
 
     InventoryItemRef iRef = sItemFactory.GetItemRef(itemID->value());
+    if (iRef.get() == nullptr) {
+        _log(INV__ERROR, "IB::Add: source item %u could not be loaded.", itemID->value());
+        return nullptr;
+    }
+    if (pInventory == nullptr) {
+        _log(INV__ERROR, "IB::Add: destination %u has no inventory.", m_itemID);
+        return nullptr;
+    }
 
     bool moveStack = false;
     int32 quantity = 0;
@@ -374,6 +405,10 @@ PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* cont
 
 PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, EVEItemFlags toFlag, int32 quantity, bool moveStack, float capacity)
 {   // complete method rewrite -allan 21Dec17
+    if (pClient == nullptr || m_self.get() == nullptr || pInventory == nullptr) {
+        _log(INV__ERROR, "IB::MoveItems: invalid client or destination inventory %u.", m_itemID);
+        return nullptr;
+    }
     ShipItem* pShip = pClient->GetShip().get();
     bool donating = false, ship = false, customs = false;
     int32 origQty = quantity;
@@ -468,10 +503,15 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         } break;
     }
 
+    if (ship && (pShip == nullptr || m_self->GetShipItem() == nullptr)) {
+        _log(INV__ERROR, "IB::MoveItems: ship destination %u has no usable ship entity.", m_itemID);
+        return nullptr;
+    }
+
     EVEItemFlags fromFlag(flagNone);
     EVEItemFlags origFlag(toFlag);
     InventoryItemRef iRef(nullptr);
-    sItemFactory.SetUsingClient(pClient);
+    ScopedInventoryClient factoryClient(pClient);
 
     std::vector<int32>::const_iterator itr = items.begin();
     for (; itr != items.end(); ++itr) {
@@ -482,6 +522,13 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         iRef = sItemFactory.GetItemRef(*itr);
         if (iRef.get() == nullptr) {
             _log(INV__ERROR, "IB::MoveItems() - item %i not found.  continuing.", (*itr));
+            continue;
+        }
+        // Check before splitting, donating or fitting: a rejected nesting
+        // request must not mutate the original item/stack.
+        if (pInventory->WouldCreateContainmentCycle(iRef)) {
+            _log(INV__WARNING, "IB::MoveItems() - rejected containment cycle for item %u into %u.",
+                 iRef->itemID(), m_itemID);
             continue;
         }
 
@@ -561,6 +608,13 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         }
 
         if (donating) {
+            // POS storage and corp destinations need capacity checks just
+            // like ordinary cargo. Do not mutate ownership for rejected moves.
+            if (!pInventory->ValidateAddItem(toFlag, iRef)) {
+                _log(INV__WARNING, "IB::MoveItems: POS/corp destination %u rejected item %u.",
+                     m_itemID, iRef->itemID());
+                continue;
+            }
             iRef->Donate(m_ownerID, m_itemID, toFlag);
             continue;
         }
@@ -589,7 +643,10 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             if (IsModuleSlot(toFlag)) {
                 m_self->GetShipItem()->TryModuleLimitChecks(toFlag, iRef); // this will throw if it fails
             } else if (IsCargoHoldFlag(toFlag) or IsHangarFlag(toFlag) or (toFlag == flagDroneBay)) {
-                pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
+                if (!pInventory->ValidateAddItem(toFlag, iRef)) {
+                    _log(INV__WARNING, "IB::MoveItems: item %u rejected by ship capacity validation.", iRef->itemID());
+                    continue;
+                }
             }
 
             // check adding item to ship...if it fails, return to previous container
@@ -604,16 +661,36 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
                 continue;
             }
         } else if (customs) {
-            pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
-            StructureItemRef sRef = StructureItemRef::StaticCast(m_self);
-            sRef->AddItem(iRef);// this will throw if it fails
+            if (!pInventory->ValidateAddItem(toFlag, iRef)) {
+                _log(INV__WARNING, "IB::MoveItems: item %u rejected by customs capacity validation.", iRef->itemID());
+                continue;
+            }
+            // AddItem only updated the in-memory inventory; it never moved
+            // the item in the database. Move preserves the existing owner,
+            // updates its location and invokes destination AddItem hooks.
+            iRef->Move(m_itemID, toFlag, true);
         } else {
-            pInventory->ValidateAddItem(toFlag, iRef);  // this will throw if it fails
+            const bool stationContainerMove = m_self->categoryID() == EVEDB::invCategories::Celestial
+                && sDataMgr.IsStation(m_self->locationID());
+            if (stationContainerMove)
+                sLog.Warning("StationContainerTransfer",
+                             "BEGIN item=%u source=%u destination=%u flag=%u qty=%d.",
+                             iRef->itemID(), iRef->locationID(), m_itemID,
+                             static_cast<uint32>(toFlag), iRef->quantity());
+            if (!pInventory->ValidateAddItem(toFlag, iRef)) {
+                _log(INV__WARNING, "IB::MoveItems: item %u rejected by destination %u capacity validation.",
+                     iRef->itemID(), m_itemID);
+                continue;
+            }
             iRef->Donate(m_ownerID, m_itemID, toFlag);
+            if (stationContainerMove)
+                sLog.Warning("StationContainerTransfer",
+                             "END item=%u nowIn=%u expected=%u.",
+                             iRef->itemID(), iRef->locationID(), m_itemID);
         }
     }
 
-    sItemFactory.UnsetUsingClient();
+
 
     if (iRef.get() == nullptr)
         return nullptr;
@@ -636,8 +713,17 @@ std::vector< int32 > InventoryBound::CatSortItems(std::vector< InventoryItemRef 
      *   -allan
      */
     std::vector<int32> items;
-    if (itemVec.size() < 2) {
-        items.push_back(itemVec.at(0)->itemID());
+    // Invalid item IDs in a MultiAdd request must not crash CatSortItems.
+    std::vector<InventoryItemRef> validItems;
+    for (const auto& item : itemVec) {
+        if (item.get() != nullptr)
+            validItems.push_back(item);
+    }
+    itemVec.swap(validItems);
+    if (itemVec.empty())
+        return items;
+    if (itemVec.size() == 1) {
+        items.push_back(itemVec.front()->itemID());
         return items;
     }
 

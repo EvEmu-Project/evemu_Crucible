@@ -65,7 +65,8 @@ static const std::vector<uint32> VALID_GROUPS = {
     303
 };
 
-static constexpr uint32 BOT_OWNER_ID = 1000125; // NPC corp owner, default CONCORD
+static constexpr uint32 BOT_OWNER_ID = 1000125; // NPC corp owner for sell orders
+static constexpr uint32 BOT_BUY_OWNER_ID = npcTraderJoe; // 4000000; supported NPC buyer in ExecuteBuyOrder
 
 // helper random generators
 int GetRandomInt(int min, int max) {
@@ -121,7 +122,7 @@ void MarketBotMgr::Process(bool overrideTimer) {
     codelog(MARKET__TRACE, ">> Entered MarketBotMgr::Process()");
 
     if (!m_initalized) {
-        sLog.Error("     MarketBotMgr", "MarketBotMgr not initialized — skipping run\n");
+        sLog.Error("     MarketBotMgr", "MarketBotMgr not initialized â€” skipping run\n");
         codelog(MARKET__ERROR, "Process() called but MarketBotMgr is not initialized.");
         return;
     }
@@ -130,7 +131,7 @@ void MarketBotMgr::Process(bool overrideTimer) {
         auto timeLeft = std::chrono::duration_cast<std::chrono::milliseconds>(m_nextRunTime - now).count();
         if (timeLeft > 0) {
             sLog.Green("     Trader Joe", "Update timer not ready yet. Next run in %lld seconds.", timeLeft / 1000);
-            codelog(MARKET__TRACE, "Trader Joe waiting — next run in %lld seconds.", timeLeft);
+            codelog(MARKET__TRACE, "Trader Joe waiting â€” next run in %lld seconds.", timeLeft);
             return;
         }
     }
@@ -171,7 +172,7 @@ void MarketBotMgr::ForceRun(bool resetTimer) {
     sLog.Warning("     ForceRun", "Manually starting Trader Joe.");
 
     if (!m_initalized) {
-        sLog.Yellow("     Trader Joe", "MarketBotMgr not initialized — skipping run.");
+        sLog.Yellow("     Trader Joe", "MarketBotMgr not initialized â€” skipping run.");
         return;
     }
 
@@ -200,8 +201,8 @@ int MarketBotMgr::ExpireOldOrders() {
     codelog(MARKET__TRACE, "ExpireOldOrders: now = %" PRIu64, now);
 
     if (!sDatabase.RunQuery(res,
-        "SELECT orderID FROM mktOrders WHERE (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ") < CAST(%" PRIu64 " AS UNSIGNED) AND ownerID = %u AND volEntered != 550",
-        FILETIME_TICKS_PER_DAY, now, BOT_OWNER_ID)) {
+        "SELECT orderID FROM mktOrders WHERE (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ") < CAST(%" PRIu64 " AS UNSIGNED) AND ownerID IN (%u, %u) AND volEntered != 550",
+        FILETIME_TICKS_PER_DAY, now, BOT_OWNER_ID, BOT_BUY_OWNER_ID)) {
         codelog(MARKET__DB_ERROR, "Failed to query expired bot orders.");
         return 0;
     }
@@ -274,7 +275,7 @@ int MarketBotMgr::PlaceBuyOrders(uint32 systemID) {
         order.bid = true;
         order.issued = GetFileTimeNow();
         order.isCorp = false;
-        order.ownerID = BOT_OWNER_ID;
+        order.ownerID = BOT_BUY_OWNER_ID;
         order.orderRange = 32767; // -1 station, 0 solarsystem, 1-5 10 20 30 40 jumps, 32767 region (default)
         // marketbot update; unsure if these are really needed, but aligns with how orders are created manually in-game and through seed-market.
         order.memberID = 0;       // default value for who placed the order (0 for char order)
@@ -303,7 +304,7 @@ int MarketBotMgr::PlaceSellOrders(uint32 systemID) {
     std::vector<uint32> availableStations;
 
     if (!sDataMgr.GetStationListForSystem(systemID, availableStations)) {
-        codelog(MARKET__ERROR, "Trader Joe: No stations found for system %u — skipping order creation.", systemID);
+        codelog(MARKET__ERROR, "Trader Joe: No stations found for system %u â€” skipping order creation.", systemID);
         return 0;
     } else {
         codelog(MARKET__TRACE, "Trader Joe: Found %zu stations in system %u", availableStations.size(), systemID);
@@ -446,10 +447,19 @@ uint32 MarketBotMgr::GetRandomQuantity(uint32 groupID) {
 
 double MarketBotMgr::CalculateBuyPrice(uint32 itemID) {
     const ItemType* type = sItemFactory.GetType(itemID);
-    return type ? type->basePrice() * GetRandomFloat(0.8f, 1.1f) : 1000.0;
+    // All NPC buy orders follow the same 100% static reference-price
+    // policy as the regional seed. No randomized 80%-110% adjustment.
+    return (type && type->basePrice() > 0.0)
+        ? std::max(0.01, static_cast<double>(type->basePrice()))
+        : 100.0;
 }
 
 double MarketBotMgr::CalculateSellPrice(uint32 itemID) {
     const ItemType* type = sItemFactory.GetType(itemID);
-    return type ? type->basePrice() * GetRandomFloat(1.0f, 1.3f) : 1000.0;
+    // NPC sell orders use 100% of the static item reference value.
+    // A zero/negative base price cannot define a percentage; use the same
+    // explicit 100 ISK fallback as EVEDBTool's market seeder.
+    return (type && type->basePrice() > 0.0)
+        ? std::max(0.01, static_cast<double>(type->basePrice()))
+        : 100.0;
 }

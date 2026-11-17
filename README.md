@@ -197,14 +197,14 @@ Optionally import the bundled dungeon JSON files:
 .\evedbtool.exe dungeon list
 ~~~
 
-Optionally seed NPC market sell orders in the regions specified by `evedb.yaml`. First review the generated SQL:
+Optionally seed NPC market **sell and buy** orders in the regions specified by `evedb.yaml`. All newly seeded NPC buy orders offer **100% of published item `invTypes.basePrice`**, with no security modifier. First review the generated SQL:
 
 ~~~powershell
 .\evedbtool.exe seed -dryrun
 .\evedbtool.exe seed
 ~~~
 
-Normal initial seeding is tracked in `seed_migrations`. Do **not** use `seed -force` for the first installation.
+Normal initial seeding has separate NPC sell and buy entries in `seed_migrations`. On an existing database, run `evedbtool.exe seed -buy-only -dryrun` followed by `evedbtool.exe seed -buy-only` after a backup. Do **not** use `seed -force` for an initial installation or an existing-data buy-only upgrade. See [NPC buy seed verification](docs/NPC_BUY_MARKET_100_PERCENT_2026-11-17.md).
 
 ### B. Existing EVEmu database (accounts, characters and inventory retained)
 
@@ -275,6 +275,9 @@ Keep other optional database tags from the actual template. Check the file paths
 - `imageServer=127.0.0.1` is only suitable for the EVE client running on the **same PC**. For another computer on the LAN, use an address reachable from that client and allow the two ports through Windows Firewall. Do not open MariaDB port 3306 for game access.
 - The client needs to be compatible with the **Crucible-era** protocol; do not expect the current retail client to connect.
 - `etc\log.ini` controls logging; `logs`, `server_cache` and `image_cache` should exist and be writable.
+- **Complete agent portrait experiment rollback (16 November 2026):** the added NPC-agent portrait helper, importer and fallback JPEG are deleted; the entire HTTP image handler is restored to its **pre-PR #17** version. Player portraits and other image categories follow their historical behavior (including existing external redirects for missing images). The client crash has **not yet been resolved**; see [rollback and crash-triage instructions](docs/AGENT_PORTRAIT_FULL_REMOVAL_2026-11-16.md). Agent missions, market containers and assembled containers remain unchanged.
+- **Crucible legacy image compatibility (16 November 2026):** a subsequent focused patch disables the **pre-existing modern HTTPS redirect only for missing `Character` images** (including NPC agent 50px portraits); existing valid local player/agent JPEGs still work. Empty or obviously non-JPEG cached files are rejected, and external redirects for corporation/alliance logos and type icons/renders are preserved. See [current image-response diagnostic](docs/CRUCIBLE_IMAGE_REDIRECT_CRASH_TRIAGE_2026-11-16.md). The station-load crash still needs real client verification.
+- **50px station-agent image compatibility trial:** after confirming 404 still coincided with a client crash, the server now serves an exact 50×50, baseline 322-byte neutral JPEG for legacy 3-million-range agent thumbnails, with fully framed HTTP/1.0 200 headers. No original CCP portrait is bundled. Agent journal and cargo container crash/data-loss guards are included. See the [station crash diagnostic runbook](docs/CRUCIBLE_STATION_AGENT_50PX_CLIENT_CRASH_TRIAGE_2026-11-16.md); actual in-client stability is not yet proven.
 - `etc\MarketBot.xml` provides market bot settings. The server XML's `<TraderJoe>` option controls that feature. `etc\devtools.raw` is also bundled.
 - Edit XML with a plain-text editor; preserve the rest of the template.
 

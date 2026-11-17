@@ -33,6 +33,24 @@
 #include "system/SystemManager.h"
 #include "services/ServiceManager.h"
 
+// POS service calls often arrive while a structure is unloading. Never
+// dereference the SystemManager lookup without checking its result.
+static TowerSE* GetCheckedTowerSE(SystemManager* system, uint32 itemID)
+{
+    if (system == nullptr)
+        return nullptr;
+    SystemEntity* entity = system->GetSE(itemID);
+    return entity != nullptr ? entity->GetTowerSE() : nullptr;
+}
+
+static StructureSE* GetCheckedStructureSE(SystemManager* system, uint32 itemID)
+{
+    if (system == nullptr)
+        return nullptr;
+    SystemEntity* entity = system->GetSE(itemID);
+    return entity != nullptr ? entity->GetPOSSE() : nullptr;
+}
+
 PosMgr::PosMgr(EVEServiceManager &mgr) :
     BindableService("posMgr", mgr)
 {
@@ -267,7 +285,7 @@ PyResult PosMgrBound::GetTowerNotificationSettings(PyCallArgs &call, PyInt* item
         return new PyObject("util.Row", dict);
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return new PyObject("util.Row", dict);
 
@@ -288,7 +306,7 @@ PyResult PosMgrBound::SetTowerNotifications(PyCallArgs &call, PyInt* itemID, PyB
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -315,7 +333,7 @@ PyResult PosMgrBound::GetTowerSentrySettings(PyCallArgs &call, PyInt* itemID) {
         return new PyObject("util.Row", data);
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return new PyObject("util.Row", data);
 
@@ -338,7 +356,7 @@ PyResult PosMgrBound::SetTowerSentrySettings(PyCallArgs &call, PyInt* itemID, Py
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -360,7 +378,7 @@ PyResult PosMgrBound::GetStarbasePermissions(PyCallArgs &call, PyInt* itemID) {
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -388,7 +406,7 @@ PyResult PosMgrBound::SetStarbasePermissions(PyCallArgs &call, PyInt* itemID, Py
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -458,7 +476,7 @@ if self.moon[1] is not None:
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
     MoonSE* pMSE = pTSE->GetMoonSE();
@@ -505,7 +523,7 @@ PyResult PosMgrBound::SetTowerPassword(PyCallArgs& call, PyInt* itemID, PyRep* p
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -523,7 +541,7 @@ PyResult PosMgrBound::SetTowerPassword(PyCallArgs &call, PyInt* itemID, PyRep* p
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -565,11 +583,16 @@ PyResult PosMgrBound::AnchorStructure(PyCallArgs &call, PyInt* structureID, PyTu
         return PyStatic.NewNone();
     }
 
+    if (position == nullptr || position->size() != 3) {
+        _log(POS__WARNING, "POS::AnchorStructure - invalid position tuple for %u.", structureID->value());
+        return PyStatic.NewNone();
+    }
+
     double posX = PyRep::IntegerValue(position->GetItem(0));
     double posY = PyRep::IntegerValue(position->GetItem(1));
     double posZ = PyRep::IntegerValue(position->GetItem(2));
 
-    StructureSE* pTSE = pSystem->GetSE(structureID->value())->GetPOSSE();
+    StructureSE* pTSE = GetCheckedStructureSE(pSystem, structureID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -577,7 +600,8 @@ PyResult PosMgrBound::AnchorStructure(PyCallArgs &call, PyInt* structureID, PyTu
     pTSE->SetAnchor(call.client, pos);
 
     // auto warp to new POS position?  config option?
-    if (pTSE->IsTowerSE()) {
+    if (pTSE->IsTowerSE() && call.client->GetShip().get() != nullptr
+            && call.client->GetShipSE() != nullptr) {
         uint32 dist = pTSE->GetSelf()->radius() + call.client->GetShip()->radius();
         call.client->GetShipSE()->DestinyMgr()->WarpTo(pos, dist);
         /** @todo add tower anchor position to bookmark */
@@ -593,7 +617,7 @@ PyResult PosMgrBound::GetMoonProcessInfoForTower(PyCallArgs &call, PyInt* itemID
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 

@@ -46,8 +46,32 @@ bool NormalizeBlockadeTestOffer(MissionOffer& offer)
         offer.rewardISK = Mission::kBlockadeSecurityTestRewardISK;
         changed = true;
     }
-    if (offer.courierAmount == 0) {
+    // Upgrade pending legacy offers to the 12-ship target. Accepted
+    // 24-ship sites may still exist, so preserve their active kill target.
+    if (offer.courierAmount == 0
+        || (offer.courierAmount == 24
+            && (offer.stateID == Mission::State::Allocated
+                || offer.stateID == Mission::State::Offered))) {
         offer.courierAmount = Mission::kBlockadeSecurityTestRequiredKills;
+        changed = true;
+    }
+    return changed;
+}
+
+bool NormalizeEliteTestOffer(MissionOffer& offer)
+{
+    if (offer.missionID != Mission::kEliteSecurityMissionID)
+        return false;
+    bool changed = false;
+    if (offer.rewardISK != Mission::kEliteSecurityRewardISK) {
+        offer.rewardISK = Mission::kEliteSecurityRewardISK;
+        changed = true;
+    }
+    // The accepted pocket owns its true kill target. Only pending offers
+    // receive the configured 8-ship target during a server restart.
+    if (Mission::IsAwaitingAcceptance(offer.stateID)
+        && offer.courierAmount != Mission::kEliteSecurityRequiredKills) {
+        offer.courierAmount = Mission::kEliteSecurityRequiredKills;
         changed = true;
     }
     return changed;
@@ -161,6 +185,10 @@ bool Agent::MakeOffer(uint32 charID, MissionOffer& offer)
         offer.rewardISK = Mission::kBlockadeSecurityTestRewardISK;
         offer.courierTypeID = 0;
         offer.courierAmount = Mission::kBlockadeSecurityTestRequiredKills;
+    } else if (offer.missionID == Mission::kEliteSecurityMissionID) {
+        offer.rewardISK = Mission::kEliteSecurityRewardISK;
+        offer.courierTypeID = 0;
+        offer.courierAmount = Mission::kEliteSecurityRequiredKills;
     }
 
     offer.remoteOfferable = false;
@@ -182,6 +210,9 @@ bool Agent::MakeOffer(uint32 charID, MissionOffer& offer)
     }
 
     MissionDB::CreateOfferID(offer);
+    // Reject a failed database INSERT rather than caching an ephemeral offer.
+    if (offer.offerID == 0)
+        return false;
     m_offers.emplace(charID, offer);
     sMissionDataMgr.AddMissionOffer(charID, offer);
     return true;
@@ -199,7 +230,7 @@ bool Agent::HasMission(uint32 charID, MissionOffer& offer)
 {
     std::map<uint32, MissionOffer>::iterator itr = m_offers.find(charID);
     if (itr != m_offers.end()) {
-        if (NormalizeBlockadeTestOffer(itr->second)) {
+        if (NormalizeBlockadeTestOffer(itr->second) || NormalizeEliteTestOffer(itr->second)) {
             MissionDB::UpdateMissionOffer(itr->second);
             sMissionDataMgr.UpdateMissionData(charID, itr->second);
         }
@@ -213,7 +244,7 @@ void Agent::GetOffer(uint32 charID, MissionOffer& offer)
 {
     std::map<uint32, MissionOffer>::iterator itr = m_offers.find(charID);
     if (itr != m_offers.end()) {
-        if (NormalizeBlockadeTestOffer(itr->second)) {
+        if (NormalizeBlockadeTestOffer(itr->second) || NormalizeEliteTestOffer(itr->second)) {
             MissionDB::UpdateMissionOffer(itr->second);
             sMissionDataMgr.UpdateMissionData(charID, itr->second);
         }
@@ -791,11 +822,12 @@ void Agent::SendMissionUpdate(Client* pClient, std::string action)
 
 bool Agent::CanUseAgent(Client* pClient)
 {
-    /** @todo this needs work!!  */
+    if (pClient == nullptr)
+        return false;
     if (m_agentData.typeID == Agents::Type::Aura)
         return true;
 
-    Character* pChar = (pClient != nullptr ? pClient->GetChar().get() : nullptr);
+    Character* pChar = pClient->GetChar().get();
     if (pChar == nullptr)
         return false;
 

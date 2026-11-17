@@ -299,7 +299,7 @@ bool MarketDB::GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo) {
     }
 
     oInfo.quantity   = row.GetUInt(0);
-    oInfo.price      = row.GetFloat(1);
+    oInfo.price      = row.GetDouble(1);
     oInfo.typeID     = row.GetUInt(2);
     oInfo.stationID  = row.GetUInt(3);
     oInfo.regionID   = row.GetUInt(4);

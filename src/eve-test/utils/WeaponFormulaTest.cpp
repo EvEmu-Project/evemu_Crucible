@@ -19,6 +19,8 @@ int utils_WeaponFormulaTest(int argc, char* argv[])
     // Legacy turret signature resolution, tracking, falloff and shared roll:
     const double stationary = CalculateTurretHitChance(0.0, 0.1, 125, 125, 10000, 10000, 5000);
     const double atFalloff = CalculateTurretHitChance(0.0, 0.1, 125, 125, 15000, 10000, 5000);
+    const double atDoubleFalloff = CalculateTurretHitChance(0.0, 0.1, 125, 125, 20000, 10000, 5000);
+    const double underOptimal = CalculateTurretHitChance(0.0, 0.1, 125, 125, 9999, 10000, 5000);
     const double angular = CalculateTurretHitChance(0.1, 0.1, 125, 125, 10000, 10000, 5000);
     const double smallSig = CalculateTurretHitChance(0.1, 0.1, 125, 62.5, 10000, 10000, 5000);
     const double noFalloff = CalculateTurretHitChance(0.0, 0.1, 125, 125, 11000, 10000, 0);
@@ -56,6 +58,8 @@ int utils_WeaponFormulaTest(int argc, char* argv[])
         std::fabs(invalidRadius) < 0.000001 &&
         std::fabs(stationary - 1.0) < 0.000001 &&
         std::fabs(atFalloff - 0.5) < 0.000001 &&
+        std::fabs(atDoubleFalloff - 0.0625) < 0.000001 &&
+        std::fabs(underOptimal - 1.0) < 0.000001 &&
         std::fabs(angular - 0.5) < 0.000001 &&
         std::fabs(smallSig - 0.0625) < 0.000001 &&
         noFalloff == 0.0 && std::fabs(normalHit - 0.69) < 0.000001 &&

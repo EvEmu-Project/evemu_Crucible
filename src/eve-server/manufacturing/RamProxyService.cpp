@@ -582,12 +582,17 @@ PyResult RamProxyService::CompleteJob(PyCallArgs &call, PyRep* info, PyRep* jobI
 
     sRamMthd.VerifyCompleteJob(args, data, call.client);
 
-    // does an aborted job return the installed item immediately or after time expiry?
-    FactoryDB::CompleteJob(args.jobID, (args.cancel ? EvERam::Status::Abort : EvERam::Status::Delivered));
-
-    // return item
+    // Do not mark a job delivered if its installed blueprint is missing.
     InventoryItemRef installedItem = sItemFactory.GetItemRef(data.itemID);
-    if (installedItem.get() == nullptr)
+    if (installedItem.get() == nullptr) {
+        _log(MANUF__ERROR, "Cannot finish job %u: blueprint item %u is missing.",
+             args.jobID, data.itemID);
+        return nullptr;
+    }
+    if (!args.cancel && data.activity == EvERam::Activity::Invention)
+        throw UserError("RamActivityInvalid"); // no fake successful invention
+    if (!FactoryDB::CompleteJob(args.jobID,
+            (args.cancel ? EvERam::Status::Abort : EvERam::Status::Delivered)))
         return nullptr;
     installedItem->Move(args.containerID, data.outputFlag, true);
 
@@ -598,7 +603,7 @@ PyResult RamProxyService::CompleteJob(PyCallArgs &call, PyRep* info, PyRep* jobI
         // what about items where damage < 1.0?  (there are some...)
         uint32 quantity = (cur.quantity * data.jobRuns * (1 - cur.damagePerJob));
         if (quantity == 0)
-            quantity = 1;
+            continue; // a zero calculated material return must not mint an item
 
         ItemData idata(cur.typeID, data.ownerID, locTemp, flagNone, quantity);
         InventoryItemRef iRef = sItemFactory.SpawnItem( idata );

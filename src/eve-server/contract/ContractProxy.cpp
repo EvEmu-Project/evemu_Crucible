@@ -245,17 +245,52 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
     /**
      * Since named args (byname) aren't included in packet, we process them separately.
      */
-    if (call.byname.find("flag")->second->IsInt()) {
-        startStationDivision = call.byname.find("flag")->second->AsInt()->value();
+    const auto flagArg = call.byname.find("flag");
+    const auto corpArg = call.byname.find("forCorp");
+    const auto itemArg = call.byname.find("itemList");
+    const auto requestedArg = call.byname.find("requestItemTypeList");
+    if (flagArg == call.byname.end() || corpArg == call.byname.end()
+        || itemArg == call.byname.end() || requestedArg == call.byname.end()
+        || itemArg->second == nullptr || requestedArg->second == nullptr
+        || !itemArg->second->IsList() || !requestedArg->second->IsList()) {
+        codelog(SERVICE__ERROR, "CreateContract requires flag, forCorp, itemList and requestItemTypeList.");
+        return nullptr;
+    }
+    if (flagArg->second != nullptr && flagArg->second->IsInt()) {
+        startStationDivision = flagArg->second->AsInt()->value();
     } else {
         codelog(SERVICE__ERROR, "startStationDivision value is of invalid type");
         return nullptr;
     }
-    if (call.byname.find("forCorp")->second->IsBool()) {
-        forCorp = call.byname.find("forCorp")->second->AsBool()->value();
+    if (corpArg->second != nullptr && corpArg->second->IsBool()) {
+        forCorp = corpArg->second->AsBool()->value();
     } else {
         codelog(SERVICE__ERROR, "forCorp value is of invalid type");
         return nullptr;
+    }
+    // Rejected/empty contracts must never charge courier rewards or create
+    // database records. All monetary values are nonnegative quantities.
+    if (price->value() < 0 || reward->value() < 0 || collateral->value() < 0
+        || (itemArg->second->AsList()->empty() && requestedArg->second->AsList()->empty())) {
+        codelog(SERVICE__ERROR, "CreateContract: negative ISK values or no contract items.");
+        return nullptr;
+    }
+    // Validate requested-item rows before any courier reward withdrawal,
+    // contract INSERT or item ownership change. Previously a malformed list
+    // could reach GetItem()->AsInt() with an invalid/null pointer after ISK
+    // and other contract state had already been touched.
+    PyList* requestedRows = requestedArg->second->AsList();
+    for (size_t index = 0; index < requestedRows->size(); ++index) {
+        PyRep* raw = requestedRows->GetItem(index);
+        if (raw == nullptr || !raw->IsList())
+            return nullptr;
+        PyList* item = raw->AsList();
+        if (item->size() < 2 || item->GetItem(0) == nullptr
+            || item->GetItem(1) == nullptr || !item->GetItem(0)->IsInt()
+            || !item->GetItem(1)->IsInt()
+            || item->GetItem(0)->AsInt()->value() <= 0
+            || item->GetItem(1)->AsInt()->value() <= 0)
+            return nullptr;
     }
     if (sDataMgr.IsStation(startStationID->value())) {
         startSystemId = sDataMgr.GetStationSystem(startStationID->value());
@@ -293,6 +328,9 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
      */
     uint32 contractId = 0;
     DBerror err;
+    std::string titleEscaped, descriptionEscaped;
+    sDatabase.DoEscapeString(titleEscaped, title->content());
+    sDatabase.DoEscapeString(descriptionEscaped, description->content());
     if (!sDatabase.RunQueryLID(err, contractId,
         "INSERT INTO ctrContracts "
         "(contractType, issuerID, issuerCorpID, forCorp, isPrivate, assigneeID, "
@@ -307,7 +345,7 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
         contractType->value(), call.client->GetCharacterID(), call.client->GetCorporationID(), forCorp, isPrivate->value()?1:0, assigneeID.has_value() ? assigneeID.value()->value() : 0,
         int64(GetFileTimeNow()), int64(GetRelativeFileTime(0, 0, expireTime->value())), expireTime->value(), duration->value(), expireTime->value() / 1440,
         startStationID->value(), startSystemId, startRegionId, endStationID.has_value() ? endStationID.value()->value() : 0, endSystemId, endRegionId,
-        price->value(), reward->value(), collateral->value(), title->content().c_str(), description->content().c_str(), call.client->GetAllianceID(), startStationDivision))
+        price->value(), reward->value(), collateral->value(), titleEscaped.c_str(), descriptionEscaped.c_str(), call.client->GetAllianceID(), startStationDivision))
     {
         codelog(DATABASE__ERROR, "Failed to insert new entity: %s", err.c_str());
         return nullptr;
@@ -320,8 +358,8 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
      */
     std::string itemsToInsert;
     float totalVolume = 0.00;
-    if (call.byname.find("itemList")->second->IsList()) {
-        PyList *tradedItems = call.byname.find("itemList")->second->AsList();
+    if (itemArg->second->IsList()) {
+        PyList *tradedItems = itemArg->second->AsList();
         if (!tradedItems->empty()) {
             //TODO: We need to account for items that can be packed in a container/ship/container inside the ship
             std::string query = "SELECT entity.itemID, entity.ownerID, entity.typeID, entity.quantity, entity.locationID, iB.pLevel, "
@@ -333,9 +371,17 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
             std::string queryIds;
             std::map<int, int> expectedQuantities;              // Key is itemID, value is quantity. We use map to save time on list iteration
             for (int index = 0; index < tradedItems->size(); index++) {
-                PyList *tradedItem = tradedItems->GetItem(index)->AsList();
+                PyRep* rawItem = tradedItems->GetItem(index);
+                if (rawItem == nullptr || !rawItem->IsList())
+                    return nullptr;
+                PyList *tradedItem = rawItem->AsList();
+                if (tradedItem->size() < 2 || !tradedItem->GetItem(0)->IsInt()
+                    || !tradedItem->GetItem(1)->IsInt())
+                    return nullptr;
                 int itemID = tradedItem->GetItem(0)->AsInt()->value();
                 int quantity = tradedItem->GetItem(1)->AsInt()->value();
+                if (itemID <= 0 || quantity <= 0)
+                    return nullptr;
 
                 queryIds.append(std::to_string(itemID));
                 expectedQuantities[itemID] = quantity;
@@ -372,7 +418,9 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
                  int damage = row.IsNull(9) ? 0 : row.GetInt(9);
                  int flag = row.IsNull(10) ? 0 : row.GetInt(10);
 
-                 if (ownerID == expectedOwnerID && quantity == expectedQuantities.find(itemID)->second) {
+                 const auto expected = expectedQuantities.find(itemID);
+                if (expected != expectedQuantities.end() && ownerID == expectedOwnerID
+                    && quantity == expected->second) {
                      itemsToInsert.append("(" + std::to_string(contractId) + ", " +
                         std::to_string(itemID) + ", " +
                         std::to_string(quantity) + ", " +
@@ -398,8 +446,8 @@ PyResult ContractProxy::CreateContract(PyCallArgs &call,
     }
 
 
-    if (call.byname.find("requestItemTypeList")->second->IsList()) {
-        PyList *requestedItems = call.byname.find("requestItemTypeList")->second->AsList();
+    if (requestedArg->second->IsList()) {
+        PyList *requestedItems = requestedArg->second->AsList();
         if (!requestedItems->empty()) {
             for (int index = 0; index < requestedItems->size(); index++) {
                 PyList *requestedItem = requestedItems->GetItem(index)->AsList();
@@ -446,6 +494,18 @@ PyResult ContractProxy::DeleteContract(PyCallArgs &call, PyInt* contractID) {
     sLog.White( "ContractProxy::Handle_DeleteContract()", "size=%lu", call.tuple->size());
     call.Dump(SERVICE__CALL_DUMP);
 
+    // Never let another player cancel an arbitrary contract and take its
+    // escrowed items. Only the issuer may delete an outstanding contract.
+    DBQueryResult ownerQuery;
+    if (!sDatabase.RunQuery(ownerQuery,
+        "SELECT issuerID, status FROM ctrContracts WHERE contractId = %u",
+        contractID->value()))
+        return new PyBool(false);
+    DBResultRow ownerRow;
+    if (!ownerQuery.GetRow(ownerRow) || ownerRow.GetUInt(0) != call.client->GetCharacterID()
+        || ownerRow.GetInt(1) != 0)
+        return new PyBool(false);
+
     // In order to return items back to the owner, we need a full list of entityID's to return. We gather them using utils function
     std::vector<int> entityIds;
     ContractUtils::GetContractItemIDs(contractID->value(), &entityIds);
@@ -464,7 +524,8 @@ PyResult ContractProxy::DeleteContract(PyCallArgs &call, PyInt* contractID) {
 
     DBerror err;
     if (!sDatabase.RunQuery(err,
-                            "UPDATE ctrContracts SET status = 8 WHERE contractId = %u", contractID->value()))
+                            "UPDATE ctrContracts SET status = 8 WHERE contractId = %u AND issuerID = %u AND status = 0",
+                            contractID->value(), call.client->GetCharacterID()))
     {
         codelog(DATABASE__ERROR, "Failed to update contract volume: %s", err.c_str());
     }
@@ -480,7 +541,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
     // For the time being - we ignore the second value in tuple (forCorp), since it's not yet functional.
 
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp, startSolarSystemID, endSolarSystemID FROM ctrContracts WHERE contractId = %u", contractID->value()))
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, issuerID, forCorp, startSolarSystemID, endSolarSystemID, isPrivate, assigneeID FROM ctrContracts WHERE contractId = %u", contractID->value()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return nullptr;
@@ -501,6 +562,11 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
     bool forCorp = row.GetBool(8);
     int startSolarSystemID = row.GetInt(9);
     int endSolarSystemID = row.GetInt(10);
+    const bool isPrivate = row.GetBool(11);
+    const uint32 assigneeID = row.GetUInt(12);
+    if (isPrivate && assigneeID != call.client->GetCharacterID()
+        && assigneeID != call.client->GetCorporationID())
+        return new PyBool(false);
 
     if (status == 0) {
         // We can only accept outstanding contracts. If it's not - we ignore the call.
@@ -573,7 +639,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                     DBerror err;
                     if (!sDatabase.RunQuery(err,
                                             "UPDATE ctrContracts SET status = 4, dateAccepted = %lli, dateCompleted = %lli, acceptorID = %u WHERE contractId = %u",
-                                            timestamp, timestamp, call.client->GetCharacterID(), contractID))
+                                            timestamp, timestamp, call.client->GetCharacterID(), contractID->value()))
                     {
                         codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
                     }
@@ -626,6 +692,10 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                     plasticWrap->SetAttribute(AttrVolume, volume);
                     plasticWrap->SetAttribute(AttrCapacity, volume);
                 }
+                if (plasticWrap.get() == nullptr) {
+                    codelog(SERVICE__ERROR, "Could not create courier plastic wrap for contract %u.", contractID->value());
+                    return nullptr;
+                }
                 plasticWrap->SaveItem();
                 // Then, move all required items into it
                 std::vector<int> items;
@@ -644,7 +714,7 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                 DBerror err;
                 if (!sDatabase.RunQuery(err,
                                         "UPDATE ctrContracts SET status = 1, dateAccepted = %lli, acceptorID = %u, crateID = %u WHERE contractId = %u",
-                                        timestamp, call.client->GetCharacterID(), plasticWrap->itemID(), contractID))
+                                        timestamp, call.client->GetCharacterID(), plasticWrap->itemID(), contractID->value()))
                 {
                     codelog(DATABASE__ERROR, "Failed to update contract : %s", err.c_str());
                 }
@@ -655,11 +725,13 @@ PyResult ContractProxy::AcceptContract(PyCallArgs &call, PyInt* contractID) {
                 return nullptr;
         }
         // Once type-specific manipulations are done, we query brief contract information (requested by client) and send it out.
-        if (!sDatabase.RunQuery(res, "SELECT contractId, contractType, startStationID, endStationID, dateAccepted, numDays FROM ctrContracts WHERE contractId = %u", contractID))
+        if (!sDatabase.RunQuery(res, "SELECT contractId, contractType, startStationID, endStationID, dateAccepted, numDays FROM ctrContracts WHERE contractId = %u", contractID->value()))
         {
             codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
             return nullptr;
         }
+        if (res.GetRowCount() == 0)
+            return nullptr;
 
         // DBResultToCRowset return doesn't work, for some reason (fails at unmarshalling on client's side), so making it a KeyVal dict
         res.GetRow(row);
@@ -682,7 +754,7 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
     call.Dump(SERVICE__CALL_DUMP);
 
     DBQueryResult res;
-    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, endStationID, issuerID, forCorp, crateID FROM ctrContracts WHERE contractId = %u", contractID))
+    if (!sDatabase.RunQuery(res, "SELECT contractType, status, price, reward, collateral, volume, startStationID, endStationID, issuerID, forCorp, crateID, acceptorID FROM ctrContracts WHERE contractId = %u", contractID->value()))
     {
         codelog(DATABASE__ERROR, "Error in query: %s", res.error.c_str());
         return new PyBool(false);
@@ -701,6 +773,12 @@ PyResult ContractProxy::CompleteContract(PyCallArgs &call, PyInt* contractID, Py
     int issuerID = row.GetInt(8);
     bool forCorp = row.GetBool(9);
     int crateID = row.GetInt(10);
+    const uint32 acceptorID = row.GetUInt(11);
+    // Completion only applies to an active courier contract and its
+    // actual acceptor; otherwise repeated calls can award collateral and
+    // reward ISK more than once or let another player finish the job.
+    if (contractType != 3 || status != 1 || acceptorID != call.client->GetCharacterID())
+        return new PyBool(false);
 
     int64 timestamp = int64(GetFileTimeNow());
     switch (completionStatus->value()) {

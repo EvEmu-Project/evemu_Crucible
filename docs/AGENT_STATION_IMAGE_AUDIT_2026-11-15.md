@@ -1,5 +1,7 @@
 # Agent services and station portraits — source audit (15 November 2026)
 
+> **DISABLED after Crucible station-load crash (16 November 2026):** Serving NPC station-agent JPEGs was rolled back for client compatibility. Current server builds return **HTTP 404** for all agent portrait requests before reading the image cache. **Do not follow historical portrait-import instructions below** until a client-verified fix is available. See [safety rollback](AGENT_STATION_PORTRAIT_ROLLBACK_2026-11-16.md).
+
 ## Scope and observed problem
 
 The user reported missing portraits for agents in stations. The audit reviewed `AgentMgrService`, `AgentDB`, `ManagerDB::GetAgents`, `AgentBound`, `Agent`, and the legacy HTTP image server. This is a source audit; no live client HTTP capture or MariaDB runtime query was available during this pass.
@@ -30,6 +32,10 @@ The user reported missing portraits for agents in stations. The audit reviewed `
 This patch does not synthesize authentic NPC portraits or change NPC portrait identifiers. Some historical portraits may not exist on CCP's current image service. HTTPS following by a 2012 Crucible client needs direct testing, and multi-room mission logic, research agents and storyline systems remain incomplete. No database migration or live database update is part of the source changes.
 
 References: [Current EVE image server](https://docs.esi.evetech.net/docs/image_server.html), [fork patch notes](../PATCH_NOTES.md).
+
+## Offline station-agent portrait follow-up — 15 November 2026
+
+The follow-up branch `fix/offline-agent-station-portraits-2026-11-15` removes external redirects for the Crucible NPC agent-ID range and packages a generic local JPEG fallback. A one-time optional agent portrait importer can cache available original CCP portraits from official imagery sources; no historical portraits are invented or automatically redistributed. See [offline rollout and verification](AGENT_LOCAL_PORTRAITS_2026-11-15.md). These are source changes; a successful CI run will not prove authentic NPC artwork coverage or live 2012-client presentation.
 
 ## Further agent UI and lookup optimization
 

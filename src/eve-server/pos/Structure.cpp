@@ -45,7 +45,8 @@
  * Base Structure Item for all POS types
  */
 StructureItem::StructureItem(uint32 _structureID, const ItemType &_itemType, const ItemData &_data)
-    : InventoryItem(_structureID, _itemType, _data)
+    : InventoryItem(_structureID, _itemType, _data),
+      mySE(nullptr)
 {
     pInventory = new Inventory(InventoryItemRef(this));
     _log(ITEM__TRACE, "Created StructureItem for %s (%u).", name(), itemID());
@@ -166,7 +167,10 @@ void StructureItem::AddItem(InventoryItemRef iRef)
 
     InventoryItem::AddItem(iRef);
 
-    if (mySE->IsCOSE())
+    // Assembled cargo containers inherit StructureItem, but have no POS
+    // system entity when stored in a station/ship hangar. Only an actual
+    // in-space customs-office entity can perform this extra validation.
+    if (mySE != nullptr && mySE->IsCOSE() && mySE->GetCOSE() != nullptr)
         mySE->GetCOSE()->VerifyAddItem(iRef);
 }
 
@@ -180,6 +184,11 @@ void StructureItem::RemoveItem(InventoryItemRef iRef)
 
 void StructureItem::Rename(std::string name)
 {
+    // POS-specific rename requires a live system entity. Cargo containers
+    // override this method and use ordinary inventory-item rename instead.
+    if (mySE == nullptr || mySE->GetPOSSE() == nullptr)
+        throw UserError ("SetNameObjectMustBeAnchoredInSpace");
+
     if (mySE->GetPOSSE()->GetState() > EVEPOS::StructureState::Unanchored)
     {
         InventoryItem::Rename(name);
@@ -239,28 +248,46 @@ StructureSE::StructureSE(StructureItemRef structure, EVEServiceManager&services,
     _log(SE__DEBUG, "Created StructureSE for item %s (%u).", structure->name(), structure->itemID());
 }
 
-void StructureSE::InitData()
+bool StructureSE::InitData()
 {
-    // this item is a module.  get towerID from bubble and save
-    if (m_module)
-        if (m_bubble->HasTower())
-            m_data.towerID = m_bubble->GetTowerSE()->GetID();
+    if (m_system == nullptr) {
+        _log(POS__ERROR, "StructureSE::InitData: missing system for %u.", m_self->itemID());
+        return false;
+    }
 
-    if (m_sbu)
-    { //SBUs are placed near stargates
-        m_gateSE = m_system->GetClosestGateSE(GetPosition())->GetGateSE();
+    // Not every server startup/drop path has an attached bubble yet.
+    if (m_module && m_bubble != nullptr && m_bubble->HasTower()
+            && m_bubble->GetTowerSE() != nullptr)
+        m_data.towerID = m_bubble->GetTowerSE()->GetID();
+
+    if (m_sbu) {
+        SystemEntity* gate = m_system->GetClosestGateSE(GetPosition());
+        m_gateSE = gate != nullptr ? gate->GetGateSE() : nullptr;
+        if (m_gateSE == nullptr) {
+            _log(POS__ERROR, "StructureSE::InitData: no valid gate for SBU %u.", m_self->itemID());
+            return false;
+        }
         m_data.anchorpointID = m_gateSE->GetID();
-    }
-    if (m_platform)
-    { //Construction Platforms are anchored near planets
-        m_planetSE = m_system->GetClosestPlanetSE(GetPosition())->GetPlanetSE();
+    } else if (m_platform) {
+        SystemEntity* planet = m_system->GetClosestPlanetSE(GetPosition());
+        m_planetSE = planet != nullptr ? planet->GetPlanetSE() : nullptr;
+        if (m_planetSE == nullptr) {
+            _log(POS__ERROR, "StructureSE::InitData: no valid planet for platform %u.", m_self->itemID());
+            return false;
+        }
         m_data.anchorpointID = m_planetSE->GetID();
-    }
-    else
-    { //Everything else is places near a moon
-        m_moonSE = m_system->GetClosestMoonSE(GetPosition())->GetMoonSE();
+    } else if (!m_tcu && !m_ihub) {
+        // Ordinary moon-anchored POS modules. SBUs, TCUs and iHubs are
+        // not required to have a moon; reject missing required anchors.
+        SystemEntity* moon = m_system->GetClosestMoonSE(GetPosition());
+        m_moonSE = moon != nullptr ? moon->GetMoonSE() : nullptr;
+        if (m_moonSE == nullptr) {
+            _log(POS__ERROR, "StructureSE::InitData: no valid moon for POS %u.", m_self->itemID());
+            return false;
+        }
         m_data.anchorpointID = m_moonSE->GetID();
     }
+    return true;
 }
 
 void StructureSE::Init()
@@ -343,7 +370,10 @@ void StructureSE::Init()
     if (!m_db.GetBaseData(m_data))
     {
         _log(POS__MESSAGE, "StructureSE::Init %s(%u) has no saved data.  Initializing default set.", m_self->name(), m_data.itemID);
-        InitData();
+        if (!InitData()) {
+            _log(POS__ERROR, "StructureSE::Init: refusing to save incomplete anchor data for %u.", m_data.itemID);
+            return;
+        }
         m_db.SaveBaseData(m_data);
     }
 
@@ -415,6 +445,7 @@ void StructureSE::Init()
         {
             //iRef->Delete(); // really delete this?
             _log(POS__ERROR, "StructureSE::Init MoonSE for %s(%u) is invalid.", m_self->name(), m_data.itemID);
+            m_loaded = false;
             return;
         }
         GVector dir(m_self->position(), m_moonSE->GetPosition());
@@ -426,6 +457,7 @@ void StructureSE::Init()
         if (pSE == nullptr)
         {
             _log(POS__ERROR, "StructureSE::Init %s(%u) is invalid.  why are we here?", m_self->name(), m_data.itemID);
+            m_loaded = false;
             return;
         }
         m_duration = 60000; //cargo default to 60 seconds
@@ -441,9 +473,16 @@ void StructureSE::Init()
         if (pSE == nullptr)
         {
             _log(POS__ERROR, "StructureSE::Init %s(%u) is invalid.  why are we here?", m_self->name(), m_data.itemID);
+            m_loaded = false;
             return;
         }
         m_towerSE = pSE->GetTowerSE();
+        if (m_towerSE == nullptr) {
+            _log(POS__ERROR, "StructureSE::Init: towerID %u is not a tower for POS %u.",
+                 m_data.towerID, m_data.itemID);
+            m_loaded = false;
+            return;
+        }
         m_towerSE->AddModule(this);
         m_duration = 3600000;   // modules default to 1h
     }
@@ -639,6 +678,13 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
         InventoryItemRef ihubRef = sItemFactory.GetItemRef(sovData.hubID);
         uint32 upgType = m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int();
 
+        if (ihubRef.get() == nullptr || ihubRef->GetMyInventory() == nullptr
+                || sItemFactory.GetType(upgType) == nullptr) {
+            _log(POS__WARNING, "StructureSE::SetAnchor: missing hub %u or upgrade type %u.",
+                 sovData.hubID, upgType);
+            pClient->SendErrorMsg("Cannot anchor this structure: its required infrastructure hub or upgrade is unavailable.");
+            return;
+        }
         if (!ihubRef->GetMyInventory()->ContainsTypeQty(upgType,1)) {
             pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.",
             sItemFactory.GetType(upgType)->name().c_str());
@@ -668,6 +714,10 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
         // this puts ship at Az: 0.785332, Ele: 0.615505, angle: 1.5708
         //warpToPoint -= (radius * 1.25);
 
+        if (m_moonSE == nullptr) {
+            pClient->SendErrorMsg("Cannot anchor this tower because its moon entity is missing.");
+            return;
+        }
         uint32 dist = /*BUBBLE_RADIUS_METERS + 10000*/ m_self->GetAttribute(AttrMoonAnchorDistance).get_uint32();
         uint32 radius(m_moonSE->GetRadius());
         float rad(EvE::Trig::Deg2Rad(90));
@@ -685,6 +735,10 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     else if (m_sbu)
     {
         //verify anchor distance from stargate
+        if (m_gateSE == nullptr) {
+            pClient->SendErrorMsg("Cannot anchor this blockade unit because its stargate is missing.");
+            return;
+        }
         uint32 distance(m_gateSE->GetPosition().distance(m_self->position()));
         //uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
         uint32 anchorMax(m_self->GetAttribute(AttrAnchorDistanceMax).get_uint32());
@@ -716,6 +770,10 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     else if (m_platform)
     {
         //verify anchor distance from planet
+        if (m_planetSE == nullptr) {
+            pClient->SendErrorMsg("Cannot anchor this structure because its planet is missing.");
+            return;
+        }
         uint32 distance(m_planetSE->GetPosition().distance(m_self->position()));
         uint32 anchorMax = (m_planetSE->GetRadius() + 150000000);
 
@@ -728,6 +786,10 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     }
     else
     {
+        if (m_moonSE == nullptr) {
+            pClient->SendErrorMsg("Cannot anchor this POS because its moon is missing.");
+            return;
+        }
         if (!m_moonSE->HasTower())
         {
             // this should never hit...
@@ -909,6 +971,17 @@ void StructureSE::SetOffline()
     if (m_jammer) {
         svDataMgr.UpdateSystemJammerID(m_self->locationID(),0);
     }
+}
+
+void StructureSE::RejectOnlining()
+{
+    // Process() sets state to Online before calling a derived SetOnline().
+    // A failed TCU/SBU/IHub claim check must not leave a phantom online POS.
+    m_procState = EVEPOS::ProcState::Invalid;
+    m_data.state = EVEPOS::StructureState::Anchored;
+    m_self->SetFlag(flagStructureInactive);
+    m_db.UpdateBaseData(m_data);
+    SendSlimUpdate();
 }
 
 void StructureSE::SetInvulnerable()

@@ -30,7 +30,12 @@ SET( utils_SOURCE
      "utils/WeaponFormulaTest.cpp"
      "utils/MovementFormulaTest.cpp"
      "utils/DroneControlRangeTest.cpp"
-     "utils/AgentHelpersTest.cpp" )
+     "utils/AgentHelpersTest.cpp"
+     "utils/MissionLifecycleTest.cpp"
+     "utils/ContainerAssemblyTest.cpp"
+     "utils/StationOfficeIntegrityTest.cpp"
+     "utils/ImageCompatibilityTest.cpp"
+     "utils/AsteroidSpawnTest.cpp" )
 SET( test_SUPPORT_SOURCE
      "ProfilerTestStub.cpp" )
 
@@ -80,3 +85,13 @@ ADD_TEST( NAME "DroneControlRangeTest"
           COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )
 ADD_TEST( NAME "AgentHelpersTest"
           COMMAND "${TARGET_NAME}" "utils/AgentHelpersTest" )
+ADD_TEST( NAME "MissionLifecycleTest"
+          COMMAND "${TARGET_NAME}" "utils/MissionLifecycleTest" )
+ADD_TEST( NAME "ContainerAssemblyTest"
+          COMMAND "${TARGET_NAME}" "utils/ContainerAssemblyTest" )
+ADD_TEST( NAME "StationOfficeIntegrityTest"
+          COMMAND "${TARGET_NAME}" "utils/StationOfficeIntegrityTest" )
+ADD_TEST( NAME "ImageCompatibilityTest"
+          COMMAND "${TARGET_NAME}" "utils/ImageCompatibilityTest" )
+ADD_TEST( NAME "AsteroidSpawnTest"
+          COMMAND "${TARGET_NAME}" "utils/AsteroidSpawnTest" )

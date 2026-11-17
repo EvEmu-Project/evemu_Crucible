@@ -15,6 +15,7 @@
  */
 
 #include "Threading.h"
+#include <sstream>
 #include "log/LogNew.h"
 #include "log/logsys.h"
 
@@ -86,33 +87,37 @@ void Threading::AddSocket(SOCKET soc) {
 
 std::thread* Threading::CreateThread(void *(*start_routine) (void *), void *args) {
     std::thread* thread = new std::thread(start_routine, args);
+    // Remember the real thread ID before detach(): detached std::thread
+    // returns the default/nonexecuting get_id(). Do not pass it to %X.
+    std::ostringstream threadID;
+    threadID << thread->get_id();
     AddThread(thread);
     thread->detach();
 
-    _log(THREAD__INFO, "CreateThread() - Creating new threadID 0x%X", thread->get_id());
+    _log(THREAD__INFO, "CreateThread() - Created thread ID %s", threadID.str().c_str());
 
     return thread;
 }
 
 void Threading::AddThread(std::thread* thread) {
     m_threads.push_back(thread);
-    _log(THREAD__INFO, "AddThread() - Added thread ID 0x%X", thread);
+    _log(THREAD__INFO, "AddThread() - Added thread pointer %p", static_cast<void*>(thread));
 }
 
 void Threading::RemoveThread(std::thread* thread) {
     for (std::vector<std::thread*>::iterator cur = m_threads.begin(); cur != m_threads.end(); ++cur) {
         if ((*cur) == thread) {
-            _log(THREAD__INFO, "RemoveThread() called for thread ID 0x%X", thread);
+            _log(THREAD__INFO, "RemoveThread() called for thread pointer %p", static_cast<void*>(thread));
             m_threads.erase(cur);
             return;
         }
     }
-    _log(THREAD__ERROR, "RemoveThread() - Called on unregistered threadID 0x%X", thread);
+    _log(THREAD__ERROR, "RemoveThread() - Called on unregistered thread pointer %p", static_cast<void*>(thread));
 }
 
 void Threading::ListThreads() {
     for (auto cur : m_threads)
-        sLog.Warning( "                 ", "ThreadID 0x%X", cur );
+        sLog.Warning( "                 ", "Thread pointer %p", static_cast<void*>(cur) );
 }
 
 void Threading::EndThreads() {
@@ -123,7 +128,7 @@ void Threading::EndThreads() {
     _log(THREAD__MESSAGE, "EndThreads() - Joining %u currently active threads.", m_threads.size());
     std::vector<std::thread*>::iterator cur = m_threads.begin();
     while ((cur != m_threads.end())) {
-        _log(THREAD__TRACE, "EndThreads() - Removing threadID 0x%X", (*cur));
+        _log(THREAD__TRACE, "EndThreads() - Removing thread pointer %p", static_cast<void*>(*cur));
         cur = m_threads.erase(cur);
     }
     m_threads.clear();

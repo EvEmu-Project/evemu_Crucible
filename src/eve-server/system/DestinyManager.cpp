@@ -278,26 +278,31 @@ void DestinyManager::ProcessState() {
                 return;
             }
 
-            if ((degrees < WARP_ALIGNMENT) and (m_timeFraction > 0.749)) {
-                m_shipHeading = toVec;
-                InitWarp();
-                return;
-            } else if (m_timeFraction < 0.749 && m_userSpeedFraction < 0.7499) {
-                SetSpeedFraction(1.0f, true);
-            } else if ((sEntityList.GetStamp() - m_stateStamp) > m_timeToEnterWarp + 0.3) {
-                // catchall for turn checks messed up, and m_moveTime > ship align time
-                if (mySE->HasPilot()) {
-                    _log(DESTINY__ERROR, "Destiny::ProcessState() Error!  Ship %s(%u) for Player %s(%u) - warp align/speed is incorrect, but time > shipTimeToWarp.",  \
-                                mySE->GetName(), mySE->GetID(), mySE->GetPilot()->GetName(), mySE->GetPilot()->GetCharacterID());
-                } else {
-                    _log(DESTINY__ERROR, "Destiny::ProcessState() Error!  NPC %s(%u) - warp align/speed is incorrect, but time > shipTimeToWarp.",  \
-                            mySE->GetName(), mySE->GetID());
-                }
+            // Warp readiness is a physical heading + actual velocity test.
+            // m_timeFraction is only the time progression of a speed
+            // transition, and can differ from the real speed after turns.
+            const bool headingReady = std::isfinite(degrees) && degrees < WARP_ALIGNMENT;
+            const bool speedReady = std::isfinite(m_activeSpeedFraction)
+                && m_activeSpeedFraction >= 0.75f;
+            if (headingReady && speedReady) {
                 m_shipHeading = toVec;
                 InitWarp();
                 return;
             }
-
+            if (m_userSpeedFraction < 0.75f) {
+                SetSpeedFraction(1.0f, true);
+            }
+            // Align time computed from full stop is not a warp deadline.
+            // Never force a misaligned Ferox (or any ship) into warp.
+            // Diagnostics are sampled to prevent 1Hz warning spam.
+            const uint32 alignTicks = sEntityList.GetStamp() - m_stateStamp;
+            if (alignTicks > static_cast<uint32>(m_timeToEnterWarp + 15.0f)
+                && alignTicks % 15u == 0u && is_log_enabled(DESTINY__WARP_TRACE)) {
+                _log(DESTINY__WARP_TRACE,
+                    "Destiny::ProcessState(): %s(%u) still aligning after %u ticks (heading %.2f deg, velocity %.3f of max, commanded %.3f).",
+                    mySE->GetName(), mySE->GetID(), alignTicks, degrees,
+                    m_activeSpeedFraction, m_userSpeedFraction);
+            }
             MoveObject();
         } break;
         case Ball::Mode::MUSHROOM:      // aoe?
@@ -1247,7 +1252,13 @@ void DestinyManager::Follow() {
                 //  still need to call MoveObject() here
                 SetSpeedFraction(0.2);
             } else {
+                // Stop() clears the follow range. Never run MoveObject()
+                // with that reset state, or approach prediction will drift.
                 Stop();
+                // One authoritative sync at completion, not every tick.
+                if (mySE->HasPilot())
+                    SetPosition(m_position, true);
+                return;
             }
         }
     } else {
@@ -2750,43 +2761,22 @@ Battleships 0.155
     m_mass = sRef->GetAttribute(AttrMass).get_float();
     m_massMKg = m_mass / 1000000; //changes mass from Kg to milliKg (10^-6)
 
-    // Ship warp speed is type-specific: dogma attribute 600 is the ship's
-    // warp-speed multiplier, applied to the Crucible-era 3 AU/s baseline.
-    // A persisted/live value near zero is invalid for a normal ship and was
-    // producing values such as 0.10 AU/s. Recover from the immutable type
-    // default so every hull uses its own database value rather than a
-    // hard-coded per-ship speed.
-    const float liveWarpSpeedMultiplier =
-        sRef->GetAttribute(AttrWarpSpeedMultiplier).get_float();
-    const float typeWarpSpeedMultiplier =
-        sRef->GetDefaultAttribute(AttrWarpSpeedMultiplier).get_float();
-    float warpSpeedMultiplier = liveWarpSpeedMultiplier;
-    if (liveWarpSpeedMultiplier <= 0.1f && typeWarpSpeedMultiplier > 0.1f) {
-        _log(
-            DESTINY__ERROR,
-            "Destiny::UpdateShipVariables(): %s(%u) has invalid live warpSpeedMultiplier %.6f; using type default %.6f.",
-            mySE->GetName(),
-            mySE->GetID(),
-            liveWarpSpeedMultiplier,
-            typeWarpSpeedMultiplier
-        );
-        warpSpeedMultiplier = typeWarpSpeedMultiplier;
-    }
-    if (warpSpeedMultiplier <= 0.0f) {
-        // NPC inventory types commonly omit ship-only dogma attribute 600.
-        // Their standard fallback is the 3.0 multiplier (9 AU/s); this is
-        // expected data, not a runtime error worth logging for every rat.
+    // Crucible SDE attribute 600 is the fitted ship's AU/s value, NOT a
+    // relative multiplier. 3.0 * attribute600 yielded 9 AU/s battleships,
+    // 18 AU/s frigates and 27 AU/s for the four bad Logistics records.
+    // Retain hull-specific fitted bonuses and recover missing/invalid data.
+    const double liveWarpSpeed = sRef->GetAttribute(AttrWarpSpeedMultiplier).get_double();
+    const double typeWarpSpeed = sRef->GetDefaultAttribute(AttrWarpSpeedMultiplier).get_double();
+    const double resolvedWarpSpeed = EVEmuMovement::CrucibleWarpSpeedAU(
+        liveWarpSpeed, typeWarpSpeed);
+    if (!std::isfinite(liveWarpSpeed) || liveWarpSpeed <= 0.0) {
         if (!mySE->IsNPCSE() && !mySE->IsDroneSE()) {
-            _log(
-                DESTINY__ERROR,
-                "Destiny::UpdateShipVariables(): %s(%u) has no valid warpSpeedMultiplier; using dogma default 3.0.",
-                mySE->GetName(),
-                mySE->GetID()
-            );
+            _log(DESTINY__WARNING,
+                "Destiny::UpdateShipVariables(): %s(%u) missing warp attribute 600 (live %.3f, type %.3f); using %.3f AU/s.",
+                mySE->GetName(), mySE->GetID(), liveWarpSpeed, typeWarpSpeed, resolvedWarpSpeed);
         }
-        warpSpeedMultiplier = 3.0f;
     }
-    m_shipWarpSpeed = 3.0f * warpSpeedMultiplier;
+    m_shipWarpSpeed = static_cast<float>(resolvedWarpSpeed);
     if (sRef->HasAttribute(AttrInetia))
         m_shipInertia = sRef->GetAttribute(AttrInetia).get_float();
     if (sRef->HasAttribute(AttrMaxVelocity))

@@ -135,11 +135,14 @@ m_pShieldSE(nullptr)
 void TowerSE::Init()
 {
     StructureSE::Init();
+    if (!IsPOSInitialized())
+        return;
 
     if (!m_db.GetTowerData(m_tdata, m_data)) {
         _log(SE__TRACE, "TowerSE %s(%u) has no saved data.  Initializing default set.", m_self->name(), m_self->itemID());
         // invalid data....init to 0 as this will only hit for currently-launching items (or errors)
-        InitData();
+        if (!InitData())
+            return;
     }
 
     // if password is already set and tower online, then we can online (create) the forcefield
@@ -150,12 +153,19 @@ void TowerSE::Init()
         CreateForceField();
 
     // if tower anchored, tell moon this is its tower
-    if (m_data.state > EVEPOS::StructureState::Unanchored)
+    if (m_data.state > EVEPOS::StructureState::Unanchored) {
+        if (m_moonSE == nullptr) {
+            _log(POS__ERROR, "TowerSE::Init: tower %u has no valid moon.", m_self->itemID());
+            return;
+        }
         m_moonSE->SetTower(this);
+    }
 
     // set tower in bubble
-    if (m_bubble == nullptr)
-        assert(0);
+    if (m_bubble == nullptr) {
+        _log(POS__ERROR, "TowerSE::Init: tower %u has no system bubble.", m_self->itemID());
+        return;
+    }
     m_bubble->SetTowerSE(this);
 
     /** @todo
@@ -170,18 +180,22 @@ void TowerSE::Init()
     // take resources, move items, process reactions or whatever needs to be done (follow PI proc code)
 }
 
-void TowerSE::InitData() {
-    // init base data first
-    StructureSE::InitData();
+bool TowerSE::InitData() {
+    // The base may fail when an anchor point is absent; do not persist
+    // incomplete tower/military structure metadata on failure.
+    if (!StructureSE::InitData())
+        return false;
     m_tdata.harmonic = m_harmonic;     // set during base SE creation
     m_tdata.standingOwnerID = 0;    /** @todo  get sov holder here. */
 
     m_db.SaveTowerData(m_tdata, m_data);
+    return true;
 }
 
 void TowerSE::Scoop() {
     StructureSE::Scoop();
-    m_moonSE->SetTower(nullptr);
+    if (m_moonSE != nullptr)
+        m_moonSE->SetTower(nullptr);
     m_tdata = EVEPOS::TowerData();
     m_self->ChangeSingleton(false);
     m_self->SaveItem();
@@ -248,8 +262,10 @@ void TowerSE::SetOnline()
 void TowerSE::SetOffline()
 {
     if (m_hasShield) {
-        m_pShieldSE->Delete();
-        SafeDelete(m_pShieldSE);
+        if (m_pShieldSE != nullptr) {
+            m_pShieldSE->Delete();
+            SafeDelete(m_pShieldSE);
+        }
         m_hasShield = false;
     }
 
