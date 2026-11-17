@@ -1234,9 +1234,12 @@ bool ActiveModule::CanActivate() {
 
         // Check effective module range against clearance between surfaces,
         // not just target edge: the old check omitted our hull radius.
+        ShipSE* rangeSource = m_shipRef->GetPilot()->GetShipSE();
+        if (rangeSource == nullptr)
+            return false;
         const double distance = EVEmuMovement::SurfaceSeparation(
-            m_shipRef->position().distance(m_targetSE->GetPosition()),
-            m_shipRef->radius(), m_targetSE->GetRadius());
+            rangeSource->GetPosition().distance(m_targetSE->GetPosition()),
+            rangeSource->GetRadius(), m_targetSE->GetRadius());
 
         _log(MODULE__MESSAGE, "Activate::RangeTest - distance between %s and target %s: %.1f.  range of %s is %.1f", \
                     m_shipRef->name(), m_targetSE->GetName(), distance, m_modRef->name(), range);

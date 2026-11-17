@@ -191,9 +191,14 @@ void MiningLaser::ProcessCycle(bool abort/*false*/)
     // Mining yield is awarded at the end of the cycle. Do not mine
     // remotely when the ship has moved beyond its fitted laser range.
     const float miningRange = GetAttribute(AttrMaxRange).get_float();
+    ShipSE* liveShip = m_shipRef->GetPilot()->GetShipSE();
+    if (liveShip == nullptr) {
+        ActiveModule::DeactivateCycle(true);
+        return;
+    }
     const double separation = EVEmuMovement::SurfaceSeparation(
-        m_shipRef->position().distance(m_targetSE->GetPosition()),
-        m_shipRef->radius(), m_targetSE->GetRadius());
+        liveShip->GetPosition().distance(m_targetSE->GetPosition()),
+        liveShip->GetRadius(), m_targetSE->GetRadius());
     if (!std::isfinite(miningRange) || miningRange <= 0.0f || separation > miningRange) {
         _log(MINING__WARNING,
              "Mining %s(%u) outside effective range: %.1f m (max %.1f m).",

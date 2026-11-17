@@ -65,7 +65,7 @@ LEFT JOIN dgmTypeAttributes AS f
 LEFT JOIN dgmTypeAttributes AS v
     ON v.typeID = t.typeID AND v.attributeID = 1045
 WHERE g.categoryID = 7
-  AND g.groupName REGEXP 'Weapon|Laser|Mining|Strip|Tractor|Harvester'
+  AND g.groupName REGEXP 'Weapon|Laser|Mining|Strip|Tractor|Harvester|Smart|Bomb|Launcher|Energy|Hybrid|Projectile'
 ORDER BY g.groupName, t.typeName, t.typeID;
 
 -- 5. All missile/rocket/torpedo charge ranges (UNBONUSED).
@@ -82,5 +82,5 @@ LEFT JOIN dgmTypeAttributes AS v
 LEFT JOIN dgmTypeAttributes AS ft
     ON ft.typeID = t.typeID AND ft.attributeID = 281
 WHERE g.categoryID = 8
-  AND g.groupName REGEXP 'Missile|Rocket|Torpedo'
+  AND g.groupName REGEXP 'Missile|Rocket|Torpedo|Bomb'
 ORDER BY g.groupName, t.typeName, t.typeID;
