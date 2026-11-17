@@ -14,8 +14,9 @@ turret = source("src/eve-server/ship/modules/TurretFormulas.cpp")
 sql = source("sql/diagnostics/2026-11-17-crucible-ship-weapon-range-warp-audit.sql")
 
 # Preserve historical conversion while the archive/DB encoding is unverified.
-assert "m_shipWarpSpeed = 3.0f * warpSpeedMultiplier;" in destiny
-assert "SetAttribute(AttrWarpSpeedMultiplier, EvilOne, false)" in ship
+assert "EVEmuMovement::CrucibleWarpSpeedAU(" in destiny
+assert "m_shipWarpSpeed = 3.0f * warpSpeedMultiplier;" not in destiny
+assert "SetAttribute(AttrWarpSpeedMultiplier, 3.0f, false)" in ship
 assert "SurfaceSeparation(" in active
 assert "rangeSource->GetPosition().distance(m_targetSE->GetPosition())" in active
 assert "rangeSource->GetRadius(), m_targetSE->GetRadius()" in active
@@ -25,4 +26,4 @@ assert "GetAttribute(AttrMaxRange).get_double()" in turret
 assert "GetAttribute(AttrFalloff).get_double()" in turret
 assert "WHERE g.categoryID = 6" in sql and "attributeID = 600" in sql
 assert "au_per_second_if_legacy_multiplier" in sql
-print("Crucible module ranges guarded; historical warp conversion preserved.")
+print("Crucible module ranges and direct per-hull warp-speed calculation guarded.")

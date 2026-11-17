@@ -27,6 +27,17 @@ inline double MinimumOrbitRadius(double requestedRange, double selfRadius, doubl
         (targetRadius > 0.0 ? targetRadius : 0.0) + 25.0;
 }
 
+// The Crucible SDE stores the fitted warp top speed in attribute 600.
+// Raw hull examples: battleships 3 AU/s, frigates 6 AU/s, interceptors 13.5 AU/s.
+// Do not multiply the live fitted value by the 3 AU/s fallback again.
+inline double CrucibleWarpSpeedAU(double fittedSpeed, double typeSpeed) {
+    if (std::isfinite(fittedSpeed) && fittedSpeed > 0.0)
+        return fittedSpeed;
+    if (std::isfinite(typeSpeed) && typeSpeed > 0.0)
+        return typeSpeed;
+    return 3.0;
+}
+
 } // namespace EVEmuMovement
 
 #endif // EVEMU_MOVEMENT_FORMULAS_H

@@ -2750,43 +2750,22 @@ Battleships 0.155
     m_mass = sRef->GetAttribute(AttrMass).get_float();
     m_massMKg = m_mass / 1000000; //changes mass from Kg to milliKg (10^-6)
 
-    // Ship warp speed is type-specific: dogma attribute 600 is the ship's
-    // warp-speed multiplier, applied to the Crucible-era 3 AU/s baseline.
-    // A persisted/live value near zero is invalid for a normal ship and was
-    // producing values such as 0.10 AU/s. Recover from the immutable type
-    // default so every hull uses its own database value rather than a
-    // hard-coded per-ship speed.
-    const float liveWarpSpeedMultiplier =
-        sRef->GetAttribute(AttrWarpSpeedMultiplier).get_float();
-    const float typeWarpSpeedMultiplier =
-        sRef->GetDefaultAttribute(AttrWarpSpeedMultiplier).get_float();
-    float warpSpeedMultiplier = liveWarpSpeedMultiplier;
-    if (liveWarpSpeedMultiplier <= 0.1f && typeWarpSpeedMultiplier > 0.1f) {
-        _log(
-            DESTINY__ERROR,
-            "Destiny::UpdateShipVariables(): %s(%u) has invalid live warpSpeedMultiplier %.6f; using type default %.6f.",
-            mySE->GetName(),
-            mySE->GetID(),
-            liveWarpSpeedMultiplier,
-            typeWarpSpeedMultiplier
-        );
-        warpSpeedMultiplier = typeWarpSpeedMultiplier;
-    }
-    if (warpSpeedMultiplier <= 0.0f) {
-        // NPC inventory types commonly omit ship-only dogma attribute 600.
-        // Their standard fallback is the 3.0 multiplier (9 AU/s); this is
-        // expected data, not a runtime error worth logging for every rat.
+    // Crucible SDE attribute 600 is the fitted ship's AU/s value, NOT a
+    // relative multiplier. 3.0 * attribute600 yielded 9 AU/s battleships,
+    // 18 AU/s frigates and 27 AU/s for the four bad Logistics records.
+    // Retain hull-specific fitted bonuses and recover missing/invalid data.
+    const double liveWarpSpeed = sRef->GetAttribute(AttrWarpSpeedMultiplier).get_double();
+    const double typeWarpSpeed = sRef->GetDefaultAttribute(AttrWarpSpeedMultiplier).get_double();
+    const double resolvedWarpSpeed = EVEmuMovement::CrucibleWarpSpeedAU(
+        liveWarpSpeed, typeWarpSpeed);
+    if (!std::isfinite(liveWarpSpeed) || liveWarpSpeed <= 0.0) {
         if (!mySE->IsNPCSE() && !mySE->IsDroneSE()) {
-            _log(
-                DESTINY__ERROR,
-                "Destiny::UpdateShipVariables(): %s(%u) has no valid warpSpeedMultiplier; using dogma default 3.0.",
-                mySE->GetName(),
-                mySE->GetID()
-            );
+            _log(DESTINY__WARNING,
+                "Destiny::UpdateShipVariables(): %s(%u) missing warp attribute 600 (live %.3f, type %.3f); using %.3f AU/s.",
+                mySE->GetName(), mySE->GetID(), liveWarpSpeed, typeWarpSpeed, resolvedWarpSpeed);
         }
-        warpSpeedMultiplier = 3.0f;
     }
-    m_shipWarpSpeed = 3.0f * warpSpeedMultiplier;
+    m_shipWarpSpeed = static_cast<float>(resolvedWarpSpeed);
     if (sRef->HasAttribute(AttrInetia))
         m_shipInertia = sRef->GetAttribute(AttrInetia).get_float();
     if (sRef->HasAttribute(AttrMaxVelocity))
