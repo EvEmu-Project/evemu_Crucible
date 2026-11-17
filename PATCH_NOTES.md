@@ -1,3 +1,10 @@
+## 17 November 2026 — Upstream issue audit and scanner safety review (#128, #37, #170)
+
+- Audited upstream issues against the merged fork before patching: `#319` (`bool` MariaDB reconnect) and core `#170` iterator advance are **already implemented**, so no duplicate replacement. `#35` has a 120-minute wreck timer but remains runtime-unverified.
+- New scanner patch on `fix/upstream-issues-scanner-safety-2026-11-17`: **#128** client scan session now rebinds to the current system after jumps and refuses missing managers; **#37** directional cone calculation now normalizes vectors, checks invalid inputs, and supports full-circle scanning; **#170/#262** probe removal clears both live/active scan maps (partial mitigation only). **#269** post-NPC-death scan crash is not proven fixed.
+- Added new pure scanning math unit test and CTest registration; CI and in-game testing are required before calling upstream reports resolved.
+- [Complete upstream issue audit (123 open reports)](docs/UPSTREAM_ISSUE_AUDIT_2026-11-17.md) includes all open titles, exact code paths, triage decisions, reproduction tests and documented limitations. No SQL changes, upstream issue closures or changes to fork `master`.
+
 ## 17 November 2026 — PR #36 DED & Officer Expedition reward to 500M ISK
 
 - Increase only synthetic Security Agent mission 65534 reward to **500,000,000 ISK** (from 50,000,000). Mission 65535 Blockade remains **50,000,000 ISK**.
