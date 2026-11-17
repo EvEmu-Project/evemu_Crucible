@@ -26,4 +26,9 @@ assert "GetAttribute(AttrMaxRange).get_double()" in turret
 assert "GetAttribute(AttrFalloff).get_double()" in turret
 assert "WHERE g.categoryID = 6" in sql and "attributeID = 600" in sql
 assert "au_per_second_if_legacy_multiplier" in sql
+repair = source("sql/diagnostics/2026-11-17-crucible-warp-speed-verified-repair.sql")
+assert "11985,9,3.75" in repair and "11987,9,3.75" in repair
+assert "11989,9,3.75" in repair and "11978,9,3.75" in repair
+assert "a.attributeID=600" in repair and "v.expected_old IS NULL" in repair
+assert "tmp_crucible_warp_fix" in repair
 print("Crucible module ranges and direct per-hull warp-speed calculation guarded.")

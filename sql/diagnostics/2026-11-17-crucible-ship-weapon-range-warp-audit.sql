@@ -84,3 +84,23 @@ LEFT JOIN dgmTypeAttributes AS ft
 WHERE g.categoryID = 8
   AND g.groupName REGEXP 'Missile|Rocket|Torpedo|Bomb'
 ORDER BY g.groupName, t.typeName, t.typeID;
+
+-- 6. Other targeted active-module ranges: attribute 54 NULL is expected
+-- for energy vampires/transfers, neutralizers, smartbombs and similar types.
+-- 87=shield transfer, 91=energy transfer, 98=energy neutralization,
+-- 99=smartbomb area, 103=warp scrambling, 107=explosion radius.
+SELECT t.typeID,t.typeName,g.groupName,t.published,
+  MAX(CASE WHEN a.attributeID=87 THEN COALESCE(a.valueFloat,a.valueInt) END) AS shield_transfer_m,
+  MAX(CASE WHEN a.attributeID=91 THEN COALESCE(a.valueFloat,a.valueInt) END) AS power_transfer_m,
+  MAX(CASE WHEN a.attributeID=98 THEN COALESCE(a.valueFloat,a.valueInt) END) AS energy_neutralization_m,
+  MAX(CASE WHEN a.attributeID=99 THEN COALESCE(a.valueFloat,a.valueInt) END) AS smartbomb_area_m,
+  MAX(CASE WHEN a.attributeID=103 THEN COALESCE(a.valueFloat,a.valueInt) END) AS warp_scramble_m,
+  MAX(CASE WHEN a.attributeID=107 THEN COALESCE(a.valueFloat,a.valueInt) END) AS explosion_area_m
+FROM invTypes t
+JOIN invGroups g ON g.groupID=t.groupID
+LEFT JOIN dgmTypeAttributes a ON a.typeID=t.typeID
+ AND a.attributeID IN (87,91,98,99,103,107)
+WHERE g.categoryID=7 AND
+ g.groupName REGEXP 'Energy|Vampire|Neutralizer|Transporter|Smart|Warp|Explosive|Destabilizer'
+GROUP BY t.typeID,t.typeName,g.groupName,t.published
+ORDER BY g.groupName,t.typeName,t.typeID;

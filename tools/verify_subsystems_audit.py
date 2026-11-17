@@ -16,7 +16,7 @@ assert "pilotAlliance != 0 && m_targetSE->GetAllianceID() == pilotAlliance" in t
 assert "pilotFaction != 0 && m_targetSE->GetWarFactionID() == pilotFaction" in tractor
 assert "pilotFleet != 0 && pilotFleet == m_targetSE->GetFleetID()" in tractor
 assert "if (startTractor)" in tractor
-assert tractor.index("if (startTractor)") > tractor.index("if (distance > range)")
+assert tractor.index("if (startTractor)") > tractor.index("if (!std::isfinite(range) || range <= 0.0f || distance > range)")
 assert "m_targetSE->DestinyMgr() != nullptr" in tractor
 
 target = source("src/eve-server/system/TargetManager.cpp")
