@@ -197,14 +197,14 @@ Optionally import the bundled dungeon JSON files:
 .\evedbtool.exe dungeon list
 ~~~
 
-Optionally seed NPC market sell orders in the regions specified by `evedb.yaml`. First review the generated SQL:
+Optionally seed NPC market **sell and buy** orders in the regions specified by `evedb.yaml`. All newly seeded NPC buy orders offer **100% of published item `invTypes.basePrice`**, with no security modifier. First review the generated SQL:
 
 ~~~powershell
 .\evedbtool.exe seed -dryrun
 .\evedbtool.exe seed
 ~~~
 
-Normal initial seeding is tracked in `seed_migrations`. Do **not** use `seed -force` for the first installation.
+Normal initial seeding has separate NPC sell and buy entries in `seed_migrations`. On an existing database, run `evedbtool.exe seed -buy-only -dryrun` followed by `evedbtool.exe seed -buy-only` after a backup. Do **not** use `seed -force` for an initial installation or an existing-data buy-only upgrade. See [NPC buy seed verification](docs/NPC_BUY_MARKET_100_PERCENT_2026-11-17.md).
 
 ### B. Existing EVEmu database (accounts, characters and inventory retained)
 

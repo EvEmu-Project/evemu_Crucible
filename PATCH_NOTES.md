@@ -1,3 +1,17 @@
+## 17 Nov 2026 — Repair NPC buy-order seed MariaDB Error 1264 (PR #35)
+
+- Fixed `evedbtool seed -buy-only -force` failure `Out of range value for column 'orderRange'`: the seed wrote `-1`, which the deployed MariaDB column cannot represent. New static bids use **`orderRange=0`** and both refresh-deletion and duplicate detection use that value.
+- `0` denotes a system-range marker to the client; immediate execution remains restricted by **stationID** in `MarketDB::FindBuyOrder`. This is a compatibility workaround, not implementation of remote sales.
+- Expanded the source regression checks and a read-only post-failure audit. Previous interrupted `-force` executions may have partially changed NPC orders before the failed insert; compare with your backup before rerunning.
+- Windows/Linux/Docker CI and a real MariaDB insert smoke test must pass before merging. No database migration or player-data changes are included in this fix.
+
+## 17 Nov 2026 — Standard NPC buy seed at 100% static market reference (pending client validation)
+
+- Added NPC **buy** orders to standard EVEDBTool market seed using independent `SEED_NPC_BUY_100PCT` migration so existing `SEED_MARKET` databases can add bids with `seed -buy-only` without rewriting sell/player orders. Bids cover every published, market-listed Crucible inventory type in configured regions.
+- New bids use exactly `invTypes.basePrice` rounded to cents (100 ISK fallback when missing/nonpositive). Existing Trader Joe bot's future buy prices likewise no longer vary randomly from 80% to 110%. A narrowly scoped one-time normalization repairs old regional-range NPC bids under `ownerID=1000125`, which the server cannot execute, to supported `4000000` at 100% reference value and adjusted non-funded NPC pseudo-escrow.
+- NPC buy orders are recognizable by `ownerID=4000000`, `bid=1`, database-compatible order range `0`, duration 250 days. Full refresh is explicit via `seed -buy-only -force`; default seed is once-only/idempotent. Orders limit notional escrow to 10 trillion ISK per order and cannot draw from player wallets.
+- Market settlement uses stored NPC bid price and caps a sale to the requested inventory quantity. [Read-only SQL audit](sql/diagnostics/2026-11-17-npc-buy-orders-100pct-audit.sql) and [operator test plan](docs/NPC_BUY_MARKET_100_PERCENT_2026-11-17.md) document coverage, pricing, duplicates, rollback boundaries and live client tests. CI / real MariaDB / 2012 client outcomes must be recorded before merging to master.
+
 ## 17 Nov 2026 — A01 operator acceptance, merged validation and staging cleanup
 
 - **A01 is RESOLVED (operator reported all A01 tests passed)** on the existing-data live test. Original [PR #32](https://github.com/xrizonx/evemu_Crucible/pull/32) was already merged into `master` at `7f600be1fa06191707f4352d46f2240bfe3d2159`.

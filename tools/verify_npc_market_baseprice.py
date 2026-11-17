@@ -9,7 +9,8 @@ root = Path(__file__).resolve().parents[1]
 read = lambda name: (root / name).read_text(encoding="utf-8")
 
 go = read("tools/evedbtool/command_seed.go")
-assert go.count("ELSE GREATEST(0.01, ROUND(it.basePrice, 2))") == 2
+# Two sell paths and the new published-market NPC buy path must agree.
+assert go.count("ELSE GREATEST(0.01, ROUND(it.basePrice, 2))") == 5
 assert "it.basePrice / stations.security" not in go
 assert "WHEN stations.security <= 0 THEN it.basePrice" not in go
 assert "oldOrder.bid = 0" in go
