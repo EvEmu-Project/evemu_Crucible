@@ -93,7 +93,7 @@ zlib/
 # evemu output
 build/
 build_iwyu/
-staging/
+/staging/
 out/
 
 # evenmu runtime
@@ -125,3 +125,6 @@ sql.tar.gz
 .idea
 CMakeSettings.json
 log.ini
+
+# Local A01 Docker project identity, private snapshots and server logs.
+.a01/

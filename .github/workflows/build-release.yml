@@ -60,6 +60,8 @@ jobs:
         run: python3 tools/verify_blockade_12_ship_fleet.py
       - name: Verify Crucible-era weapon ranges and hull warp speed
         run: python3 tools/verify_crucible_range_and_warp.py
+      - name: Test A01 isolated staging harness logic
+        run: python3 -m unittest discover -s tools/staging/tests -v
       - name: Test
         run: |
           ctest --test-dir build -N | tee test-list.txt
@@ -184,6 +186,11 @@ jobs:
         run: |
           python tools/verify_crucible_range_and_warp.py
           if ($LASTEXITCODE -ne 0) { throw "Crucible weapon/warp regression" }
+      - name: Test A01 isolated staging harness logic
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tools/staging/tests -v
+          if ($LASTEXITCODE -ne 0) { throw 'A01 staging regression' }
       - name: Test
         shell: msys2 {0}
         run: |
