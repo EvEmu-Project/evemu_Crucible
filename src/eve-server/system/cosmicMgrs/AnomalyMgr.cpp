@@ -23,6 +23,10 @@
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "system/cosmicMgrs/WormholeMgr.h"
+#include "system/sov/SovereigntyDataMgr.h"
+#include "inventory/Inventory.h"
+#include "inventory/ItemFactory.h"
+#include "EVE_IHubUpgradeRules.h"
 
 #include "../../../eve-common/EVE_Scanning.h"
 
@@ -118,6 +122,32 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     // Load saved anomalies from db upon system init
     LoadAnomalies();
 
+    // Count active upgrade types of this system's registered sovereign IHub.
+    // Sites are capped at five per family to avoid unbounded test spawns.
+    uint8 sovMilitarySites = 0, sovIndustrialSites = 0;
+    const SovereigntyData sov = svDataMgr.GetSovereigntyData(m_system->GetID());
+    if (sov.claimStructureID && sov.hubID && sov.allianceID) {
+        InventoryItemRef hub = sItemFactory.GetItemRef(sov.hubID);
+        if (hub.get() != nullptr
+            && hub->typeID() == EVEDB::invTypes::InfrastructureHub
+            && hub->GetMyInventory() != nullptr
+            && hub->GetMyInventory()->LoadContents()) {
+            std::map<uint32, InventoryItemRef> installed;
+            hub->GetMyInventory()->GetInventoryMap(installed);
+            for (const auto& item : installed) {
+                if (item.second.get() == nullptr
+                    || item.second->categoryID() != EVEDB::invCategories::StructureUpgrade
+                    || item.second->flag() != flagStructureActive)
+                    continue;
+                const auto kind = EVESovIHub::KindForGroup(item.second->groupID());
+                if (kind == EVESovIHub::UpgradeKind::Military && sovMilitarySites < 5)
+                    ++sovMilitarySites;
+                else if (kind == EVESovIHub::UpgradeKind::Industrial && sovIndustrialSites < 5)
+                    ++sovIndustrialSites;
+            }
+        }
+    }
+
     // set internal check data
     // range is 0.1 for 1.0 system to 2.0 for -0.9 system
     float security = m_system->GetSecValue();
@@ -146,6 +176,14 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     for (int i = 0; i < (m_maxSigs / 2); i++) {
         m_typeList.push_back(Dungeon::Type::Anomaly);
     }
+    for (uint8 i = 0; i < sovMilitarySites; ++i)
+        m_typeList.push_back(Dungeon::Type::Anomaly);
+    for (uint8 i = 0; i < sovIndustrialSites; ++i)
+        m_typeList.push_back(Dungeon::Type::Gravimetric);
+    m_maxSigs = static_cast<uint8>(m_maxSigs + sovMilitarySites + sovIndustrialSites);
+    if (sovMilitarySites || sovIndustrialSites)
+        _log(SOV__INFO, "IHub %u scheduled %u combat and %u mining sites.",
+             sov.hubID, sovMilitarySites, sovIndustrialSites);
 
     // these use config option to (en/dis)able individual types
     m_Grav = sConfig.exploring.Gravametric;
