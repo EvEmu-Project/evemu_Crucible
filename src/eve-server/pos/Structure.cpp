@@ -691,7 +691,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             pClient->SendErrorMsg("Cannot anchor this structure: its required infrastructure hub or upgrade is unavailable.");
             return;
         }
-        if (!ihubRef->GetMyInventory()->ContainsTypeQty(upgType,1)) {
+        if (!ihubRef->GetMyInventory()->ContainsTypeQtyByFlag(upgType, flagStructureActive, 1)) {
             pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.",
             sItemFactory.GetType(upgType)->name().c_str());
             return;

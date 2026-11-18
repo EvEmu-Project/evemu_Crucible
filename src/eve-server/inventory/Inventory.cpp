@@ -225,7 +225,7 @@ void Inventory::AddItem(InventoryItemRef iRef) {
     // Do not activate unrelated cargo or unsupported upgrade types.
     if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub
         && iRef->categoryID() == EVEDB::invCategories::StructureUpgrade
-        && EVESovIHub::RequiredStrategicDays(iRef->typeID()) != 0) {
+        && EVESovIHub::IsSupportedUpgrade(iRef->typeID(), iRef->groupID())) {
         _log(SOV__DEBUG, "Activating Infrastructure Hub upgrade %s(%u).",
              iRef->name(), iRef->itemID());
         iRef->SetFlag(EVEItemFlags::flagStructureActive, true);
@@ -751,30 +751,60 @@ bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
         throw CustomError("You must be in the Infrastructure Hub's solar system to install an upgrade.");
     }
 
-    // A player must belong to the holding alliance. DEV/ADMIN may run
-    // isolated sovereignty tests on their own test server.
+    // Require a holder-alliance starbase director/config role, or a
+    // DEV/ADMIN account for isolated null-sec testing.
     const int64 roles = pClient->GetAccountRole();
     const bool devAdmin = (roles & Acct::Role::ADMIN) == Acct::Role::ADMIN
         || (roles & Acct::Role::DEV) == Acct::Role::DEV;
-    if (!devAdmin && pClient->GetAllianceID() != sovData.allianceID)
-        throw CustomError("Only members of the sovereign alliance may install this Infrastructure Hub upgrade.");
+    if (!devAdmin && (pClient->GetAllianceID() != sovData.allianceID
+        || (pClient->GetCorpRole() & (Corp::Role::Director | Corp::Role::StarbaseConfig)) == 0))
+        throw CustomError("Only authorized starbase administrators of the sovereign alliance may install Infrastructure Hub upgrades.");
 
-    // Never accept unsupported types silently, even in a GM test.
-    const uint32 requiredDays = EVESovIHub::RequiredStrategicDays(iRef->typeID());
-    if (requiredDays == 0) {
-        _log(INV__WARNING, "IHub upgrade %s(type %u) is not supported.",
-             iRef->name(), iRef->typeID());
+    const EVESovIHub::UpgradeKind kind = EVESovIHub::KindForGroup(iRef->groupID());
+    if (!EVESovIHub::IsSupportedUpgrade(iRef->typeID(), iRef->groupID())) {
+        _log(INV__WARNING, "IHub upgrade %s (type %u group %u) is unsupported.",
+             iRef->name(), iRef->typeID(), iRef->groupID());
         throw CustomError("%s is not currently supported.", iRef->name());
     }
 
-    // /sovindex5 simulates development time; claimTime remains unchanged.
-    const uint32 effectiveDays = svDataMgr.GetEffectiveStrategicDays(sovData);
-    if (!EVESovIHub::MeetsStrategicRequirement(iRef->typeID(), effectiveDays)) {
-        _log(INV__WARNING,
-             "IHub upgrade %s requires %u strategic days, current effective %u.",
-             iRef->name(), requiredDays, effectiveDays);
-        throw CustomError("%s requires at least %u days of Strategic sovereignty development.",
-                          iRef->name(), requiredDays);
+    // Honor prerequisite and blocking references from Crucible type data.
+    const uint32 requiredTypeID = iRef->type().HasAttribute(EveAttrEnum::AttrsovUpgradeRequiredUpgradeID)
+        ? iRef->type().GetAttribute(EveAttrEnum::AttrsovUpgradeRequiredUpgradeID).get_uint32() : 0U;
+    const uint32 blockingTypeID = iRef->type().HasAttribute(EveAttrEnum::AttrsovUpgradeBlockingUpgradeID)
+        ? iRef->type().GetAttribute(EveAttrEnum::AttrsovUpgradeBlockingUpgradeID).get_uint32() : 0U;
+    if (requiredTypeID && !ContainsTypeQtyByFlag(requiredTypeID, flagStructureActive, 1))
+        throw CustomError("%s requires active Infrastructure Hub upgrade type %u first.",
+                          iRef->name(), requiredTypeID);
+    if (blockingTypeID && ContainsTypeQtyByFlag(blockingTypeID, flagStructureActive, 1))
+        throw CustomError("%s conflicts with installed Infrastructure Hub upgrade type %u.",
+                          iRef->name(), blockingTypeID);
+
+    if (kind == EVESovIHub::UpgradeKind::Strategic) {
+        const uint32 requiredDays = EVESovIHub::RequiredStrategicDays(iRef->typeID());
+        const uint32 effectiveDays = svDataMgr.GetEffectiveStrategicDays(sovData);
+        if (!EVESovIHub::MeetsStrategicRequirement(iRef->typeID(), effectiveDays))
+            throw CustomError("%s requires %u effective Strategic sovereignty days (current %u).",
+                              iRef->name(), requiredDays, effectiveDays);
+    } else {
+        const bool military = kind == EVESovIHub::UpgradeKind::Military;
+        const uint16 indexAttribute = military
+            ? EveAttrEnum::AttrdevIndexMilitary : EveAttrEnum::AttrdevIndexIndustrial;
+        uint32 requiredLevel = 1;
+        if (iRef->type().HasAttribute(indexAttribute))
+            requiredLevel = iRef->type().GetAttribute(indexAttribute).get_uint32();
+        if (requiredLevel == 0 || requiredLevel > 5)
+            throw CustomError("%s has invalid development-index prerequisite %u.",
+                              iRef->name(), requiredLevel);
+
+        const uint32 points = military
+            ? svDataMgr.GetEffectiveMilitaryPoints(sovData)
+            : svDataMgr.GetEffectiveIndustrialPoints(sovData);
+        const uint32 levelFivePoints = military
+            ? EVESovIndex::LevelFiveMilitaryPoints : EVESovIndex::LevelFiveIndustrialPoints;
+        if (!EVESovIHub::MeetsActivityRequirement(points, requiredLevel, levelFivePoints))
+            throw CustomError("%s requires development index level %u; effective raw points %u. "
+                              "Natural activity progression is not yet implemented.",
+                              iRef->name(), requiredLevel, points);
     }
 
     // ContainsItem alone only caught the same itemID, not multiple modules
