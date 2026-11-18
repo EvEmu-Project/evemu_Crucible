@@ -76,7 +76,7 @@ int utils_MovementFormulaTest(int argc, char* argv[])
         && requestedHundredKm == 110150
         && EVEmuMovement::SurfaceSeparation(requestedTenKm, 150.0, 10000.0) == 10000.0
         && fractionalStop == 2431
-        && invalidStop == 0
+        && invalidStop == std::numeric_limits<std::int32_t>::max()
         && EVEmuMovement::WarpCenterStopRange(0.0, 0.0, 0.0, 0.0) == 0
         && shortPull == 100 && fullPull == 600 && noPull == 0 && invalidPull == 0 &&
         warpTickOne == 9990 && warpTickTwo == 9800 && warpEnd == 0 &&
