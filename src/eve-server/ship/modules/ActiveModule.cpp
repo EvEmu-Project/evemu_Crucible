@@ -616,11 +616,15 @@ uint32 ActiveModule::DoCycle() {
                 UpdateCharge(AttrCapacitorCharge, AttrCapacitorCapacity, AttrPowerTransferAmount, m_targetSE->GetSelf());
         } break;
         case EVEDB::invGroups::Shield_Transporter: {
-            if (m_targetSE != nullptr)
+            if (m_targetSE != nullptr) {
                 UpdateCharge(AttrShieldCharge, AttrShieldCapacity, AttrShieldBonus, m_targetSE->GetSelf());
+                m_targetSE->SendDamageStateChanged();
+            }
         } break;
         case EVEDB::invGroups::Shield_Booster: {
             UpdateCharge(AttrShieldCharge, AttrShieldCapacity, AttrShieldBonus, m_shipRef);
+            if (ShipSE* ship = m_shipRef->GetPilot()->GetShipSE())
+                ship->SendDamageStateChanged();
         } break;
         case EVEDB::invGroups::Remote_Hull_Repairer: {
             if (m_targetSE != nullptr)
@@ -1042,9 +1046,6 @@ void ActiveModule::UpdateCharge(uint16 attrID, uint16 testAttrID, uint16 srcAttr
             Deactivate();
     }
     iRef->SetAttribute(attrID, newValue);
-
-    if (attrID == AttrShieldCharge)
-        m_shipRef->GetPilot()->GetShipSE()->SendDamageStateChanged();
 }
 
 void ActiveModule::UpdateDamage(uint16 attrID, uint16 srcAttrID, InventoryItemRef iRef)

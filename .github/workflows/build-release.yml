@@ -366,6 +366,31 @@ jobs:
         run: |
           mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE pos_industry_test"
           python3 tools/tests/verify_pos_industry_lines.py --host=127.0.0.1 --user=root --database=pos_industry_test
+      - name: Verify guarded Crucible static attribute migration
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          set -euo pipefail
+          mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE crucible_attribute_test"
+          {
+            cat <<'SQL'
+          CREATE TABLE invTypes (typeID INT PRIMARY KEY, radius DOUBLE, mass DOUBLE, capacity DOUBLE);
+          CREATE TABLE dgmTypeAttributes (typeID INT, attributeID INT, valueInt INT, valueFloat DOUBLE, PRIMARY KEY (typeID, attributeID));
+          CREATE TABLE entity (itemID INT PRIMARY KEY, typeID INT, locationID INT, flag INT);
+          INSERT INTO invTypes VALUES (4256,1,1,150),(450,1,1,0),(451,1,420,0),(12346,100,1,0);
+          INSERT INTO dgmTypeAttributes VALUES (22852,271,NULL,0.97),(22544,12,4,NULL),(2998,12,5,NULL);
+          INSERT INTO entity VALUES (100,22544,0,0),(101,1,100,11);
+          SQL
+            sed '/^-- +migrate Down/,$d' sql/migrations/20261118123000-crucible-static-attribute-corrections.sql
+            cat <<'SQL'
+          SELECT GROUP_CONCAT(CONCAT(typeID,':',radius,':',mass,':',capacity) ORDER BY typeID)
+          FROM invTypes WHERE typeID IN (4256,450,451);
+          SELECT GROUP_CONCAT(CONCAT(typeID,':',COALESCE(valueInt,valueFloat)) ORDER BY typeID)
+          FROM dgmTypeAttributes;
+          SELECT radius FROM invTypes WHERE typeID = 12346;
+          SQL
+          } | mariadb --host=127.0.0.1 --user=root --database=crucible_attribute_test --batch --skip-column-names > "$RUNNER_TEMP/crucible-attribute-test.txt"
+          diff -u <(printf '%s\n' '450:1:500:0,451:1:420:0,4256:1:1:225' '2998:3,22544:4,22852:1' '10') "$RUNNER_TEMP/crucible-attribute-test.txt"
       - name: Build the patched EVEDBTool
         run: |
           git clone --quiet --depth 1 --branch 0.0.6 https://github.com/EvEmu-Project/EVEDBTool.git "$RUNNER_TEMP/EVEDBTool"

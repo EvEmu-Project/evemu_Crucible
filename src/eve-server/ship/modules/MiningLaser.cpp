@@ -30,10 +30,11 @@ MiningLaser::MiningLaser(ModuleItemRef mRef, ShipItemRef sRef)
     m_rMiner = m_dcMiner = m_iMiner = m_gMiner = false;
     m_crystalDmg = m_crystalRoidGrp = m_crystalDmgAmount = m_crystalDmgChance = 0;
 
-    if (m_modRef->groupID() == EVEDB::invGroups::Mining_Laser) {
-        m_rMiner = true;
-    } else if ((m_modRef->typeID() == 12108) or (m_modRef->typeID() == 18068) or (m_modRef->typeID() == 24305) or (m_modRef->typeID() == 28748)) {
+    if ((m_modRef->typeID() == 12108) || (m_modRef->typeID() == 18068)
+        || (m_modRef->typeID() == 24305) || (m_modRef->typeID() == 28748)) {
         m_dcMiner = true;
+    } else if (m_modRef->groupID() == EVEDB::invGroups::Mining_Laser) {
+        m_rMiner = true;
     } else if ((m_modRef->typeID() == 16278) or (m_modRef->typeID() == 22229) or (m_modRef->typeID() == 22589) or (m_modRef->typeID() == 22591)
         or (m_modRef->typeID() == 22597) or (m_modRef->typeID() == 22599) or (m_modRef->typeID() == 28752)) {
         /* this includes 'dev testing modules'  */
@@ -87,28 +88,28 @@ bool MiningLaser::CanActivate()
     }
 
     bool canActivate(false);
-    // verify module vs target for activation.  disallow if not compatible.  set special ore hold if applicable
-    if (m_rMiner) {
-        if ((m_targetSE->GetSelf()->categoryID() == EVEDB::invCategories::Asteroid)
-        and (m_targetSE->GetSelf()->groupID() != EVEDB::invGroups::Mercoxit)) {
-            canActivate = true;
-            if (m_shipRef->HasAttribute(AttrOreHoldCapacity))
-                m_holdFlag = flagOreHold;
-        }
-    } else if (m_dcMiner) {
-        if (m_targetSE->GetSelf()->groupID() == EVEDB::invGroups::Mercoxit) {
+    const InventoryItemRef target = m_targetSE->GetSelf();
+    if (target.get() == nullptr)
+        return false;
+
+    // Ice harvesters handle ice. Deep-core lasers can mine ordinary ore
+    // as well as Mercoxit, which ordinary mining lasers cannot extract.
+    if (m_rMiner || m_dcMiner) {
+        if (target->categoryID() == EVEDB::invCategories::Asteroid
+            && target->groupID() != EVEDB::invGroups::Ice
+            && (m_dcMiner || target->groupID() != EVEDB::invGroups::Mercoxit)) {
             canActivate = true;
             if (m_shipRef->HasAttribute(AttrOreHoldCapacity))
                 m_holdFlag = flagOreHold;
         }
     } else if (m_iMiner) {
-        if (m_targetSE->GetSelf()->groupID() == EVEDB::invGroups::Ice) {
+        if (target->groupID() == EVEDB::invGroups::Ice) {
             canActivate = true;
             if (m_shipRef->HasAttribute(AttrOreHoldCapacity))
                 m_holdFlag = flagOreHold;
         }
     } else if (m_gMiner) {
-        if (m_targetSE->GetSelf()->groupID() == EVEDB::invGroups::Harvestable_Cloud) {
+        if (target->groupID() == EVEDB::invGroups::Harvestable_Cloud) {
             canActivate = true;
             if (m_shipRef->HasAttribute(AttrGasHoldCapacity))
                 m_holdFlag = flagGasHold;
