@@ -68,6 +68,17 @@ static const std::vector<uint32> VALID_GROUPS = {
 static constexpr uint32 BOT_OWNER_ID = 1000125; // NPC corp owner for sell orders
 static constexpr uint32 BOT_BUY_OWNER_ID = npcTraderJoe; // 4000000; supported NPC buyer in ExecuteBuyOrder
 
+// Minerals and actual Crucible ore/ice groups, not mining crystals or charges.
+// New NPC market orders use 100 million units per mineral or ore type.
+static constexpr uint32 ORE_MINERAL_ORDER_QUANTITY = 100000000;
+static constexpr double ORE_MINERAL_MAX_UNIT_PRICE = 10000000.0;
+
+static bool IsOreOrMineralMarketGroup(uint32 groupID) {
+    return groupID == 18
+        || (groupID >= 450 && groupID <= 462)
+        || groupID == 465 || groupID == 467 || groupID == 468 || groupID == 469;
+}
+
 // helper random generators
 int GetRandomInt(int min, int max) {
     static thread_local std::mt19937 rng(std::random_device{}());
@@ -244,8 +255,15 @@ int MarketBotMgr::PlaceBuyOrders(uint32 systemID) {
 
         uint32 quantity = GetRandomQuantity(type->groupID());
         double price = CalculateBuyPrice(itemID);
+        const bool isOreMineral = IsOreOrMineralMarketGroup(type->groupID());
+        // Do not silently reduce the 100M-unit ore/mineral quantity to one.
+        // At most 10M ISK/unit keeps its notional value <= 10^15 ISK.
+        if (isOreMineral && (!(price > 0.0) || price > ORE_MINERAL_MAX_UNIT_PRICE)) {
+            codelog(MARKET__WARNING, "Skipping ore/mineral type %u: price %.2f exceeds 100M-unit order safety limit.", itemID, price);
+            continue;
+        }
 
-        if (price * quantity > sMBotConf.main.MaxISKPerOrder) {
+        if (!isOreMineral && price * quantity > sMBotConf.main.MaxISKPerOrder) {
             if (quantity > 1) {
                 quantity = 1;
                 if (price > sMBotConf.main.MaxISKPerOrder) {
@@ -324,8 +342,15 @@ int MarketBotMgr::PlaceSellOrders(uint32 systemID) {
 
         uint32 quantity = GetRandomQuantity(type->groupID());
         double price = CalculateSellPrice(itemID);
+        const bool isOreMineral = IsOreOrMineralMarketGroup(type->groupID());
+        // Do not silently reduce the 100M-unit ore/mineral quantity to one.
+        // At most 10M ISK/unit keeps its notional value <= 10^15 ISK.
+        if (isOreMineral && (!(price > 0.0) || price > ORE_MINERAL_MAX_UNIT_PRICE)) {
+            codelog(MARKET__WARNING, "Skipping ore/mineral type %u: price %.2f exceeds 100M-unit order safety limit.", itemID, price);
+            continue;
+        }
 
-        if (price * quantity > sMBotConf.main.MaxISKPerOrder) {
+        if (!isOreMineral && price * quantity > sMBotConf.main.MaxISKPerOrder) {
             if (quantity > 1) {
                 quantity = 1;
                 if (price > sMBotConf.main.MaxISKPerOrder) {
@@ -410,9 +435,11 @@ uint32 MarketBotMgr::SelectRandomItemID() {
 }
 
 uint32 MarketBotMgr::GetRandomQuantity(uint32 groupID) {
-    // Large-quantity bulk groups: minerals, ammo, ores, charges, etc.
+    if (IsOreOrMineralMarketGroup(groupID))
+        return ORE_MINERAL_ORDER_QUANTITY;
+
+    // Non-ore high-volume items retain the former random quantities.
     if (
-        groupID == 18 ||                      // Minerals
         (groupID >= 83 && groupID <= 92) ||   // Basic ammo/charges
         (groupID >= 372 && groupID <= 377) || // Advanced ammo
         (groupID >= 384 && groupID <= 396) || // More missiles
@@ -424,9 +451,7 @@ uint32 MarketBotMgr::GetRandomQuantity(uint32 groupID) {
         groupID == 648 ||                     // Advanced Rocket
         (groupID >= 653 && groupID <= 657) || // Advanced Missiles
         groupID == 663 ||                     // Mercoxit Mining Crystals
-        groupID == 772 ||                     // Assault Missiles
-        (groupID >= 450 && groupID <= 462) || // Raw ores (part 1)
-        (groupID >= 465 && groupID <= 469)    // Raw ores (part 2)
+        groupID == 772                       // Assault Missiles
     ) {
         return GetRandomInt(1000, 1000000);  // Large stack sizes
     }
