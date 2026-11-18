@@ -1,3 +1,7 @@
+## 18 November 2026 — NPC ore/mineral stock set to 100 million
+
+New NPC ore/ice/mineral **buy and sell** orders now start at **100,000,000 units each** per type/station through EVEDBTool and Trader Joe. Existing NPC and all player orders are unchanged until an intentional operator refresh; other item amounts and 100% `invTypes.basePrice` pricing are preserved. The ore/mineral order-value safety ceiling is 10M ISK per unit. See the [deployment/test guide](https://github.com/xrizonx/evemu_Crucible/blob/contrib/upstream-crucible-maintenance-2026-11-15/docs/NPC_ORE_MINERAL_100M_ORDERS_2026-11-18.md). Linux/Windows and MariaDB checks were added; a successful live build and client QA are still required.
+
 # Upstream PR #335 — patch-note update for 18 November 2026
 
 > **Ready to copy into the top of [upstream draft PR #335](https://github.com/EvEmu-Project/evemu_Crucible/pull/335).** The contributor's GitHub integration does not have permission to edit or comment on this upstream-owned PR; this text is committed to the contribution branch for the PR author to paste. Preserve the prior PR history underneath.
