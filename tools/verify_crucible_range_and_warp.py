@@ -46,6 +46,30 @@ assert "Stop();" in follow
 assert "SetPosition(m_position, true);\n            return;" in follow
 assert "EVEmuMovement::TractorTravelStep(" in follow
 
+# Warping to stargates or other spherical targets must use the actual
+# surface separation, not the old gate radius/3 fudge and ship diameter.
+formulas = source("src/eve-common/EVE_MovementFormulas.h")
+beyonce = source("src/eve-server/ship/BeyonceService.cpp")
+client = source("src/eve-server/Client.cpp")
+movement_test = source("src/eve-test/utils/MovementFormulaTest.cpp")
+assert "WarpCenterStopRange(double requestedSurfaceRange" in formulas
+assert "GateWarpLandingSurfaceRange = 2400.0" in formulas
+assert "GateJumpSurfaceRange = 2500.0" in formulas
+assert "surface + std::max(0.0, shipRadius) + std::max(0.0, targetRadius)" in formulas
+assert beyonce.count("EVEmuMovement::WarpCenterStopRange(") == 2
+assert "distance += (radius / 3)" not in beyonce
+assert "hasCenterBasedWarpRange" in beyonce
+assert "if (pSE != nullptr && !hasCenterBasedWarpRange)" in beyonce
+assert "if (autoPilot && pSE != nullptr)" in destiny
+assert "const double surfaceRange = EVEmuMovement::SurfaceSeparation(" in destiny
+assert client.count("EVEmuMovement::GateWarpLandingSurfaceRange") == 2
+assert client.count("EVEmuMovement::GateJumpSurfaceRange") == 2
+assert "gate->GetRadius() + 2500.0" not in client
+assert "station->GetRadius() + 2500.0" not in destiny
+assert "Follow(station, approachDistance);" in destiny
+assert "gateFrigateStop == 12435 && gateCapitalStop == 14900" in movement_test
+assert "requestedTenKm == 20150" in movement_test
+
 # A warp launch uses the requested destination plus a range. The final
 # authoritative stop uses the already range-adjusted endpoint.
 assert "wt.dest_x = m_warpDestination.x;" in destiny
