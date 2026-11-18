@@ -254,12 +254,22 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         bomLocPath.locationID   = bomPath.officeID;
         bomLocPath.ownerID      = bomPath.officeCorpID;
         bomLocPath.flagID       = bomPath.pathFlagID;
+        if (bomLocPath.ownerID != call.client->GetCorporationID())
+            throw UserError("RamAccessDeniedToBOMHangar");
     } else {
         // get path data for player
         if (!bomLocPath.Decode(args.bomLocPath->GetItem(0))) {
             _log(SERVICE__ERROR, "Failed to decode BOM path.");
             return nullptr;
         }
+        // A personal job must not use arbitrary corporate materials or
+        // a remote/inaccessible inventory path supplied by the client.
+        const bool inShip = args.lineContainerID == call.client->GetShipID();
+        if (bomLocPath.ownerID != call.client->GetCharacterID()
+            || bomLocPath.locationID != args.lineContainerID
+            || bomLocPath.flagID != (inShip ? flagCargoHold : flagHangar)
+            || args.outputFlag != (inShip ? flagCargoHold : flagHangar))
+            throw UserError("RamAccessDeniedToBOMHangar");
     }
 
     // calculate time and cost
@@ -403,8 +413,7 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         std::vector<InventoryItemRef>::iterator refItr = items.begin();
         for (; refItr != items.end(); ++refItr)
             if ((*refItr)->typeID() == itemItr->typeID
-                && ((*refItr)->ownerID() == call.client->GetCharacterID()
-                    || (*refItr)->ownerID() == call.client->GetCorporationID())) {
+                && (*refItr)->ownerID() == bomLocPath.ownerID) {
                 if (qtyNeeded >= (*refItr)->quantity()) {
                     qtyNeeded -= (*refItr)->quantity();
                     (*refItr)->Delete();

@@ -27,6 +27,11 @@
 6. **Installation security:** blueprint owner and actual location are validated; personal material source now decodes the BOM location rather than the blueprint location; a client cannot override or submit negative installation cost.
 7. **Job completion/access:** an owner cannot query another player's personal jobs. A player cannot deliver/cancel someone else's personal industry job, or redirect the output to a different container ID.
 
+
+### Personal vs corporate material isolation
+
+Personal jobs require a BOM path owned by the logged-in character, located at the actual laboratory/station (or active ship), and in the appropriate personal hangar/cargo flag. They cannot designate a corporate hangar as the material source or output. Corporate jobs require a corporation-owned BOM and retain the corporate hangar role checks. The quote, availability check and consumption all filter stacks by **the selected BOM owner**, not the previous permissive personal-OR-corporation check. This prevents cross-owner consumption and mismatched material quotes.
+
 ## Known remaining risks
 
 - **Invention is disabled, not implemented.** Its old `CompleteJob()` placeholder constructs a fake success response with zero output item/type IDs. Keep installation blocked until a persisted invention job model and T2 blueprint creation/skills/decryptors are implemented and tested.

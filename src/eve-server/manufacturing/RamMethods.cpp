@@ -387,8 +387,7 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs,
         uint64 available = 0;
         for (const auto& item : stacks) {
             if (item.get() != nullptr && item->typeID() == req.first
-                && (item->ownerID() == pClient->GetCharacterID()
-                    || item->ownerID() == pClient->GetCorporationID())
+                && item->ownerID() == bomLocation.ownerID
                 && item->quantity() > 0)
                 available += static_cast<uint64>(item->quantity());
         }
@@ -606,8 +605,8 @@ void RamMethods::EncodeMissingMaterials(const std::vector<EvERam::RequiredItem> 
 
         for (; itri != endi and qtyReq > 0; ++itri) {
             if (((*itri)->typeID() == cur.typeID)
-            and (((*itri)->ownerID() == pClient->GetCharacterID())
-              or ((*itri)->ownerID() == pClient->GetCorporationID()))) {
+            and ((*itri)->ownerID() == (cur.isSkill
+                ? pClient->GetCharacterID() : bomLocation.ownerID))) {
                 if (cur.isSkill) {
                     qtyReq -= std::min(qtyReq, (*itri)->GetAttribute(AttrSkillLevel).get_uint32() );
                 } else {

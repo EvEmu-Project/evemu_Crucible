@@ -41,4 +41,9 @@ assert 'case EvERam::Activity::Invention:' in methods
 assert 'Blueprint invention is not functional on this server yet' in methods
 assert 'requestedOwner != call.client->GetCharacterID()' in proxy
 assert 'requestedOwner != call.client->GetCorporationID()' in proxy
+assert 'item->ownerID() == bomLocation.ownerID' in methods
+assert 'bomLocPath.ownerID != call.client->GetCharacterID()' in proxy
+assert 'bomLocPath.locationID != args.lineContainerID' in proxy
+assert '(*refItr)->ownerID() == bomLocPath.ownerID' in proxy
+assert 'bomLocPath.ownerID != call.client->GetCorporationID()' in proxy
 print("PASS: research, copying, industry ownership and invention safety invariants")
