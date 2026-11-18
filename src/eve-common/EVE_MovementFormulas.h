@@ -43,7 +43,7 @@ inline std::int32_t WarpCenterStopRange(double requestedSurfaceRange,
                                         double minimumSurfaceRange = 0.0) {
     if (!std::isfinite(requestedSurfaceRange) || !std::isfinite(shipRadius)
         || !std::isfinite(targetRadius) || !std::isfinite(minimumSurfaceRange))
-        return 0;
+        return std::numeric_limits<std::int32_t>::max();
     const double surface = std::max({0.0, requestedSurfaceRange, minimumSurfaceRange});
     const double center = surface + std::max(0.0, shipRadius) + std::max(0.0, targetRadius);
     const double maxRange = static_cast<double>(std::numeric_limits<std::int32_t>::max());
