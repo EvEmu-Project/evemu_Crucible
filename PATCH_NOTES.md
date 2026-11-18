@@ -59,6 +59,13 @@
 - Added POS-11 **read-only detailed orphan query** for item/tower/anchor/child counts and related POS attributes; updated regression source guards and the review dossier.
 - Existing orphan rows remain unchanged until item IDs, dependencies and a backup establish whether manual reconciliation is safe. New source fix requires CI and live POS deletion/restart testing.
 
+## 17 November 2026 — Upstream issue audit and scanner safety review (#128, #37, #170)
+
+- Audited upstream issues against the merged fork before patching: `#319` (`bool` MariaDB reconnect) and core `#170` iterator advance are **already implemented**, so no duplicate replacement. `#35` has a 120-minute wreck timer but remains runtime-unverified.
+- New scanner patch on `fix/upstream-issues-scanner-safety-2026-11-17`: **#128** client scan session now rebinds to the current system after jumps and refuses missing managers; **#37** directional cone calculation now normalizes vectors, checks invalid inputs, and supports full-circle scanning; **#170/#262** probe removal clears both live/active scan maps (partial mitigation only). **#269** post-NPC-death scan crash is not proven fixed.
+- Added new pure scanning math unit test and CTest registration; CI and in-game testing are required before calling upstream reports resolved.
+- [Complete upstream issue audit (123 open reports)](docs/UPSTREAM_ISSUE_AUDIT_2026-11-17.md) includes all open titles, exact code paths, triage decisions, reproduction tests and documented limitations. No SQL changes, upstream issue closures or changes to fork `master`.
+
 ## 17 November 2026 — POS requested-position distance validation
 
 - POS-10: SBU and orbital-platform anchor distance rules previously compared the stargate/planet to the structure old stored position, not the requested target. Use the target position for both checks; extend the Windows/Linux source regression guard.
