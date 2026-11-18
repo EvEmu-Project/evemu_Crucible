@@ -37,6 +37,7 @@
 #include "StatisticMgr.h"
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
+#include "EVE_IndustryFormulas.h"
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/RamMethods.h"
 #include "manufacturing/RamProxyService.h"
@@ -392,12 +393,16 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
             continue;       // not interested
 
         // calculate needed quantity
-        uint32 qtyNeeded = (uint32)round(((itemItr->quantity * rsp.materialMultiplier) + (itemItr->quantity * rsp.charMaterialMultiplier - itemItr->quantity)) * args.runs);
+        uint32 qtyNeeded = EVEmuIndustry::RequiredMaterialQuantity(
+            itemItr->quantity, rsp.materialMultiplier, rsp.charMaterialMultiplier,
+            args.runs);
 
         // consume required materials
         std::vector<InventoryItemRef>::iterator refItr = items.begin();
         for (; refItr != items.end(); ++refItr)
-            if ((*refItr)->typeID() == itemItr->typeID) {
+            if ((*refItr)->typeID() == itemItr->typeID
+                && ((*refItr)->ownerID() == call.client->GetCharacterID()
+                    || (*refItr)->ownerID() == call.client->GetCorporationID())) {
                 if (qtyNeeded >= (*refItr)->quantity()) {
                     qtyNeeded -= (*refItr)->quantity();
                     (*refItr)->Delete();

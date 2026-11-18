@@ -12,6 +12,7 @@
 #include "../eve-common/EVE_Character.h"
 #include "Client.h"
 #include "inventory/Inventory.h"
+#include "EVE_IndustryFormulas.h"
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/RamMethods.h"
 #include "station/StationDataMgr.h"
@@ -79,8 +80,8 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
         case EvERam::Activity::Copying: {
             if (bpRef->copy())
                 throw UserError ("RamCannotCopyABlueprintCopy");
-            if (args.copyRuns <= 0
-                || static_cast<uint32>(args.copyRuns) > bpRef->type().maxProductionLimit())
+            if (!EVEmuIndustry::ValidCopyRuns(
+                    args.runs, args.copyRuns, bpRef->type().maxProductionLimit()))
                 throw UserError("RamCannotCopyZeroRuns");
             pType = &bpRef->type();
         } break;
@@ -358,35 +359,41 @@ void RamMethods::LocationRolesCheck(Client*const pClient, const CorpPathElement 
     }
 }
 
-void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs, const PathElement& bomLocation, const Rsp_InstallJob& rsp, const std::vector< EvERam::RequiredItem >& reqItems)
+void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs,
+                                   const PathElement& bomLocation,
+                                   const Rsp_InstallJob& rsp,
+                                   const std::vector<EvERam::RequiredItem>& reqItems)
 {
-    std::map<uint16, InventoryItemRef> items;   // typeID, itemRef
-    GetBOMItemsMap( bomLocation, items );
+    std::vector<InventoryItemRef> stacks;
+    GetBOMItems(bomLocation, stacks);
 
-    for (auto cur : reqItems) {
-        if (cur.isSkill) { // check skill (quantity is required level)
-            if (pClient->GetChar()->GetSkillLevel(cur.typeID) < cur.quantity) {
-                throw UserError ("RamNeedSkillForJob")
-                        .AddFormatValue ("skillID", new PyInt (cur.typeID))
-                        .AddFormatValue ("skillLevel", new PyInt (cur.quantity));
-            }
+    // Aggregate every stack and requirement of the same type. The previous
+    // one-stack map incorrectly rejected valid inventories split into stacks.
+    std::map<uint16, uint64> needed;
+    for (const auto& req : reqItems) {
+        if (req.isSkill) {
+            if (pClient->GetChar()->GetSkillLevel(req.typeID) < req.quantity)
+                throw UserError("RamNeedSkillForJob")
+                    .AddFormatValue("skillID", new PyInt(req.typeID))
+                    .AddFormatValue("skillLevel", new PyInt(req.quantity));
         } else {
-            uint32 qtyNeeded = round(cur.quantity * rsp.materialMultiplier) * runs;
-            if (cur.damagePerJob == 1)
-                qtyNeeded += round(cur.quantity * rsp.charMaterialMultiplier - cur.quantity) * runs;
-            std::map<uint16, InventoryItemRef>::iterator itr = items.find(cur.typeID);
-            if (itr != items.end())
-                if (itr->second->typeID() == cur.typeID) {
-                    if (itr->second->quantity() < qtyNeeded)
-                        qtyNeeded -= itr->second->quantity();
-                    else
-                        qtyNeeded = 0;
-                }
-
-            if (qtyNeeded)
-                throw UserError ("RamNeedMoreForJob")
-                        .AddFormatValue ("item", new PyInt (cur.typeID));
+            needed[req.typeID] += EVEmuIndustry::RequiredMaterialQuantity(
+                req.quantity, rsp.materialMultiplier, rsp.charMaterialMultiplier, runs);
         }
+    }
+
+    for (const auto& req : needed) {
+        uint64 available = 0;
+        for (const auto& item : stacks) {
+            if (item.get() != nullptr && item->typeID() == req.first
+                && (item->ownerID() == pClient->GetCharacterID()
+                    || item->ownerID() == pClient->GetCorporationID())
+                && item->quantity() > 0)
+                available += static_cast<uint64>(item->quantity());
+        }
+        if (available < req.second)
+            throw UserError("RamNeedMoreForJob")
+                .AddFormatValue("item", new PyInt(req.first));
     }
 }
 
@@ -537,12 +544,14 @@ void RamMethods::EncodeBillOfMaterials(const std::vector<EvERam::RequiredItem> &
             continue;
         }
 
-        int qtyNeeded = (uint32)round(cur.quantity * materialMultiplier + (cur.quantity * charMaterialMultiplier - cur.quantity)) * runs;
+        const uint32 qtyNeeded = EVEmuIndustry::RequiredMaterialQuantity(
+            cur.quantity, materialMultiplier, charMaterialMultiplier, runs);
 
         // otherwise, make line for material list
         MaterialList_Line line;
         line.requiredTypeID = cur.typeID;
-        line.quantity = (int32) round (cur.quantity * materialMultiplier) * runs;
+        line.quantity = static_cast<int32>(std::min<uint32>(INT32_MAX,
+            EVEmuIndustry::RequiredMaterialQuantity(cur.quantity, materialMultiplier, 1.0, runs)));
         line.damagePerJob = cur.damagePerJob;
         line.isSkillCheck = false;  // no idea what is this for
         line.requiresHP = false;    // no idea what is this for
@@ -557,7 +566,8 @@ void RamMethods::EncodeBillOfMaterials(const std::vector<EvERam::RequiredItem> &
             // if there are losses, make line for waste material list
             if (charMaterialMultiplier > 1.0) {
                 MaterialList_Line wastage( line );  // simply copy original line ...
-                wastage.quantity = qtyNeeded - line.quantity;
+                wastage.quantity = static_cast<int32>(std::min<uint32>(
+                    INT32_MAX, qtyNeeded - std::min<uint32>(qtyNeeded, line.quantity)));
                 into.wasteMaterials.lines->AddItem( wastage.Encode() );
             }
             into.rawMaterials.lines->AddItem( line.Encode() );
@@ -580,7 +590,8 @@ void RamMethods::EncodeMissingMaterials(const std::vector<EvERam::RequiredItem> 
     for (auto cur : reqItems) {
         qtyReq = cur.quantity;
         if (!cur.isSkill) {
-            qtyReq = (uint32)round(qtyReq * materialMultiplier + (cur.quantity * charMaterialMultiplier - cur.quantity)) * runs;
+            qtyReq = EVEmuIndustry::RequiredMaterialQuantity(
+                cur.quantity, materialMultiplier, charMaterialMultiplier, runs);
         }
 
         std::vector<InventoryItemRef>::iterator itri, endi;
