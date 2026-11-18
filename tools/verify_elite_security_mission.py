@@ -89,10 +89,18 @@ assert "IsTrueSanshaEliteMissionTarget(const std::string& typeName)" in spawn
 assert 'static const std::string forbidden = "true sansha";' in spawn
 assert "std::search(typeName.begin(), typeName.end()" in spawn
 assert "IsTrueSanshaEliteMissionTarget(candidate.second.name)" in spawn
+# Domination Grigori is an untargetable officer in some SDE packs. Exclude
+# that exact name (case-insensitively) without removing other Angel officers.
+assert "IsDominationGrigoriEliteMissionTarget(const std::string& typeName)" in spawn
+assert 'static const std::string forbidden = "domination grigori";' in spawn
+assert "typeName.size() == forbidden.size()" in spawn
+assert "IsDominationGrigoriEliteMissionTarget(candidate.second.name)" in spawn
+assert "++excludedDominationGrigori;" in spawn
+assert "excluded %u True Sansha and %u Domination Grigori" in spawn
 assert "eligibleTypesByGroup.emplace(spec.groupID, candidates)" in spawn
 assert "if (available.size() < kEliteSecurityShipsPerCategory)" in spawn
 assert "eligibleTypesByGroup.at(spec->groupID)" in spawn
-assert "no eligible targetable NPC types after True Sansha filtering." in spawn
+assert "no eligible targetable NPC types after untargetable NPC filtering." in spawn
 assert "candidate.second.groupID != spec.groupID" in spawn
 assert "selectedFleet.size()" not in spawn.split("if (missionID == Mission::kEliteSecurityMissionID)", 1)[1].split("// Mission 65535", 1)[0] or "static_assert" in spawn
 assert "pBubble->SetMissionData(characterID, agentID, offerID, beaconID" in spawn
