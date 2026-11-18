@@ -56,6 +56,8 @@ jobs:
         run: python3 tools/verify_npc_market_baseprice.py
       - name: Verify standard NPC buy orders at 100 percent
         run: python3 tools/verify_npc_buy_seed.py
+      - name: Verify 100-million-unit ore and mineral orders
+        run: python3 tools/verify_ore_mineral_100m.py
       - name: Verify gameplay subsystem source invariants
         run: python3 tools/verify_subsystems_audit.py
       - name: Verify 12-ship cruiser and battlecruiser Blockade mission
@@ -90,7 +92,7 @@ jobs:
         run: |
           cp sql/evedb.yaml.example sql/evedb.yaml
           (cd sql && ./evedbtool seed -force -dryrun) > "$RUNNER_TEMP/evedbtool-seed-dryrun.log" 2>&1
-          for expected in "550000" "RAND() < @saturation" "officer" "deadspace" "faction" "storyline" "NOT EXISTS" "seededGroup.groupID IN (12, 340, 448, 649)" "ig.groupID IN (12, 340, 448, 649)" "marketGroupID IS NOT NULL" "NPC BUY SQL" "eligible.referencePrice * eligible.quantity" "1000125" "tExistingNPCBuySeed"; do
+          for expected in "550000" "100000000" "RAND() < @saturation" "officer" "deadspace" "faction" "storyline" "NOT EXISTS" "seededGroup.groupID IN (12, 340, 448, 649)" "ig.groupID IN (12, 340, 448, 649)" "marketGroupID IS NOT NULL" "NPC BUY SQL" "eligible.referencePrice * eligible.quantity" "1000125" "tExistingNPCBuySeed"; do
             grep -Fqi -- "$expected" "$RUNNER_TEMP/evedbtool-seed-dryrun.log" || {
               echo "EVEDBTool dry-run output is missing expected SQL: $expected" >&2
               cat "$RUNNER_TEMP/evedbtool-seed-dryrun.log" >&2
@@ -186,6 +188,11 @@ jobs:
         run: |
           python tools/verify_npc_buy_seed.py
           if ($LASTEXITCODE -ne 0) { throw "NPC buy seed regression" }
+      - name: Verify 100-million-unit ore and mineral orders
+        shell: pwsh
+        run: |
+          python tools/verify_ore_mineral_100m.py
+          if ($LASTEXITCODE -ne 0) { throw "Ore/mineral quantity regression" }
       - name: Verify gameplay subsystem source invariants
         shell: pwsh
         run: |
@@ -250,7 +257,7 @@ jobs:
           $exitCode = $LASTEXITCODE
           Pop-Location
           if ($exitCode -ne 0) { throw "EVEDBTool seed dry-run failed: $output" }
-          foreach ($expected in @("550000", "RAND() < @saturation", "officer", "deadspace", "faction", "storyline", "NOT EXISTS", "seededGroup.groupID IN (12, 340, 448, 649)", "ig.groupID IN (12, 340, 448, 649)", "marketGroupID IS NOT NULL", "NPC BUY SQL", "eligible.referencePrice * eligible.quantity", "1000125", "tExistingNPCBuySeed")) {
+          foreach ($expected in @("550000", "100000000", "RAND() < @saturation", "officer", "deadspace", "faction", "storyline", "NOT EXISTS", "seededGroup.groupID IN (12, 340, 448, 649)", "ig.groupID IN (12, 340, 448, 649)", "marketGroupID IS NOT NULL", "NPC BUY SQL", "eligible.referencePrice * eligible.quantity", "1000125", "tExistingNPCBuySeed")) {
             if (!$output.Contains($expected, [StringComparison]::OrdinalIgnoreCase)) {
               throw "EVEDBTool dry-run output is missing expected SQL: $expected"
             }
@@ -442,7 +449,7 @@ jobs:
               exit 1
             fi
           }
-          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "4"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "6"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=1" "0"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=32767 AND price=6.25 AND escrow=25.00" "1"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000 AND bid=1 AND price=5.00 AND escrow=50.00" "1"
@@ -450,16 +457,25 @@ jobs:
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND price=6.25" "1"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID=101 AND price=100.00" "1"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID=100 AND price=0.01 AND volEntered=550000" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID IN (34,35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "4"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID=200 AND escrow=42050000000.00" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID=202" "0"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID IN (102,103)" "0"
           # A second normal seed must not duplicate the force-seeded orders.
           (cd sql && ./evedbtool seed -buy-only)
-          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "4"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "6"
           # A second force must refresh only the seed-managed rows.
           (cd sql && ./evedbtool seed -buy-only -force)
-          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "4"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "6"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000" "2"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0" "1"
           expect "SELECT COUNT(*) FROM (SELECT stationID,typeID,COUNT(*) AS n FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250 GROUP BY stationID,typeID HAVING n>1) AS dup" "0"
+          # Full seed creates matching NPC sell quantities; players remain untouched.
+          (cd sql && ./evedbtool seed -force)
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND typeID IN (34,35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "4"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND typeID=100 AND volEntered=550000" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000" "2"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID IN (34,35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "4"
           rm -f sql/evedb.yaml
           echo "PASS: unsigned orderRange insert, 100% prices, legacy NPC migration, player preservation, rerun and force scope."
 
