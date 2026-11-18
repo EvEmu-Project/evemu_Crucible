@@ -35,7 +35,7 @@ assert 'std::map<uint16, std::uint64_t> needed;' in methods
 assert 'std::uint64_t available = 0;' in methods
 assert 'const std::uint64_t factor' in methods
 import re
-assert re.search(r'(?<![A-Za-z0-9_:])uint64\\b', methods) is None, 'Avoid undefined uint64 alias; use std::uint64_t'
+assert re.search(r'\buint64\b', methods) is None, 'Avoid undefined uint64 alias; use std::uint64_t'
 assert 'into.usageCost *= ceil(into.productionTime / 3600.0f)' in methods
 assert methods.count('EVEmuIndustry::RequiredMaterialQuantity(') >= 3
 assert 'EVEmuIndustry::RequiredMaterialQuantity(' in proxy
