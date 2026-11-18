@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include "EVE_MovementFormulas.h"
 
 #include "Client.h"
 #include "StaticDataMgr.h"
@@ -391,6 +392,7 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
     GPoint warpToPoint(NULL_ORIGIN);
     SystemEntity* pSE(nullptr);
     double radius(0);
+    bool hasCenterBasedWarpRange = false;
     uint32 toID(0);
     std::string stringArg = "";
 
@@ -536,7 +538,9 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
         } else if (pSE->IsCOSE()) {
             distance += (radius / 2);
         } else if (pSE->IsGateSE()) {
-            distance += (radius / 3);  // fudge the distance a bit for gates... its' a lil close by default
+            // Gate radius, ship radius and the jump-perimeter range are
+            // combined exactly once below. The historical radius/3 fudge
+            // produced inconsistent landings and occasional hull overlap.
         } else if (pSE->IsMoonSE()) {
             if (pSE->GetMoonSE()->HasTower()) {
                 // if moon has a tower, make warpin point 20km inside edge of tower's bubble.
@@ -570,7 +574,24 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             const double clearance = radius
                 + call.client->GetShipSE()->GetRadius() + 5000.0;
             warpToPoint -= (vectorFromOrigin * clearance);
+        } else if (pSE->IsGateSE()
+            || (radius < 90000 && !pSE->IsPlanetSE()
+                && !pSE->IsMoonSE() && !pSE->IsWormholeSE())) {
+            // WarpTo expects a CENTER destination and a center stop distance.
+            // Don't move the destination to the edge and then separately
+            // add a radius fudge or ship diameter: that double-counts hulls.
+            const double shipRadius = call.client->GetShipSE()->GetRadius();
+            distance = EVEmuMovement::WarpCenterStopRange(
+                static_cast<double>(distance), shipRadius, radius,
+                EVEmuMovement::GateWarpLandingSurfaceRange);
+            hasCenterBasedWarpRange = true;
+            _log(DESTINY__WARP_TRACE,
+                "Warp-to %s(%u): ship radius %.1f, target radius %.1f, center stop %d m, expected surface %.1f m.",
+                pSE->GetName(), pSE->GetID(), shipRadius, radius, distance,
+                EVEmuMovement::SurfaceSeparation(distance, shipRadius, radius));
         } else if (radius < 90000) {
+            // Retain special legacy moon/wormhole landing points; these do
+            // not target the object's collision sphere directly.
             GVector vectorFromOrigin(call.client->GetShipSE()->GetPosition(), warpToPoint);
             vectorFromOrigin.normalize();
             GPoint stopPoint = (vectorFromOrigin * radius);
@@ -587,7 +608,10 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    distance += (call.client->GetShipSE()->GetRadius() * 2); // add ship diameter to distance
+    // Preserve the historic extra station/planet/moon clearance, but don't
+    // apply a ship diameter to physical-surface or exact bookmark warps.
+    if (pSE != nullptr && !hasCenterBasedWarpRange)
+        distance += (call.client->GetShipSE()->GetRadius() * 2);
     pDestiny->WarpTo(warpToPoint, distance);
 
     return PyStatic.NewNone();
@@ -629,9 +653,12 @@ PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) 
     //call.client->UpdateSession();
     //call.client->SendSessionChange();
 
-    uint16 distance = sConfig.world.apWarptoDistance;    //10km default
-    //Adding in ship and target object radius'
-    //distance += call.client->GetShipSE()->GetRadius() + pSE->GetRadius();
+    // Autopilot used to warp to the gate/station CENTER with only a 10km
+    // stop range, often placing the ship inside the object's radius.
+    // Correctly express the configured surface clearance from the center.
+    const int32 distance = EVEmuMovement::WarpCenterStopRange(
+        sConfig.world.apWarptoDistance, call.client->GetShipSE()->GetRadius(),
+        pSE->GetRadius(), EVEmuMovement::GateWarpLandingSurfaceRange);
     pDestiny->WarpTo(pSE->GetPosition(), distance, true, pSE);
 
     return PyStatic.NewNone();
