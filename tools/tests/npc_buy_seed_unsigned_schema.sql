@@ -4,7 +4,8 @@ CREATE TABLE staStations (
   stationID BIGINT UNSIGNED NOT NULL PRIMARY KEY,
   solarSystemID INT UNSIGNED NOT NULL,
   regionID INT UNSIGNED NOT NULL,
-  corporationID INT UNSIGNED NOT NULL
+  corporationID INT UNSIGNED NOT NULL,
+  security FLOAT NOT NULL DEFAULT 1.0
 ) ENGINE=InnoDB;
 
 CREATE TABLE invGroups (
@@ -19,6 +20,16 @@ CREATE TABLE invTypes (
   published TINYINT NOT NULL,
   marketGroupID INT UNSIGNED NULL,
   basePrice DECIMAL(16,2) NULL
+) ENGINE=InnoDB;
+
+-- The regional sell seed also inspects these tables for rare meta items.
+CREATE TABLE invMetaTypes (
+  typeID INT UNSIGNED NOT NULL PRIMARY KEY,
+  metaGroupID INT UNSIGNED NOT NULL
+) ENGINE=InnoDB;
+CREATE TABLE invMetaGroups (
+  metaGroupID INT UNSIGNED NOT NULL PRIMARY KEY,
+  metaGroupName VARCHAR(100) NOT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE mktOrders (
@@ -49,7 +60,7 @@ INSERT INTO staStations
 (60000001,30000001,10000001,1000125);
 
 INSERT INTO invGroups (groupID,categoryID) VALUES
-(18,4),(83,8),(7,7);
+(18,4),(83,8),(7,7),(450,25),(465,25);
 
 INSERT INTO invTypes
 (typeID,typeName,groupID,published,marketGroupID,basePrice) VALUES
@@ -58,7 +69,10 @@ INSERT INTO invTypes
 (100,'Test Charge',83,1,1,0.01),
 (101,'Test No Base Price',7,1,1,0.00),
 (102,'Not Market Listed',7,1,NULL,100.00),
-(103,'Unpublished Type',7,0,1,50.00);
+(103,'Unpublished Type',7,0,1,50.00),
+(200,'Test Arkonor',450,1,1,420.50),
+(201,'Test Ice',465,1,1,650.25),
+(202,'Ore Above Safety Ceiling',450,1,1,20000000.00);
 
 -- Legacy bot bid: old NPC corporation owner, regional-range order.
 INSERT INTO mktOrders
