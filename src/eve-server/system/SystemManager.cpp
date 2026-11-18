@@ -582,7 +582,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
         case EVEDB::invCategories::Asteroid: {
             InventoryItemRef asteroid = sItemFactory.GetItemRef( entity.itemID );
             if (asteroid.get() == nullptr)
-                ; /** @todo make error msg here */
+                return nullptr;
             AsteroidSE* aSE = new AsteroidSE(asteroid, sysMgr.GetServiceMgr(), &sysMgr);
             _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making AsteroidSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return aSE;

@@ -69,7 +69,13 @@ assert 'throw UserError("RamActivityInvalid");' in activity
 
 drone = source("src/eve-server/npc/DroneAI.cpp")
 assert "if (m_pDrone == nullptr)" in drone
-assert "Mining drone extraction is not implemented" in drone, (
-    "Do not misrepresent placeholder mining-drone combat as actual extraction"
-)
+assert "IsMiningDrone(m_pDrone) || (pTarget != nullptr && pTarget->IsAsteroidSE())" in drone
+assert "asteroid->SetAttribute(AttrQuantity, left);" in drone
+assert "ore->MergeTypesInCargo(shipItem.get(), hold);" in drone
+entity = source("src/eve-server/npc/EntityService.cpp")
+assert "pTarget != nullptr && pTarget->IsAsteroidSE()" in entity
+assert "return OrderMiningDrones(call, droneIDs, targetID, false);" in entity
+assert "return OrderMiningDrones(call, droneIDs, targetID, true);" in entity
+assert "ship->TargetMgr()->GetTarget(asteroidID, true) != asteroid" in entity
+assert "drone->GetControllerID() == ship->GetID() && drone->GetHomeShip() == ship" in entity
 print("Source-level gameplay safety guards passed")
