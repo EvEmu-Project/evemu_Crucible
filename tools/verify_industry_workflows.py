@@ -29,7 +29,13 @@ assert 'sRamMthd.ItemLocationCheck(call.client, args, installedItem)' in proxy
 assert 'bomLocPath.Decode(args.bomLocPath->GetItem(0))' in proxy
 assert 'const double cost = calculatedCost;' in proxy
 assert 'std::fabs(approvedCost - calculatedCost) > 1.0' in proxy
-assert 'static_cast<uint64>(args.runs) * static_cast<uint64>(args.copyRuns)' in methods
+assert 'static_cast<std::uint64_t>(args.runs) * static_cast<std::uint64_t>(args.copyRuns)' in methods
+assert '#include <cstdint>' in methods
+assert 'std::map<uint16, std::uint64_t> needed;' in methods
+assert 'std::uint64_t available = 0;' in methods
+assert 'const std::uint64_t factor' in methods
+import re
+assert re.search(r'(?<![A-Za-z0-9_:])uint64\\b', methods) is None, 'Avoid undefined uint64 alias; use std::uint64_t'
 assert 'into.usageCost *= ceil(into.productionTime / 3600.0f)' in methods
 assert methods.count('EVEmuIndustry::RequiredMaterialQuantity(') >= 3
 assert 'EVEmuIndustry::RequiredMaterialQuantity(' in proxy

@@ -1,3 +1,8 @@
+## 18 November 2026 — Fix Windows/Linux/Docker industry build failure (PR #43)
+
+- CI run [44378451842](https://github.com/xrizonx/evemu_Crucible/actions/runs/44378451842) failed all three C++ builds in `src/eve-server/manufacturing/RamMethods.cpp` because the new industry code used the undefined `uint64` alias; the follow-on `needed`, `available` and `factor` errors are cascading compiler diagnostics.
+- Use portable C++17 `std::uint64_t` and explicit `<cstdint>` in the material stack accumulator and copy-job time arithmetic. Update CI source invariants to require the portable type and reject recurrence. No changes to production logic, SQL, warp, drone, sovereignty or other features; no migration required.
+
 ## 18 November 2026 — Restore Crucible-era linear ME/PE research levels
 
 - Remove the post-2014 10-level exponential research-time table from Crucible's ME/PE research formula. Under pre-Crius rules each level used the same base time; the existing code had incorrectly limited both research activities to level 10. Restore linear per-level duration and allow research up to signed-byte level 127, with overflow-safe calculation and the existing 30-day per-job limit. Above 127 requires a future data-model/schema change.

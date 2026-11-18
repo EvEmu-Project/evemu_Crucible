@@ -13,6 +13,7 @@
 #include "Client.h"
 #include "inventory/Inventory.h"
 #include "EVE_IndustryFormulas.h"
+#include <cstdint>
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/RamMethods.h"
 #include "station/StationDataMgr.h"
@@ -370,7 +371,7 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs,
 
     // Aggregate every stack and requirement of the same type. The previous
     // one-stack map incorrectly rejected valid inventories split into stacks.
-    std::map<uint16, uint64> needed;
+    std::map<uint16, std::uint64_t> needed;
     for (const auto& req : reqItems) {
         if (req.isSkill) {
             if (pClient->GetChar()->GetSkillLevel(req.typeID) < req.quantity)
@@ -385,12 +386,12 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs,
     }
 
     for (const auto& req : needed) {
-        uint64 available = 0;
+        std::uint64_t available = 0;
         for (const auto& item : stacks) {
             if (item.get() != nullptr && item->typeID() == req.first
                 && item->ownerID() == bomLocation.ownerID
                 && item->quantity() > 0)
-                available += static_cast<uint64>(item->quantity());
+                available += static_cast<std::uint64_t>(item->quantity());
         }
         if (available < req.second)
             throw UserError("RamNeedMoreForJob")
@@ -513,14 +514,14 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
     // copies * licensed runs per copy. Use TOTAL time when charging rent.
     if (args.activityID != EvERam::Activity::ResearchMaterial
         && args.activityID != EvERam::Activity::ResearchTime) {
-        const uint64 factor = (args.activityID == EvERam::Activity::Copying)
-            ? static_cast<uint64>(args.runs) * static_cast<uint64>(args.copyRuns)
-            : static_cast<uint64>(args.runs);
+        const std::uint64_t factor = (args.activityID == EvERam::Activity::Copying)
+            ? static_cast<std::uint64_t>(args.runs) * static_cast<std::uint64_t>(args.copyRuns)
+            : static_cast<std::uint64_t>(args.runs);
         if (factor == 0 || factor > UINT32_MAX
-            || static_cast<uint64>(into.productionTime) * factor > UINT32_MAX)
+            || static_cast<std::uint64_t>(into.productionTime) * factor > UINT32_MAX)
             return false;
         into.productionTime = static_cast<uint32>(
-            static_cast<uint64>(into.productionTime) * factor);
+            static_cast<std::uint64_t>(into.productionTime) * factor);
     }
     into.usageCost *= ceil(into.productionTime / 3600.0f);
     into.cost = into.installCost + into.usageCost;
