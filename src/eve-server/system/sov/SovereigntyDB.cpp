@@ -131,3 +131,36 @@ void SovereigntyDB::SetBeaconID(uint32 systemID, uint32 beaconID)
         codelog(SOV__ERROR, "Error in changing Beacon ID: %s", err.c_str());
     }
 }
+
+// Requires sql/migrations/20261118070000-sov-development-index-overrides.sql.
+// A missing table is a failed test setup, not permission to mutate real
+// sovereignty claimTime or silently claim the command succeeded.
+bool SovereigntyDB::GetIndexOverrides(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res,
+            "SELECT solarSystemID, claimStructureID, militaryPoints, "
+            "industrialPoints, strategicDays "
+            "FROM mapSovDevelopmentIndexOverrides")) {
+        codelog(SOV__ERROR, "GetIndexOverrides query failed: %s", res.error.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool SovereigntyDB::SaveIndexOverride(uint32 systemID, uint32 claimStructureID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+            "INSERT INTO mapSovDevelopmentIndexOverrides "
+            "(solarSystemID, claimStructureID, militaryPoints, industrialPoints, strategicDays) "
+            "VALUES (%u, %u, 5, 5, 100) "
+            "ON DUPLICATE KEY UPDATE "
+            "claimStructureID=VALUES(claimStructureID), "
+            "militaryPoints=5, industrialPoints=5, strategicDays=100",
+            systemID, claimStructureID)) {
+        codelog(SOV__ERROR, "SaveIndexOverride failed for %u: %s",
+                systemID, err.c_str());
+        return false;
+    }
+    return true;
+}
