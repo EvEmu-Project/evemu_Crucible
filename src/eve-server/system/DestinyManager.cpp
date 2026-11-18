@@ -2486,7 +2486,11 @@ PyResult DestinyManager::AttemptDockOperation() {
         // does not reliably resend CmdDock when AlignTo/Follow reaches the station.
         pClient->SetPendingDock(true);
         pClient->SetAutoPilot(false);
-        const uint32 approachDistance = static_cast<uint32>(station->GetRadius() + 2500.0);
+        // Follow() already subtracts the ship and station radii. Sending
+        // stationRadius + 2500 here left large ships far outside the docking
+        // perimeter, causing repeated approach/reposition updates.
+        const uint32 approachDistance =
+            static_cast<uint32>(EVEmuMovement::GateWarpLandingSurfaceRange);
         Follow(station, approachDistance);
         _log(DESTINY__MESSAGE, "AttemptDockOperation() - %s(%u) approaching station %u; perimeter range %.2fm.",
                 mySE->GetName(), mySE->GetID(), stationID, rangeToStationPerimiter);
