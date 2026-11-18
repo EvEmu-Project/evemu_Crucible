@@ -1,5 +1,12 @@
 # EVEmu Crucible upstream draft #335 — 18 November 2026 update
 
+## Addendum — 18 November 2026: 100M NPC ore/mineral stock
+
+**New work after the documented fork-master import:** NPC buy and sell orders for minerals (group 18) and ore/ice groups 450–462, 465, 467–469 now start at **100,000,000 units per type and station** when created by EVEDBTool or Trader Joe. All other quantity categories and 100%-reference pricing remain unchanged; ore/mineral bids have a conservative 10M ISK/unit ceiling to prevent unsafe pseudo-escrow. See [100M stock deployment guide](NPC_ORE_MINERAL_100M_ORDERS_2026-11-18.md) for exact groups, refresh commands and MariaDB CI coverage.
+
+This additional code is on PR #335's contribution branch **after** the 50-master-commit/89-path snapshot described below. It is not in fork `master`, does not automatically overwrite existing market orders, and still requires CI and client QA.
+
+
 > **Maintainer review only.** This extends the archived [15 November](UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md) and [17 November](UPSTREAM_PULL_REQUEST_REVIEW_2026-11-17.md) handoffs; the original [15 November notes](UPSTREAM_PATCH_NOTES_HISTORY_2026-11-15.md) remain preserved.
 
 ## Source and preservation
