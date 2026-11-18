@@ -94,6 +94,7 @@ protected:
     void                ConsumeCharge();                // common code to reduce ammo by one unit.
 
     uint32              GetRemainingCycleTimeMS()       { return m_timer.GetRemainingTime(); }
+    uint32              GetCycleDurationMS() const      { return m_timer.GetDuration(); }
 
     void                SetTimer(uint32 time);
     void                StopTimer()                     { m_timer.Disable(); }

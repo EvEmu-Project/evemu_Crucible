@@ -215,7 +215,7 @@ void MiningLaser::ProcessCycle(bool abort/*false*/)
     const double oreVolume = roidRef->GetAttribute(AttrVolume).get_double();
     const double remaining = roidRef->GetAttribute(AttrQuantity).get_double();
     if (abort) {
-        const uint32 duration = m_timer.GetDuration();
+        const uint32 duration = GetCycleDurationMS();
         const double elapsed = duration > 0
             ? 1.0 - static_cast<double>(GetRemainingCycleTimeMS()) / duration : 0.0;
         cycleVol *= std::clamp(elapsed, 0.0, 1.0);
