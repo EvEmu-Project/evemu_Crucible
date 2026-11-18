@@ -1,3 +1,10 @@
+## 18 November 2026 — Repair Level 0 Military/Industry after /sovindex5
+
+- User's gameplay test: Strategic correctly shows Level 5, but Military and Industry still display Level 0. Root cause: old command wrote **5 raw points**, which is not equivalent to displayed Level 5, and 16-bit database/packet fields could not hold valid activity totals.
+- Isolated DEV override now writes **1,000,000,000 military points** and **30,000,000 industrial points** (test-only values within signed 32-bit client serialization); Strategic remains 100 effective days. Change C++ override fields to uint32, widen client packed rows to DBTYPE_I4, SQL override columns to INT UNSIGNED.
+- Add follow-up migration `20261118093000-sov-development-index-point-width.sql` that upgrades old (5,5) rows. Do not alter the original migration or any real claim timestamps, TCU, player assets, system ownership, or station settings.
+- Expand CTest/Windows/Linux invariants for raw activity points and data widths. Must run new migration/rebuild/retest client before calling this resolved in gameplay.
+
 ## 18 November 2026 — GM Level 5 Infrastructure Hub development index test command
 
 - Verified current `/sov` is only a stub and `SovereigntyDB` currently fakes military/industrial 5 points globally; Strategic is the genuine age from claimTime. The all-system index API previously returned null. Full upgrade installation functionality is not proven.

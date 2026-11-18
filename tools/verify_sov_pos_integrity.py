@@ -78,6 +78,20 @@ assert "GetAllDevelopmentIndicesForClients()" in _indices
 assert "GetEffectiveMilitaryPoints(sovData)" in _indices
 assert "GetEffectiveIndustrialPoints(sovData)" in _indices
 assert "EffectiveStrategicDays" in _sov_header
+assert "LevelFiveMilitaryPoints = 1000000000U" in _sov_header
+assert "LevelFiveIndustrialPoints = 30000000U" in _sov_header
+assert "std::uint32_t militaryPoints;" in _sov_header
+assert "std::uint32_t industrialPoints;" in _sov_header
+assert 'header->AddColumn("points", DBTYPE_I4)' in _indices
+assert 'header->AddColumn("militaryPoints", DBTYPE_I4)' in _sovmanager
+assert 'header->AddColumn("industrialPoints", DBTYPE_I4)' in _sovmanager
+assert "static_cast<uint16>(overrideRow.GetUInt(2))" not in _sovmanager
+assert "militaryPoints=VALUES(militaryPoints)" in _sovdb
+assert "industrialPoints=VALUES(industrialPoints)" in _sovdb
+_point_width = read("sql/migrations/20261118093000-sov-development-index-point-width.sql")
+assert "MODIFY militaryPoints INT(10) UNSIGNED" in _point_width
+assert "MODIFY industrialPoints INT(10) UNSIGNED" in _point_width
+assert "WHERE militaryPoints = 5 AND industrialPoints = 5" in _point_width
 assert "CREATE TABLE IF NOT EXISTS mapSovDevelopmentIndexOverrides" in _migration
 assert "claimStructureID" in _migration
 assert "ALTER TABLE mapSystemSovInfo" not in _migration
