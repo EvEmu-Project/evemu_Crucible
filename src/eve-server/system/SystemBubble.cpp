@@ -760,7 +760,7 @@ void SystemBubble::SendAddBalls(SystemEntity* to_who) {
         if (cur.second->DestinyMgr() != nullptr)
             if (cur.second->DestinyMgr()->IsCloaked())
                 continue;
-        if (!cur.second->IsMissileSE() or !cur.second->IsFieldSE())
+        if (!cur.second->IsMissileSE() && !cur.second->IsFieldSE())
             addballs.damageDict[cur.first] = cur.second->MakeDamageState();
         addballs.slims->AddItem( new PyObject( "foo.SlimItem", cur.second->MakeSlimItem() ) );
         cur.second->EncodeDestiny( *destinyBuffer );
