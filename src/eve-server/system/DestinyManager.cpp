@@ -991,8 +991,7 @@ void DestinyManager::MoveObject() {
     // stargate even when Follow() requested a safe 2.4km stand-off.
     if (m_ballMode == Destiny::Ball::Mode::FOLLOW
         && m_targetEntity.second != nullptr
-        && m_targetEntity.second->IsGateSE()
-        && m_followDistance >= EVEmuMovement::GateWarpLandingSurfaceRange) {
+        && m_targetEntity.second->IsGateSE()) {
         const GPoint& gatePosition = m_targetEntity.second->GetPosition();
         const double gap = EVEmuMovement::SurfaceSeparation(
             m_position.distance(gatePosition), m_radius,
