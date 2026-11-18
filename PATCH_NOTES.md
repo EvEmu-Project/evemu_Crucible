@@ -1,3 +1,11 @@
+## 18 November 2026 — Follow-up movement drift, bumping and micro-stutter review (ongoing PR #43)
+
+- Synchronized `fix/gate-warp-landing-surface-clearance-2026-11-18` with latest fork `master` while preserving mining-drone PR #42's `ApplyMiningDroneStep` API and DED PR #41's NPC exclusions; retained all existing gate-warp source changes, with an ancestry-preserving merge.
+- Removed idle `STOP` mode's repeated one-per-tick `CmdStop` emission; continue real deceleration and issue at most one stale-velocity correction. Guard malformed speed and heading values against propagating NaN positions.
+- Extended final-tick collision-safe approach handling to both stargates and stations, with at least 2,400m surface clearance on manual Approach 0m. Consolidated the last position/stop/zero-velocity updates into one ordered Destiny packet batch, including at warp completion.
+- Corrected movement speed reporting used by target/orbit prediction to measure current velocity rather than acceleration timer progress. Extended C++ and source-invariant regression coverage. See the [review and live-playtest plan](docs/WARP_GATE_LANDING_2500M_2026-11-18.md).
+- **Not a blanket claim that every drift/bump/micro-stutter is fixed:** server-side `CheckBump()` is still only a player/player contact notification; no full stargate collision mesh simulation exists. Full CI and real Crucible client tests are required. No SQL migration.
+
 ## 18 November 2026 — Fix stargate warp landing, radius double counting and gate/station approach
 
 - Manual `WarpToStuff` previously subtracted a gate's full radius, then added an arbitrary `radius / 3` and twice the ship radius. Result: variable landing distance and possible client bounce/overshoot. For gates and ordinary warpable objects, keep the original target-center coordinates and calculate the exact center stop distance by adding the ship and target collision radii **once** to the requested surface stand-off. "Warp to zero" gates now target **2,400m** from the surface (inside the 2,500m jump threshold); longer explicit ranges are retained.
