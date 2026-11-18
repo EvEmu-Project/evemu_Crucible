@@ -24,6 +24,7 @@
 */
 
 #include "system/sov/SovereigntyDB.h"
+#include "EVE_SovPosIntegrity.h"
 
     //TODO: For now, we return 0 as stationCount since such system is not implemented
     //TODO: Handle militaryPoints and industrialPoints, but for now they are 5 by default since we don't have a mechanism for determining them
@@ -42,7 +43,7 @@ void SovereigntyDB::GetSovereigntyData(DBQueryResult& res)
     }
 }
 
-void SovereigntyDB::GetSovereigntyDataForSystem(DBQueryResult& res, uint32 systemID)
+bool SovereigntyDB::GetSovereigntyDataForSystem(DBQueryResult& res, uint32 systemID)
 {
     if (!sDatabase.RunQuery(res,
                             "SELECT mapSystemSovInfo.solarSystemID, mapSolarSystems.constellationID, mapSolarSystems.regionID, corporationID, "
@@ -54,31 +55,41 @@ void SovereigntyDB::GetSovereigntyDataForSystem(DBQueryResult& res, uint32 syste
                             " WHERE mapSystemSovInfo.solarSystemID=%u ", systemID))
     {
         codelog(SOV__ERROR, "Error in query: %s", res.error.c_str());
+        return false;
     }
+    return true;
 }
 
-void SovereigntyDB::AddSovereigntyData(SovereigntyData data, uint32& claimID)
+bool SovereigntyDB::AddSovereigntyData(SovereigntyData data, uint32& claimID)
 {
     DBerror err;
+    claimID = 0;
+    // claimTime is BIGINT FILETIME. %f expects a double and previously
+    // caused undefined varargs behavior with GetFileTimeNow's integer.
+    const long long timestamp = static_cast<long long>(
+        EvESovPos::EffectiveClaimTime(data.claimTime, GetFileTimeNow()));
     if (!sDatabase.RunQueryLID(err, claimID,
                             "INSERT into mapSystemSovInfo (solarSystemID, corporationID, "
                             " allianceID, claimStructureID, claimTime, hubID, contested) "
-                            " VALUES (%u, %u, %u, %u, %f, %u, %u)", data.solarSystemID, 
-                            data.corporationID, data.allianceID, data.claimStructureID, 
-                            GetFileTimeNow(), data.hubID, data.contested))
-    {
+                            " VALUES (%u, %u, %u, %u, %lli, %u, %u)", data.solarSystemID,
+                            data.corporationID, data.allianceID, data.claimStructureID,
+                            timestamp, data.hubID, data.contested)) {
         codelog(SOV__ERROR, "Error in adding new claim: %s", err.c_str());
+        return false;
     }
+    return true;
 }
 
-void SovereigntyDB::RemoveSovereigntyData(uint32 systemID)
+bool SovereigntyDB::RemoveSovereigntyData(uint32 systemID)
 {
     DBerror err;
     if (!sDatabase.RunQuery(err,
                             "DELETE from mapSystemSovInfo WHERE solarSystemID=%u", systemID))
     {
         codelog(SOV__ERROR, "Error in removing claim: %s", err.c_str());
+        return false;
     }
+    return true;
 }
 
 void SovereigntyDB::SetContested(uint32 systemID, bool contested) 

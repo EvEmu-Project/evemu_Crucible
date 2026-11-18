@@ -1,3 +1,35 @@
+## 18 November 2026 — Orphan reference recheck passed (manual cleanup eligible)
+
+- Operator reconfirmed `posStructureData.itemID` **140003364** and **140003384** have zero contained inventory records, customs rows, incoming jump bridge links and sovereignty references. Earlier checks also showed absent base entities, and zero tower data, direct bridge records, dependent POS structures and dynamic attributes.
+- Both rows remain unanchored/default-state metadata (`towerID=0`, `state=0`, `status=0`, `timestamp=0`) with anchorpoints 40177245 and 40177217 respectively. Recommend **manual archive and narrowly scoped deletion with explicit two-row transaction verification** after a full DB backup/server shutdown. Do not recreate items or delete unrelated records.
+- No database modifications were made by this code review. The source lifecycle fix in PR #39 does not retrospectively clean these two records; the in-game deletion and restart path remains to be tested.
+
+## 18 November 2026 — Confirmed POS orphan IDs and additional read-only reference audit
+
+- Operator's five issue counts: invalid sovereignty claims 0; missing TCU entities 0; orphan towers 0; broken jump bridges 0; orphan structure metadata **2**.
+- Two stale-looking `posStructureData` records: item `140003364` (anchorpoint `40177245`) and item `140003384` (anchorpoint `40177217`). Both have towerID/state/status/timestamp 0, no base `entity`, tower or direct bridge data, child structures or attributes.
+- Added **POS-12 read-only reference check** for these IDs covering remaining inventory contents, customs rows, incoming jump bridges and sovereignty references. No repair SQL executes; back up and reconcile before any manual cleanup.
+- Existing `StructureItem::Delete()` source fix prevents one future orphan pathway but does **not** automatically clean these historical entries.
+
+## 18 November 2026 — Investigate 2 POS orphan rows and close deletion lifecycle gap
+
+- Operator ran the read-only sovereignty/POS checks: four checks returned zero; two `posStructureData` rows have no `entity` record. Their IDs and relationships are not yet available. Do **not** run automatic cleanup.
+- Source fix: `StructureItem::Delete()` now calls the existing POS metadata deletion routine before removing the inventory entity; previous scoop-only cleanup left metadata after permanent destruction. POS deletion also clears a reciprocal remote jump-bridge link first.
+- Added POS-11 **read-only detailed orphan query** for item/tower/anchor/child counts and related POS attributes; updated regression source guards and the review dossier.
+- Existing orphan rows remain unchanged until item IDs, dependencies and a backup establish whether manual reconciliation is safe. New source fix requires CI and live POS deletion/restart testing.
+
+## 17 November 2026 — POS requested-position distance validation
+
+- POS-10: SBU and orbital-platform anchor distance rules previously compared the stargate/planet to the structure old stored position, not the requested target. Use the target position for both checks; extend the Windows/Linux source regression guard.
+
+## 17 November 2026 — Sovereignty and POS source integrity and access fixes
+
+- SOV-01/02/03: write 64-bit FILETIME claimTime as BIGINT instead of mismatched %f, preserve cached sovereignty on failed DB insert/delete/query, and count unique online SBU-controlled gates to prevent false contested states.
+- POS-01/02/03/04: lookup silo capacity by real item type; authorize tower settings, passwords, anchoring and jump bridge link/unlink by owner and StarbaseConfig/Director roles or server ADMIN; validate malformed POS access flag packets before writes.
+- POS-05/06/07/08/09: persist tower sentry status and integer deploy flags, exclude packed cargo towers from deployed list, replace MariaDB self-referential bridge unlink with a reciprocal join, and reject wrong-system/occupied/cross-alliance bridge requests.
+- Added CTest SovereigntyPosIntegrityTest and Windows/Linux CI source guard, read-only SQL diagnostics, full review dossier, risk notes and manual test matrix. Existing TCU/IHub and belt security fixes preserved. No migration, SQL mutation or account modification.
+- Remaining work: live reinforcement/fuel, multi-system bridge atomicity, corporation roles and mission/structure playtests. Not merged until tested.
+
 ## 17 November 2026 — Fix /dogma access for DEV and ADMIN
 
 - The observed `0x62f8000280c41000` DEV account includes CONTENT but not ADMIN (`0x0100000000000000`). Old `/dogma` required ADMIN only.

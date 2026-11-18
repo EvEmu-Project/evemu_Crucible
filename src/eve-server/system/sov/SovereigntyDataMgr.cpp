@@ -301,19 +301,12 @@ void SovereigntyDataMgr::AddSovClaim(SovereigntyData data)
 
     //Add a new sovereignty claim to DB
     uint32 claimID(0);
-    SovereigntyDB::AddSovereigntyData(data, claimID);
-    _log(SOV__DEBUG, "AddSovClaim() - ClaimID %u added to DB...", claimID);
-
-    //Define our view from container
-    auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
-
-    //Delete existing records in container which match the systemID
-    auto it = m_sovData.get<SovDataBySolarSystem>().find(data.solarSystemID);
-    if (it != m_sovData.get<SovDataBySolarSystem>().end())
-    {
-        bySolar.erase(data.solarSystemID);
+    if (!SovereigntyDB::AddSovereigntyData(data, claimID)) {
+        _log(SOV__ERROR, "AddSovClaim() - database write failed for %u; cache retained.",
+             data.solarSystemID);
+        return;
     }
-
+    _log(SOV__DEBUG, "AddSovClaim() - ClaimID %u added to DB...", claimID);
     UpdateClaim(data.solarSystemID);
 }
 
@@ -333,7 +326,11 @@ void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)
     _log(SOV__INFO, "RemoveSovClaim() - Removing claim for %u from DataMgr...", systemID);
 
     //Delete sovereignty claim from DB
-    SovereigntyDB::RemoveSovereigntyData(systemID);
+    if (!SovereigntyDB::RemoveSovereigntyData(systemID)) {
+        _log(SOV__ERROR, "RemoveSovClaim() - database delete failed for %u; cache retained.",
+             systemID);
+        return;
+    }
     _log(SOV__DEBUG, "RemoveSovClaim() - Claim for %u removed from DB...", systemID);
 
     //Remove claim from container
@@ -380,14 +377,16 @@ void SovereigntyDataMgr::UpdateClaim(uint32 systemID)
     //Define our view from container
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
 
-    //Remove old from container
-    bySolar.erase(systemID);
-
-    //Get the data from the DB, this will avoid inconsistencies
     DBQueryResult *res = new DBQueryResult();
     DBResultRow row;
+    if (!SovereigntyDB::GetSovereigntyDataForSystem(*res, systemID)) {
+        _log(SOV__ERROR, "UpdateClaim() - read failed for %u; cache retained.", systemID);
+        SafeDelete(res);
+        return;
+    }
 
-    SovereigntyDB::GetSovereigntyDataForSystem(*res, systemID);
+    // Only replace a previous claim after a successful database read.
+    bySolar.erase(systemID);
     while (res->GetRow(row))
     {
         SovereigntyData sData = SovereigntyData();
