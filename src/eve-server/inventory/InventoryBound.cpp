@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include <limits>
 #include "../../eve-common/EVE_Station.h"
 
 
@@ -56,6 +57,21 @@ public:
     ScopedInventoryClient(const ScopedInventoryClient&) = delete;
     ScopedInventoryClient& operator=(const ScopedInventoryClient&) = delete;
 };
+
+namespace {
+int32 ReadInventoryTransferID(PyRep* value)
+{
+    // Inventory rows carry 64-bit IDs on the wire. Accept either integer
+    // representation and check the range before passing it to MoveItems.
+    if (!value->IsInt() && !value->IsLong())
+        throw CustomError("The inventory transfer contains an invalid item or container ID.");
+
+    const int64 id = PyRep::IntegerValue(value);
+    if (id < 0 || id > std::numeric_limits<int32>::max())
+        throw CustomError("The inventory transfer contains an out-of-range item or container ID.");
+    return static_cast<int32>(id);
+}
+}
 
 InventoryBound::InventoryBound(EVEServiceManager &mgr, BoundServiceParent<InventoryBound>& parent, InventoryItemRef item, EVEItemFlags flag, uint32 ownerID, bool passive) :
     EVEBoundObject(mgr, parent),
@@ -270,7 +286,9 @@ PyResult InventoryBound::MultiMerge(PyCallArgs &call, PyList* items, std::option
  * Removing Module/Charges from ship (using 'remove' button on item slot)
  * Adding Modules to a specific slot on ship
  */
-PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID) {
+PyResult InventoryBound::Add(PyCallArgs &call, PyRep* itemID, PyRep* containerID) {
+    int32 sourceItemID = ReadInventoryTransferID(itemID);
+    const int32 sourceContainerID = ReadInventoryTransferID(containerID);
     if (is_log_enabled(INV__DUMP)) {
         _log(INV__DUMP, "IB::Handle_Add() size= %lli", call.tuple->size());
         call.Dump(INV__DUMP);
@@ -282,14 +300,14 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
     if (toFlag == flagLocked) {
         // corp role 'equip config' can move locked items (per client)
         _log(INV__ERROR, "IB::Handle_Add() - item %i from %i sent flagLocked.  continuing but this needs to be fixed.", \
-                itemID->value(), containerID->value());
+                sourceItemID, sourceContainerID);
         toFlag = flagCargoHold;
     }
 
-    InventoryItemRef iRef = sItemFactory.GetItemRef(itemID->value());
+    InventoryItemRef iRef = sItemFactory.GetItemRef(sourceItemID);
     if (iRef.get() == nullptr) {
-        _log(INV__ERROR, "IB::Add: source item %u could not be loaded.", itemID->value());
-        return nullptr;
+        _log(INV__ERROR, "IB::Add: source item %u could not be loaded.", sourceItemID);
+        throw CustomError("The item could not be loaded. Refresh the source inventory and try again.");
     }
     if (pInventory == nullptr) {
         _log(INV__ERROR, "IB::Add: destination %u has no inventory.", m_itemID);
@@ -309,7 +327,7 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
             return nullptr;
         }
         iRef = newItem;
-        itemID = new PyInt (iRef->itemID());
+        sourceItemID = iRef->itemID();
     // we're not dividing the stack, so check for removing loaded charges
     } else if ((iRef->categoryID() == EVEDB::invCategories::Charge) and (IsModuleSlot(iRef->flag()))) {
         moveStack = true;
@@ -327,17 +345,18 @@ PyResult InventoryBound::Add(PyCallArgs &call, PyInt* itemID, PyInt* containerID
         quantity = 1;
 
     _log(INV__MESSAGE, "IB::Handle_Add() - moving %i %s(%i) from (%i:%s) to me(%s:%u:%s).", \
-            quantity, iRef->name(), itemID->value(), containerID->value(), sDataMgr.GetFlagName(iRef->flag()),\
+            quantity, iRef->name(), sourceItemID, sourceContainerID, sDataMgr.GetFlagName(iRef->flag()),\
             m_self->name(), m_itemID, sDataMgr.GetFlagName(toFlag));
 
     std::vector<int32> items;
-    items.push_back(itemID->value());
+    items.push_back(sourceItemID);
 
     return MoveItems(call.client, items, (EVEItemFlags)toFlag, quantity, moveStack, capacity);
 }
 
 // this call is for moving items to *THIS* inventory
-PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* containerID) {
+PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyRep* containerID) {
+    const int32 sourceContainerID = ReadInventoryTransferID(containerID);
     if (is_log_enabled(INV__DUMP)) {
         _log(INV__DUMP, "IB::Handle_MultiAdd() size= %lli", call.tuple->size());
         call.Dump(INV__DUMP);
@@ -350,17 +369,8 @@ PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* cont
 
     std::vector<int32> items;
 
-    PyList::const_iterator list_2_cur = itemIDs->begin();
-    for (size_t list_2_index(0); list_2_cur != itemIDs->end(); ++list_2_cur, ++list_2_index) {
-        if (!(*list_2_cur)->IsInt()) {
-            _log(XMLP__DECODE_ERROR, "Decode Call_MultiAdd_2 failed: Element %u in list list_2 is not an integer: %s", list_2_index, (*list_2_cur)->TypeString());
-            return nullptr;
-        }
-
-        const PyInt* t = (*list_2_cur)->AsInt();
-        items.push_back(t->value());
-    }
-
+    for (PyRep* item : *itemIDs)
+        items.push_back(ReadInventoryTransferID(item));
 
     uint16 toFlag = m_flag;
     if (call.byname.find("flag") != call.byname.end())
@@ -398,7 +408,7 @@ PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* cont
     }
 
     _log(INV__MESSAGE, "IB::Handle_MultiAdd() - moving %lu items from (%i:%s) to me(%s:%u:%s).", \
-                items.size(), containerID->value(), sDataMgr.GetFlagName(m_flag), m_self->name(), m_itemID, sDataMgr.GetFlagName(toFlag));
+                items.size(), sourceContainerID, sDataMgr.GetFlagName(m_flag), m_self->name(), m_itemID, sDataMgr.GetFlagName(toFlag));
 
     return MoveItems( call.client, items, (EVEItemFlags)toFlag, quantity, moveStack, capacity);
 }
@@ -535,6 +545,7 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
     EVEItemFlags fromFlag(flagNone);
     EVEItemFlags origFlag(toFlag);
     InventoryItemRef iRef(nullptr);
+    bool shipTransferCompleted = false;
 
     std::vector<int32>::const_iterator itr = items.begin();
     for (; itr != items.end(); ++itr) {
@@ -558,6 +569,7 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
         if (iRef->typeID() == EVEDB::invTypes::Bookmark) {
             // update this to keep owner/creator and other data
             iRef->Donate(m_ownerID, m_itemID, toFlag);
+            shipTransferCompleted = ship && iRef->locationID() == m_itemID;
             continue;
         }
 
@@ -685,6 +697,9 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
                 }
                 continue;
             }
+            shipTransferCompleted = true;
+            _log(INV__MESSAGE, "IB::MoveItems: moved item %u into ship %u, flag %u.",
+                 iRef->itemID(), m_itemID, static_cast<uint32>(toFlag));
         } else if (customs) {
             if (!pInventory->ValidateAddItem(toFlag, iRef)) {
                 _log(INV__WARNING, "IB::MoveItems: item %u rejected by customs capacity validation.", iRef->itemID());
@@ -716,6 +731,9 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
     }
 
 
+
+    if (ship && items.size() == 1 && !shipTransferCompleted)
+        throw CustomError("The item could not be transferred into the ship. Refresh both inventories and try again.");
 
     if (iRef.get() == nullptr)
         return nullptr;
@@ -865,7 +883,14 @@ PyResult InventoryBound::List(PyCallArgs &call, std::optional <PyInt*> listFlag)
 }
 */
 
-    return pInventory->List(flag, m_ownerID);
+    CRowSet* contents = pInventory->List(flag, m_ownerID);
+    if (m_self->categoryID() == EVEDB::invCategories::Ship && is_log_enabled(INV__MESSAGE)) {
+        std::vector<InventoryItemRef> cargo;
+        pInventory->GetItemsByFlag(flagCargoHold, cargo);
+        _log(INV__MESSAGE, "IB::List: ship %u returned %zu inventory rows, %zu cargo stacks in cache.",
+             m_itemID, contents->GetRowCount(), cargo.size());
+    }
+    return contents;
 }
 
 PyResult InventoryBound::CreateBookmarkVouchers(PyCallArgs &call, PyList* bookmarkIDs, PyInt* flag, PyBool* isMove) {
