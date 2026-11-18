@@ -336,7 +336,8 @@ INNER JOIN mktOrders AS existing
     ON existing.stationID = stations.stationId
 WHERE existing.bid = 0;
 
--- Standard published market items, including 550,000 units of charges/ammunition.
+-- Standard published items: 100M units of each mineral, ore and ice type;
+-- charges retain 550,000 and ordinary items retain 550.
 INSERT INTO mktOrders
     (typeID, ownerID, regionID, stationID, price, volEntered, volRemaining,
      issued, minVolume, duration, solarSystemID, jumps)
@@ -352,8 +353,10 @@ SELECT
         WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100
         ELSE GREATEST(0.01, ROUND(it.basePrice, 2))
     END,
-    CASE WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END,
-    CASE WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END,
+    CASE WHEN (ig.groupID = 18 OR ig.groupID BETWEEN 450 AND 462 OR ig.groupID IN (465, 467, 468, 469)) THEN 100000000
+     WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END,
+    CASE WHEN (ig.groupID = 18 OR ig.groupID BETWEEN 450 AND 462 OR ig.groupID IN (465, 467, 468, 469)) THEN 100000000
+     WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END,
     TSTAMP,
     1,
     250,
@@ -522,7 +525,9 @@ WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN ('officer', 'deadspace', 'faction
  -- Price is exactly 100% of invTypes.basePrice to the nearest market cent.
  -- Zero/NULL/negative base prices cannot define a percentage, so retain the
  -- established explicit 100 ISK fallback. Cap each order's notional escrow
- -- at 10 trillion ISK, so even expensive ships do not overflow SQL decimals.
+ -- at 10 trillion ISK for non-ore goods. Minerals, ore and ice have
+  -- fixed 100M-unit bids for prices <= 10M ISK/unit (up to 1 quadrillion
+  -- ISK notional pseudo-escrow, within DECIMAL(20,2)).
  -- NPC orders use pseudo-escrow, like Trader Joe: there is no player wallet
  -- withdrawal; the server pays the seller directly from the non-player owner.
 
@@ -552,20 +557,24 @@ WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN ('officer', 'deadspace', 'faction
      0
  FROM (
      SELECT priced.stationId, priced.regionID, priced.solarSystemID, priced.typeID, priced.referencePrice,
-            LEAST(priced.standardQuantity,
-                  GREATEST(1, FLOOR(10000000000000.00 / priced.referencePrice))) AS quantity
+            CASE WHEN priced.standardQuantity = 100000000 THEN 100000000
+                 ELSE LEAST(priced.standardQuantity,
+                            GREATEST(1, FLOOR(10000000000000.00 / priced.referencePrice)))
+            END AS quantity
      FROM (
          SELECT st.stationId, st.regionID, st.solarSystemID,
                 it.typeID,
                 CASE WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100.00
                      ELSE GREATEST(0.01, ROUND(it.basePrice, 2)) END AS referencePrice,
-                CASE WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END AS standardQuantity
+                CASE WHEN (ig.groupID = 18 OR ig.groupID BETWEEN 450 AND 462 OR ig.groupID IN (465, 467, 468, 469)) THEN 100000000
+                      WHEN ig.categoryID = 8 THEN 550000 ELSE 550 END AS standardQuantity
          FROM tNPCBuyStations AS st
          CROSS JOIN invTypes AS it
          INNER JOIN invGroups AS ig ON it.groupID = ig.groupID
          WHERE it.published = 1 AND it.marketGroupID IS NOT NULL
      ) AS priced
      WHERE priced.referencePrice <= 10000000000000.00
+       AND (priced.standardQuantity <> 100000000 OR priced.referencePrice <= 10000000.00)
  ) AS eligible
  LEFT JOIN tExistingNPCBuySeed AS existing
      ON existing.stationID = eligible.stationId
