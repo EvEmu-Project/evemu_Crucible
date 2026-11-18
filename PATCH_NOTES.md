@@ -1,3 +1,10 @@
+## 18 November 2026 — Full IHub-family install rules and control tower physical shield bubble
+
+- Added category-39 IHub upgrade installation support for Strategic (group 1016), Industrial (1020) and Military (1021), with static upgrade prerequisite/blocking attributes, active flags, duplicate protection, and holding alliance Director/StarbaseConfig checks. Military/Industry installation remains restricted to simulated Level 5 testing while real activity progression is unimplemented.
+- Expanded POS anchoring prerequisites to all POS with `anchoringRequiresSovUpgrade1`; require active installed upgrade, including Supercapital Construction Facilities for relevant capital arrays.
+- Fixed tower force field spawn requiring nonempty password, missing harmonic persistence across restart, password clearing stopping the field, invalid zero radius (Large defaults to 30km), and force-field/missile packets incorrectly receiving damage state.
+- Added test cases for all three IHub families and TowerShieldRules plus Python source guards. **Full military upgraded NPC/anomaly mechanics, ore cluster effects, actual activity index progression, manufacturing job service and sovereignty upkeep are not implemented by this commit.** Live gameplay testing required.
+
 ## 18 November 2026 — Support Supercapital Construction Facilities IHub upgrade installation
 
 - Located exact server-side rejection of type `2009`: `Inventory::ValidateIHubUpgrade` supported only 3 strategic upgrade typeIDs, defaulting to `not currently supported` for Supercapital Construction Facilities.

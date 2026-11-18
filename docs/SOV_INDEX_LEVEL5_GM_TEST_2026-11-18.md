@@ -69,3 +69,50 @@ Updated support explicitly accepts **Supercapital Construction Facilities (type 
 **No additional SQL migration is required for this specific support fix.** Use the newer server binary from this PR, retain the previous sovereignty index migrations, relog/reopen the management window, then drag the Supercapital Construction Facilities upgrade item into the registered IHub inventory. The server should no longer emit `not currently supported` for type 2009. Check the upgrade item has `flagStructureActive` (and remains after server restart). A functioning capital ship assembly facility, construction job service, fuel/upkeep or client UI lock decoration is **not** proven by this validator change. If it remains visually locked, capture the exact window and logs: UI gating may have separate client-side prerequisites.
 
 New `IHubUpgradeRulesTest` CTest checks 99 vs 100 strategic days, known supported upgrade types and an unsupported type. It does not simulate a full game client inventory transfer; test that manually.
+
+
+## 18 November — IHub full upgrade-family installation audit
+
+The inventory validator previously allowed only selected strategic upgrades. It now handles all Crucible **category 39 StructureUpgrade** types from the official upgrade group IDs: Strategic **1016**, Industrial **1020** and Military **1021**. It checks actual static type attribute references: \`sovUpgradeRequiredUpgradeID\` (1599), \`sovUpgradeBlockingUpgradeID\` (1598), \`devIndexMilitary\` (1583), and \`devIndexIndustrial\` (1584). Each required upgrade must already be installed and **active**. Conflicting and duplicate upgrade types are rejected. A valid alliance TCU/online registered IHub and holding-alliance StarbaseConfig/director permission (or DEV/ADMIN for test) remain mandatory.
+
+For Military and Industry, **natural activity index generation/decay is not yet implemented** and the normal DB values of \`5\` are *raw points*, not level five. Until such a system exists, installation is allowed for testing with the effective \`/sovindex5\` Level 5 points; this is deliberately not an unearned normal-player unlock.
+
+The POS anchor validator now checks \`anchoringRequiresSovUpgrade1\` (1595) on **every** structure that carries it, including capital construction arrays, rather than only beacons, jammers and bridges. Required upgrades must be active in the IHub. The Supercapital Construction Facilities type 2009 support remains.
+
+**Effects audit (not yet fully functional):**
+
+| Family | Installed and active | Downstream gameplay |
+| --- | --- | --- |
+| Strategic | Yes, subject to prerequisites | POS beacon/jammer/bridge/capital array anchoring gates implemented; manufacturing job execution/maintenance not proven |
+| Military | Yes under GM test Level 5 | Military-index-linked upgraded cosmic-anomaly spawn tiers and activity progression **not yet wired** to the installed upgrades |
+| Industrial | Yes under GM test Level 5 | Ore prospecting special cluster spawning, ore composition and index progression **not yet wired** to the installed upgrades |
+
+The above is not a claim that every upgrade gameplay effect has been implemented. The existing \`AnomalyMgr\`, \`BeltMgr\`, \`SpawnMgr\` and manufacturing services need additional data-backed integration and gameplay tests.
+
+**Read-only SQL inventory of all upgrade types and static prerequisites** (works in HeidiSQL):
+
+\`\`\`sql
+SELECT t.typeID, t.typeName, t.groupID,
+       MAX(CASE WHEN a.attributeID=1583 THEN COALESCE(a.valueInt,a.valueFloat) END) AS militaryRequirement,
+       MAX(CASE WHEN a.attributeID=1584 THEN COALESCE(a.valueInt,a.valueFloat) END) AS industrialRequirement,
+       MAX(CASE WHEN a.attributeID=1597 THEN COALESCE(a.valueInt,a.valueFloat) END) AS strategicDays,
+       MAX(CASE WHEN a.attributeID=1598 THEN COALESCE(a.valueInt,a.valueFloat) END) AS blockingUpgrade,
+       MAX(CASE WHEN a.attributeID=1599 THEN COALESCE(a.valueInt,a.valueFloat) END) AS requiredUpgrade
+FROM invTypes AS t
+LEFT JOIN dgmTypeAttributes AS a ON a.typeID=t.typeID
+WHERE t.groupID IN (1016,1020,1021)
+GROUP BY t.typeID,t.typeName,t.groupID
+ORDER BY t.groupID,t.typeID;
+\`\`\`
+
+**Operator test:** Run \`/sovindex5\` in the TCU's system; install one upgrade type/tier at a time, ensuring its required predecessor is already active. Verify its \`entity.flag\` is \`flagStructureActive\` and persists after server reload. Check basic POS beacon/jammer/bridge/array anchoring separately. A Military/Industrial item being installed does **not yet** guarantee new military anomaly/ore sites appear.
+
+## 18 November — Large Control Tower missing visible shield bubble
+
+Audit found that \`TowerSE::Init\` and \`SetOnline\` suppressed the physical force-field when the saved tower password was blank. \`SetOnline\` also updated the harmonic only in memory, so after restart an online tower could have an offline saved harmonic. \`UpdatePassword\` switched the field's ball to STOP mode when the password was emptied. \`FieldSE\`/missiles were also incorrectly included in damage-state packets because \`!A || !B\` was always true.
+
+The patch creates the field for any **online** tower independently of password, persists the correct POS harmonic on startup/online/offline/password edits, preserves valid static shield radii, and falls back to **30km Large / 22.5km Medium / 15km Small** if the attribute is missing or invalid. It also excludes missile/force-field entities from damage-state serialization.
+
+**Test:** Online a Large Control Tower with no password, verify an actual translucent 30km-or-configured shield visible from inside/outside in the Crucible client, set/unset a tower password without losing the field, relog/re-enter the grid, restart the server and check it remains, then offline the tower and confirm the field disappears. This is *server source validation*, not a verified client rendering result. If still missing, inspect \`TowerSE::CreateForceField\` logs and Destiny AddBalls/MakeSetState packet traces.
+
+No new SQL migrations are required for this change beyond the already-applied /sovindex5 migrations.
