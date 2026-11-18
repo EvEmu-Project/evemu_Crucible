@@ -40,6 +40,14 @@ assert "m_activeSpeedFraction >= 0.75f" in alignment
 assert "m_timeFraction > 0.749" not in alignment
 assert "warp align/speed is incorrect" not in alignment
 assert "headingReady && speedReady" in alignment
+# STOP must process real deceleration but never emit a CmdStop every idle
+# tick. This prevents repeated network prediction resets and packet spam.
+idle_state = alignment.split("case Ball::Mode::STOP:", 1)[1].split(
+    "case Ball::Mode::GOTO:", 1)[0]
+assert "m_decel || m_accel || m_activeSpeedFraction > 0.0001f" in idle_state
+assert "Stop();" not in idle_state
+assert "SendSingleDestinyUpdate(&update);" in idle_state
+assert "return static_cast<float>(m_velocity.length());" in source("src/eve-server/system/DestinyManager.h")
 # Stop() must not fall through to a stale Follow() movement tick.
 follow = destiny.split("void DestinyManager::Follow()", 1)[1].split("void DestinyManager::Orbit()", 1)[0]
 assert "Stop();" in follow
@@ -67,6 +75,8 @@ assert client.count("EVEmuMovement::GateJumpSurfaceRange") == 2
 assert "gate->GetRadius() + 2500.0" not in client
 assert "station->GetRadius() + 2500.0" not in destiny
 assert "Follow(station, approachDistance);" in destiny
+assert "if (pSE->IsGateSE() || pSE->IsStationSE())" in destiny
+assert "distance = std::max<uint32>(distance" in destiny
 assert "gateFrigateStop == 12435 && gateCapitalStop == 14900" in movement_test
 assert "requestedTenKm == 20150" in movement_test
 
@@ -75,11 +85,14 @@ assert "requestedTenKm == 20150" in movement_test
 move = destiny.split("void DestinyManager::MoveObject()", 1)[1].split(
     "bool DestinyManager::IsTurn()", 1)[0]
 assert "m_targetEntity.second->IsGateSE()" in move
+assert "m_targetEntity.second->IsStationSE()" in move
 assert "const double remaining = std::max(0.0, gap - m_followDistance);" in move
 assert "if (remaining <= static_cast<double>(speed))" in move
-assert "SetPosition(m_position + toGate * remaining, true);" in move
-assert "Halt();\n            CmdStop stop;" in move
+assert "finalPosition += toTarget * remaining;" in move
+assert "SetPosition(finalPosition);\n                Halt();" in move
+assert "position.Encode(), stop.Encode(), velocity.Encode()" in move
 assert "SendDestinyUpdate(updates);" in move
+assert "m_shipHeading.isNaN() || m_shipHeading.isInf()" in move
 
 # A warp launch uses the requested destination plus a range. The final
 # authoritative stop uses the already range-adjusted endpoint.
@@ -89,7 +102,9 @@ assert "m_stopDistance < 0 ? m_targetPoint : m_warpDestination" in destiny
 assert "WarpRemainingAfterAcceleration(m_warpState->total_distance, currentDistance)" in destiny
 warp_stop = destiny.split("void DestinyManager::WarpStop(", 1)[1].split("void DestinyManager::EntityRemoved(", 1)[0]
 assert warp_stop.index("SetPosition(m_targetPoint);") < warp_stop.index("Halt();")
-assert "SetBallVelocity velocity;" in warp_stop and "SetPosition(m_position, true);" in warp_stop
+assert "SetBallVelocity velocity;" in warp_stop
+assert "position.Encode(), stop.Encode(), velocity.Encode()" in warp_stop
+assert "SetPosition(m_position, true);" not in warp_stop
 wreck = source("src/eve-server/system/Container.cpp").split("void WreckSE::EncodeDestiny", 1)[1]
 assert "tractored ? Ball::Mode::FOLLOW : Ball::Mode::TROLL" in wreck
 invbroker = source("src/eve-server/inventory/InvBrokerService.cpp")
