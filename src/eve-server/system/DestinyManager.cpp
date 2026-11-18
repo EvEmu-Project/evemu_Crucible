@@ -173,11 +173,20 @@ void DestinyManager::ProcessState() {
     using namespace Destiny;
     switch(m_ballMode) {
         case Ball::Mode::STOP: {
-            if (IsMoving()) {
+            // Do not repeatedly send CmdStop for ships that are already idle.
+            // Only process an active deceleration or correct a stale velocity.
+            if (m_decel || m_accel || m_activeSpeedFraction > 0.0001f || IsMoving()) {
                 MoveObject();
-                return;
+            } else if (!m_velocity.isZero()) {
+                Halt();
+                SetBallVelocity velocity;
+                velocity.entityID = mySE->GetID();
+                velocity.x = velocity.y = velocity.z = 0.0;
+                PyTuple* update = velocity.Encode();
+                SendSingleDestinyUpdate(&update);
+            } else if (!m_stop) {
+                Halt();
             }
-            Stop();
         } break;
         case Ball::Mode::GOTO: {
             MoveObject();
@@ -985,37 +994,54 @@ void DestinyManager::MoveObject() {
         }
     }
 
-    // A gate approach is a surface-range command. The generic movement
-    // tick otherwise advances a whole second at the current speed, which can
-    // overshoot the last few hundred metres and visibly bounce through the
-    // stargate even when Follow() requested a safe 2.4km stand-off.
+    // A malformed movement state must never write NaN positions into the
+    // bubble or make the client extrapolate at an invalid velocity.
+    if (!std::isfinite(speed) || speed < 0.0f
+        || m_shipHeading.isNaN() || m_shipHeading.isInf()) {
+        _log(DESTINY__ERROR, "Invalid movement speed/heading for %s(%u); halting.",
+             mySE->GetName(), mySE->GetID());
+        Halt();
+        return;
+    }
+
+    // Gates and stations are collision targets. Never step a whole second
+    // beyond the remaining surface clearance. Send ONE ordered correction
+    // rather than consecutive position and stop packets that cause judder.
     if (m_ballMode == Destiny::Ball::Mode::FOLLOW
         && m_targetEntity.second != nullptr
-        && m_targetEntity.second->IsGateSE()) {
-        const GPoint& gatePosition = m_targetEntity.second->GetPosition();
-        const double gap = EVEmuMovement::SurfaceSeparation(
-            m_position.distance(gatePosition), m_radius,
-            m_targetEntity.second->GetRadius());
-        const double remaining = std::max(0.0, gap - m_followDistance);
-        if (remaining <= static_cast<double>(speed)) {
-            // Complete only the remaining approach distance, synchronize the
-            // exact landing point, and clear residual client/server velocity.
-            if (remaining > 0.0) {
-                GVector toGate(m_position, gatePosition);
-                toGate.normalize();
-                SetPosition(m_position + toGate * remaining, true);
-            } else {
-                SetPosition(m_position, true);
+        && (m_targetEntity.second->IsGateSE() || m_targetEntity.second->IsStationSE())) {
+        const GPoint& targetPosition = m_targetEntity.second->GetPosition();
+        const double centerDistance = m_position.distance(targetPosition);
+        const double targetRadius = m_targetEntity.second->GetRadius();
+        if (std::isfinite(centerDistance) && std::isfinite(targetRadius)
+            && centerDistance >= 0.0 && targetRadius >= 0.0) {
+            const double gap = EVEmuMovement::SurfaceSeparation(
+                centerDistance, m_radius, targetRadius);
+            const double remaining = std::max(0.0, gap - m_followDistance);
+            if (remaining <= static_cast<double>(speed)) {
+                GPoint finalPosition(m_position);
+                if (remaining > 0.0 && centerDistance > 0.0) {
+                    GVector toTarget(m_position, targetPosition);
+                    toTarget.normalize();
+                    finalPosition += toTarget * remaining;
+                }
+                SetPosition(finalPosition);
+                Halt();
+                SetBallPosition position;
+                position.entityID = mySE->GetID();
+                position.x = m_position.x;
+                position.y = m_position.y;
+                position.z = m_position.z;
+                CmdStop stop;
+                stop.entityID = mySE->GetID();
+                SetBallVelocity velocity;
+                velocity.entityID = mySE->GetID();
+                velocity.x = velocity.y = velocity.z = 0.0;
+                std::vector<PyTuple*> updates{
+                    position.Encode(), stop.Encode(), velocity.Encode()};
+                SendDestinyUpdate(updates);
+                return;
             }
-            Halt();
-            CmdStop stop;
-            stop.entityID = mySE->GetID();
-            SetBallVelocity velocity;
-            velocity.entityID = mySE->GetID();
-            velocity.x = velocity.y = velocity.z = 0.0;
-            std::vector<PyTuple*> updates{stop.Encode(), velocity.Encode()};
-            SendDestinyUpdate(updates);
-            return;
         }
     }
 
@@ -1902,20 +1928,25 @@ void DestinyManager::WarpStop(double currentShipSpeed) {
         _log(AUTOPILOT__MESSAGE, "Destiny::WarpStop(): %s(%u) - Warp complete.", mySE->GetName(), mySE->GetID());
         mySE->GetPilot()->SetLoginWarpComplete();
     }
-    // Commit the same landing point and stopped velocity on the server
-    // and client. No residual warp velocity should move the ship afterward.
+    // Commit the landing position once; send the position, stop and zero
+    // velocity together to avoid a second client prediction reset.
     SetPosition(m_targetPoint);
     Halt();
     sBubbleMgr.Add(mySE);
 
+    SetBallPosition position;
+    position.entityID = mySE->GetID();
+    position.x = m_position.x;
+    position.y = m_position.y;
+    position.z = m_position.z;
     CmdStop stop;
     stop.entityID = mySE->GetID();
     SetBallVelocity velocity;
     velocity.entityID = mySE->GetID();
     velocity.x = velocity.y = velocity.z = 0.0;
-    std::vector<PyTuple*> updates{stop.Encode(), velocity.Encode()};
+    std::vector<PyTuple*> updates{
+        position.Encode(), stop.Encode(), velocity.Encode()};
     SendDestinyUpdate(updates);
-    SetPosition(m_position, true);
 
     if (mySE->IsNPCSE() && mySE->GetNPCSE()->GetAIMgr() != nullptr)
         mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
@@ -2060,8 +2091,13 @@ void DestinyManager::BeginMovement() {
 }
 
 void DestinyManager::Follow(SystemEntity* pSE, uint32 distance) {
-    //called from client as 'CmdFollowBall'
-    //  also used by 'Approach'
+    // For massive gates/stations, even Approach 0m should stop just within
+    // jump/docking range instead of driving the hull into the collision mesh.
+    if (pSE == nullptr)
+        return;
+    if (pSE->IsGateSE() || pSE->IsStationSE())
+        distance = std::max<uint32>(distance, static_cast<uint32>(
+            EVEmuMovement::GateWarpLandingSurfaceRange));
     if ((m_ballMode == Destiny::Ball::Mode::FOLLOW)
     and (m_targetEntity.second == pSE)
     and (m_followDistance == distance)
