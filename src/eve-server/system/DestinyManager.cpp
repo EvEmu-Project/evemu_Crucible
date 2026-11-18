@@ -985,6 +985,41 @@ void DestinyManager::MoveObject() {
         }
     }
 
+    // A gate approach is a surface-range command. The generic movement
+    // tick otherwise advances a whole second at the current speed, which can
+    // overshoot the last few hundred metres and visibly bounce through the
+    // stargate even when Follow() requested a safe 2.4km stand-off.
+    if (m_ballMode == Destiny::Ball::Mode::FOLLOW
+        && m_targetEntity.second != nullptr
+        && m_targetEntity.second->IsGateSE()
+        && m_followDistance >= EVEmuMovement::GateWarpLandingSurfaceRange) {
+        const GPoint& gatePosition = m_targetEntity.second->GetPosition();
+        const double gap = EVEmuMovement::SurfaceSeparation(
+            m_position.distance(gatePosition), m_radius,
+            m_targetEntity.second->GetRadius());
+        const double remaining = std::max(0.0, gap - m_followDistance);
+        if (remaining <= static_cast<double>(speed)) {
+            // Complete only the remaining approach distance, synchronize the
+            // exact landing point, and clear residual client/server velocity.
+            if (remaining > 0.0) {
+                GVector toGate(m_position, gatePosition);
+                toGate.normalize();
+                SetPosition(m_position + toGate * remaining, true);
+            } else {
+                SetPosition(m_position, true);
+            }
+            Halt();
+            CmdStop stop;
+            stop.entityID = mySE->GetID();
+            SetBallVelocity velocity;
+            velocity.entityID = mySE->GetID();
+            velocity.x = velocity.y = velocity.z = 0.0;
+            std::vector<PyTuple*> updates{stop.Encode(), velocity.Encode()};
+            SendDestinyUpdate(updates);
+            return;
+        }
+    }
+
     //set velocity and position for this tic
     m_velocity = m_shipHeading * speed;
     SetPosition(m_position + m_velocity, sConfig.debug.PositionHack);   // (PositionHack == true) here will force position update to client
