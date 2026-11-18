@@ -52,8 +52,33 @@ int utils_MovementFormulaTest(int argc, char* argv[])
     const double warpTickOne = EVEmuMovement::WarpRemainingAfterAcceleration(10000, 10);
     const double warpTickTwo = EVEmuMovement::WarpRemainingAfterAcceleration(10000, 200);
     const double warpEnd = EVEmuMovement::WarpRemainingAfterAcceleration(10000, 20000);
+    // Gate landing is measured between collision surfaces, not from the
+    // stargate center. Test both a small hull and a much larger ship.
+    const auto gateFrigateStop = EVEmuMovement::WarpCenterStopRange(
+        0.0, 35.0, 10000.0, EVEmuMovement::GateWarpLandingSurfaceRange);
+    const auto gateCapitalStop = EVEmuMovement::WarpCenterStopRange(
+        0.0, 2500.0, 10000.0, EVEmuMovement::GateWarpLandingSurfaceRange);
+    const auto requestedTenKm = EVEmuMovement::WarpCenterStopRange(
+        10000.0, 150.0, 10000.0, EVEmuMovement::GateWarpLandingSurfaceRange);
+    const auto requestedHundredKm = EVEmuMovement::WarpCenterStopRange(
+        100000.0, 150.0, 10000.0, EVEmuMovement::GateWarpLandingSurfaceRange);
+    const auto fractionalStop = EVEmuMovement::WarpCenterStopRange(
+        0.0, 10.25, 20.25, EVEmuMovement::GateWarpLandingSurfaceRange);
+    const auto invalidStop = EVEmuMovement::WarpCenterStopRange(
+        0.0, std::numeric_limits<double>::quiet_NaN(), 10000.0,
+        EVEmuMovement::GateWarpLandingSurfaceRange);
     const bool passed =
-        shortPull == 100 && fullPull == 600 && noPull == 0 && invalidPull == 0 &&
+        gateFrigateStop == 12435 && gateCapitalStop == 14900
+        && EVEmuMovement::SurfaceSeparation(gateFrigateStop, 35.0, 10000.0) == 2400.0
+        && EVEmuMovement::SurfaceSeparation(gateCapitalStop, 2500.0, 10000.0) == 2400.0
+        && EVEmuMovement::GateWarpLandingSurfaceRange < EVEmuMovement::GateJumpSurfaceRange
+        && requestedTenKm == 20150
+        && requestedHundredKm == 110150
+        && EVEmuMovement::SurfaceSeparation(requestedTenKm, 150.0, 10000.0) == 10000.0
+        && fractionalStop == 2431
+        && invalidStop == 0
+        && EVEmuMovement::WarpCenterStopRange(0.0, 0.0, 0.0, 0.0) == 0
+        && shortPull == 100 && fullPull == 600 && noPull == 0 && invalidPull == 0 &&
         warpTickOne == 9990 && warpTickTwo == 9800 && warpEnd == 0 &&
         normal == 350.0 && touching == 0.0 &&
         wreckInRange == 2475.0 && wreckOutOfRange == 2525.0 &&
