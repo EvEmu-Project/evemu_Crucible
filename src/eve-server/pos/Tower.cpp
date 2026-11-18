@@ -497,7 +497,7 @@ void TowerSE::CreateForceField()
     const double configuredRadius = m_self->GetAttribute(AttrShieldRadius).get_double();
     const double radius = EVEPOS::ShieldRules::EffectiveRadius(m_tsize, configuredRadius);
     ifRef->SetAttribute(AttrRadius, EvilNumber(radius), false);
-    _log(POS__INFO, "Tower %u spawned physical force field radius %.1f m (configured %.1f).",
+    _log(POS__MESSAGE, "Tower %u spawned physical force field radius %.1f m (configured %.1f).",
          m_self->itemID(), radius, configuredRadius);
     FactionData data = FactionData();
         data.allianceID = m_allyID;
