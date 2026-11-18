@@ -95,8 +95,8 @@ static const EliteSecurityShipSpec kEliteSecurityFleet[] = {
 };
 // Four category buckets in the 18-element candidate roster:
  // Deadspace, Commander, Officer, Overseer.
-// Name-based exclusion applies only to the synthetic elite expedition.
-// True Sansha inventory types were observed in game as invalid targets.
+// Name-based exclusions apply only to the synthetic elite expedition.
+// True Sansha and Domination Grigori were observed in game as invalid targets.
 static bool IsTrueSanshaEliteMissionTarget(const std::string& typeName)
 {
     static const std::string forbidden = "true sansha";
@@ -105,6 +105,18 @@ static bool IsTrueSanshaEliteMissionTarget(const std::string& typeName)
         [](unsigned char a, unsigned char b) {
             return std::tolower(a) == std::tolower(b);
         }) != typeName.end();
+}
+
+// Keep the exclusion specific to this one broken officer rather than
+// removing its entire NPC group or changing unrelated encounter rosters.
+static bool IsDominationGrigoriEliteMissionTarget(const std::string& typeName)
+{
+    static const std::string forbidden = "domination grigori";
+    return typeName.size() == forbidden.size()
+        && std::equal(typeName.begin(), typeName.end(), forbidden.begin(),
+            [](unsigned char a, unsigned char b) {
+                return std::tolower(a) == std::tolower(b);
+            });
 }
 
 static constexpr std::size_t kEliteSecurityCategoryOffsets[] = {0, 5, 10, 15, 18};
@@ -669,12 +681,13 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
             uint32 factionID;
         };
         // Validate NPC types before choosing two distinct groups per category.
-        // Some installed SDE types (notably "True Sansha") are not valid
-        // combat targets. Exclude only those types, keeping the other valid
-        // Sansha NPCs and the full eight-hostile mission objective.
+        // Some installed SDE types (including "True Sansha" and
+        // "Domination Grigori") are not valid combat targets. Exclude
+        // only those types, preserving eight targetable hostile NPCs.
         std::map<uint16, std::vector<uint16>> eligibleTypesByGroup;
         std::vector<const EliteSecurityShipSpec*> chosenSpecs;
         uint32 excludedTrueSansha = 0;
+        uint32 excludedDominationGrigori = 0;
         for (std::size_t category = 0; category + 1
                 < sizeof(kEliteSecurityCategoryOffsets) / sizeof(kEliteSecurityCategoryOffsets[0]);
                 ++category) {
@@ -700,12 +713,16 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
                         ++excludedTrueSansha;
                         continue;
                     }
+                    if (IsDominationGrigoriEliteMissionTarget(candidate.second.name)) {
+                        ++excludedDominationGrigori;
+                        continue;
+                    }
                     candidates.push_back(candidate.first);
                 }
                 if (candidates.empty()) {
                     _log(SPAWN__WARNING,
                         "DED/Officer mission %u skips NPC group %u (%s): "
-                        "no eligible targetable NPC types after True Sansha filtering.",
+                        "no eligible targetable NPC types after untargetable NPC filtering.",
                         offerID, spec.groupID, group.name.c_str());
                     continue;
                 }
@@ -738,11 +755,12 @@ bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 m
             const uint16 typeID = candidates[Mission::RandomCandidateIndex(candidates.size())];
             selectedFleet.push_back({typeID, spec->groupID, spec->factionID});
         }
-        if (excludedTrueSansha != 0)
+        if (excludedTrueSansha != 0 || excludedDominationGrigori != 0)
             _log(SPAWN__MESSAGE,
-                "DED/Officer mission %u excluded %u True Sansha NPC candidates; "
-                "selected %u valid enemies from other eligible types.",
-                offerID, excludedTrueSansha, static_cast<uint32>(selectedFleet.size()));
+                "DED/Officer mission %u excluded %u True Sansha and %u Domination Grigori "
+                "NPC candidates; selected %u valid enemies from other eligible types.",
+                offerID, excludedTrueSansha, excludedDominationGrigori,
+                static_cast<uint32>(selectedFleet.size()));
 
         uint16 spawnedCount = 0;
         uint16 failedCount = 0;
