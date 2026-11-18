@@ -1,3 +1,9 @@
+## 18 November 2026 — Repair post-build industry CI assertions for capped research skills
+
+- [Run #44384199564](https://github.com/xrizonx/evemu_Crucible/actions/runs/44384199564) successfully compiled Windows/Linux, built Docker and passed MariaDB, but both compiler jobs stopped at `tools/verify_industry_workflows.py:47` before CTest. The obsolete assertion expected `(1.0f - (0.05f * MetallurgyLevel))`, while the actual, safer Crucible research formula caps the skill level with `std::min<uint8>(..., 5)`.
+- Update **both** ME and PE source guards, scoped to their respective research functions. Assert actual 5%-per-level skill reductions (capped at level 5), linear research-level multiplier, and non-finite/overflow protection. Do not undo or weaken the C++ calculations.
+- Reviewed all 28 source invariants against current branch files; all match. Existing C++ `IndustryFormulaTest` checks the ME/PE level and skill time effects when CTest executes. No changes to the game server, NPC orbit fixes, warp logic, drone movement, industry data or SQL migrations. Latest CI and CTest results must be checked after this commit.
+
 ## 18 November 2026 — Correct NPC orbit geometry and repeated DestinyError spam
 
 - Analyzed repeated `Destiny::Orbit() - Invalid orbit geometry/speed` from Guristas Terrorist NPCs. The inherited high-order orbit calculation sometimes predicts a radius **below ship+target surface clearance** at normal 10–20km ranges (example: 10,143m vs 10,150m safe). Previously the server called `Stop()` and AI retried the same failed order each second.

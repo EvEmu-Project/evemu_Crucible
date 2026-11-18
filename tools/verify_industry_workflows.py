@@ -44,8 +44,22 @@ assert 'args.runs, itemItr->extra)' in proxy
 assert 'if (!bpRef->infinite())' in proxy
 assert 'GetBOMItems( bomLocation, items )' in methods
 assert 'static_cast<float>(m_data.pLevel) / (1.0f + m_data.pLevel)' in blueprint
-assert '(1.0f - (0.05f * MetallurgyLevel))' in math
-assert '(1.0f - (0.05f * ResearchLevel))' in math
+# Check the ME/PE formulas inside their own function bodies rather than
+# matching the superseded, uncapped skill modifier text. The capped
+# pre-Crius formula keeps the skill reduction (5% per level, max level 5)
+# and protects against non-finite/overflowing research durations.
+me_research = math.split("int32 EvEMath::RAM::ME_ResearchTime(", 1)[1].split(
+    "int32 EvEMath::RAM::PE_ResearchTime(", 1)[0]
+pe_research = math.split("int32 EvEMath::RAM::PE_ResearchTime(", 1)[1].split(
+    "int32 EvEMath::RAM::RE_ResearchTime(", 1)[0]
+for research, skill in (
+    (me_research, "MetallurgyLevel"),
+    (pe_research, "ResearchLevel"),
+):
+    assert "1.0 - 0.05 * std::min<uint8>(" + skill + ", 5)" in research
+    assert "Research_LevelModifier(BlueprintLevel, Runs)" in research
+    assert "if (!std::isfinite(result) || result <= 0.0)" in research
+    assert "std::numeric_limits<int32>::max()" in research
 assert 'utils/IndustryFormulaTest.cpp' in cmake
 # Invention must remain disabled, not silently charge for a fake T2 result.
 assert 'case EvERam::Activity::Invention:' in methods
