@@ -49,3 +49,35 @@ assert "UninstallRemoteBridgeLink(itemID);" in db
 assert "SovereigntyPosIntegrityTest.cpp" in cmake
 assert 'NAME "SovereigntyPosIntegrityTest"' in cmake
 print("PASS: sovereignty FILETIME, cache, SBU, POS permissions and SQL invariants")
+
+
+# DEV/ADMIN command and client index views must stay in sync. The test
+# persists a TCU-bound marker and must never edit the real claimTime.
+from pathlib import Path as _Path
+_sov_header = read("src/eve-common/EVE_SovIndexOverride.h")
+_sovdb = read("src/eve-server/system/sov/SovereigntyDB.cpp")
+_sovmanager = read("src/eve-server/system/sov/SovereigntyDataMgr.cpp")
+_indices = read("src/eve-server/system/IndexManager.cpp")
+_commands = read("src/eve-server/admin/SystemCommands.cpp")
+_command_acl = read("src/eve-server/admin/SystemCommands.h")
+_migration = read("sql/migrations/20261118070000-sov-development-index-overrides.sql")
+assert "COMMAND_ANY( sovindex5, Acct::Role::DEV, Acct::Role::ADMIN" in _command_acl
+assert "Command_sovindex5(" in _commands
+assert "sysData.factionID" in _commands
+assert "!claim.hubID" in _commands
+assert "ForceLevelFiveIndices(systemID)" in _commands
+assert "ResetIndexOverrides(systemID)" in _commands
+assert "mapSovDevelopmentIndexOverrides" in _sovdb
+assert "strategicDays=100" in _sovdb
+assert "claimStructureID=VALUES(claimStructureID)" in _sovdb
+assert "AND claimStructureID=%u" in _sovdb
+assert "GetIndexOverrides(overrideRows)" in _sovmanager
+assert "GetEffectiveStrategicDays(sData)" in _sovmanager
+assert "GetAllDevelopmentIndicesForClients()" in _indices
+assert "GetEffectiveMilitaryPoints(sovData)" in _indices
+assert "GetEffectiveIndustrialPoints(sovData)" in _indices
+assert "EffectiveStrategicDays" in _sov_header
+assert "CREATE TABLE IF NOT EXISTS mapSovDevelopmentIndexOverrides" in _migration
+assert "claimStructureID" in _migration
+assert "ALTER TABLE mapSystemSovInfo" not in _migration
+print("PASS: /sovindex5 role, claim-bound SQL persistence, index views and reset guards")
