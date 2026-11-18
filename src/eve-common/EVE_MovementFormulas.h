@@ -28,6 +28,28 @@ inline double TractorTravelStep(double separation, double stopRange, double spee
     return std::min(speed, std::max(0.0, separation - stopRange));
 }
 
+// A gate jump is permitted within 2,500m of the combined ship/gate
+// collision surfaces. Target 2,400m so rounding never requires a second
+// approach tick just to cross the exact 2,500m boundary.
+constexpr double GateWarpLandingSurfaceRange = 2400.0;
+constexpr double GateJumpSurfaceRange = 2500.0;
+
+// WarpTo/CmdWarpTo use a destination center and a *center-based* stop range,
+// whereas the client-requested minRange and gate activation distance refer to
+// the gap between the ship's and target's surfaces. Add BOTH radii exactly
+// once. An integral stop range is rounded up to avoid hull overlap.
+inline std::int32_t WarpCenterStopRange(double requestedSurfaceRange,
+                                        double shipRadius, double targetRadius,
+                                        double minimumSurfaceRange = 0.0) {
+    if (!std::isfinite(requestedSurfaceRange) || !std::isfinite(shipRadius)
+        || !std::isfinite(targetRadius) || !std::isfinite(minimumSurfaceRange))
+        return 0;
+    const double surface = std::max({0.0, requestedSurfaceRange, minimumSurfaceRange});
+    const double center = surface + std::max(0.0, shipRadius) + std::max(0.0, targetRadius);
+    const double maxRange = static_cast<double>(std::numeric_limits<std::int32_t>::max());
+    return static_cast<std::int32_t>(std::ceil(std::min(center, maxRange)));
+}
+
 // Warp acceleration reports total distance traveled from entry, not the
 // increment to deduct from the previous tick.
 inline double WarpRemainingAfterAcceleration(double total, double traveled) {
