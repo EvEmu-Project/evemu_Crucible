@@ -25,6 +25,8 @@
 */
 
 #include "eve-server.h"
+#include "EVE_MiningFlight.h"
+#include "tables/invGroups.h"
 
 #include "EVEServerConfig.h"
 #include "EntityList.h"
@@ -57,8 +59,11 @@ DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemMana
     m_controllerID = 0;
     m_controllerOwnerID = 0;
 
+    const bool miningDrone = m_self->groupID() == EVEDB::invGroups::Mining_Drone;
     m_orbitRange = m_self->GetAttribute(AttrOrbitRange).get_float();
-    if (m_orbitRange < 1) {
+    if ((!std::isfinite(m_orbitRange) || m_orbitRange < 1.0) && miningDrone) {
+        m_orbitRange = 200.0;
+    } else if (m_orbitRange < 1.0) {
         const double maxRange = m_self->GetAttribute(AttrMaxRange).get_double();
         const double falloff = m_self->GetAttribute(AttrFalloff).get_double();
         m_orbitRange = (maxRange < falloff) ? maxRange : falloff;
@@ -76,7 +81,9 @@ DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemMana
     m_self->SetAttribute(AttrArmorDamage,         EvilZero, false);
     m_self->SetAttribute(AttrWarpCapacitorNeed,   0.00001, false);
     m_self->SetAttribute(AttrOrbitRange,          m_orbitRange, false);
-    m_self->SetAttribute(AttrMass,                m_self->type().mass(), false);
+    const double typeMass = m_self->type().mass();
+    const double movementMass = miningDrone ? EvEMining::MovementMass(typeMass) : typeMass;
+    m_self->SetAttribute(AttrMass, movementMass, false);
     m_self->SetAttribute(AttrRadius,              m_self->type().radius(), false);
     m_self->SetAttribute(AttrVolume,              m_self->type().volume(), false);
     m_self->SetAttribute(AttrCapacity,            m_self->type().capacity(), false);
@@ -165,8 +172,9 @@ void DroneSE::Process() {
         return;
     double profileStartTime(GetTimeUSeconds());
 
-    // Process movement and target-lock timers before running drone combat AI.
-    SystemEntity::Process();
+    // Mining flight advances its own bounded movement once per Destiny tick.
+    if (!m_online || m_AI == nullptr || !m_AI->HasMiningFlight())
+        SystemEntity::Process();
 
     if (m_online && m_AI != nullptr) {
         m_AI->Process();

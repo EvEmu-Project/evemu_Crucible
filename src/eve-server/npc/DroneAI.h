@@ -48,6 +48,7 @@ public:
 
     void Process();
     bool Mine(SystemEntity* asteroid, bool repeat);
+    bool HasMiningFlight() const;
 
     void Target(SystemEntity *by_who);
     void TargetAcquired(SystemEntity *pTarget);

@@ -9,12 +9,12 @@
 
 #include "eve-server.h"
 #include "EVE_DroneControlRange.h"
+#include "EVE_MiningFlight.h"
 #include "EVE_MiningFormulas.h"
 #include "EVE_MovementFormulas.h"
 #include "EVE_Skills.h"
 
 #include "Client.h"
-#include "EntityList.h"
 #include "StatisticMgr.h"
 #include "character/Character.h"
 #include "tables/invCategories.h"
@@ -198,7 +198,7 @@ DroneAIMgr::DroneAIMgr(DroneSE* who)
 void DroneAIMgr::Process() {
     double profileStartTime(GetTimeUSeconds());
 
-    if (m_miningTargetID != 0 || (m_minedUnits > 0 && m_state != DroneAI::State::Departing)) {
+    if (HasMiningFlight()) {
         ProcessMining();
         return;
     }
@@ -376,8 +376,6 @@ void DroneAIMgr::Process() {
                 break;
             }
             if (m_pDrone->GetPosition().distance(m_assignedShip->GetPosition()) <= 2500.0) {
-                if (m_minedUnits > 0 && !DeliverMiningOre(m_assignedShip))
-                    return;
                 if (m_returnToBay) {
                     m_scoopRequested = true;
                     return;
@@ -417,6 +415,10 @@ int8 DroneAIMgr::GetState() {
     }
 }
 
+bool DroneAIMgr::HasMiningFlight() const {
+    return m_miningTargetID != 0 || (m_state == DroneAI::State::Departing && IsMiningDrone(m_pDrone));
+}
+
 bool DroneAIMgr::Mine(SystemEntity* asteroid, bool repeat) {
     if (!IsMiningDrone(m_pDrone) || !IsOreAsteroid(asteroid)
         || m_pDrone->DestinyMgr() == nullptr || asteroid->SysBubble() == nullptr
@@ -447,7 +449,6 @@ bool DroneAIMgr::Mine(SystemEntity* asteroid, bool repeat) {
     m_state = m_minedUnits > 0 ? DroneAI::State::Departing : DroneAI::State::Approaching;
     m_pDrone->SetTarget(m_minedUnits > 0 ? nullptr : asteroid);
     m_pDrone->StateChange();
-    ProcessMining();
     return true;
 }
 
@@ -463,26 +464,34 @@ void DroneAIMgr::ProcessMining() {
         return;
     }
 
-    // Correct client prediction in all active mining phases. Stagger updates
-    // across the flight so the drones do not all send on the same tick.
-    if (sEntityList.GetStamp() % 5 == m_pDrone->GetID() % 5)
-        movement->SendPositionAndVelocity();
+    const InventoryItemRef drone = m_pDrone->GetSelf();
+    const double speed = drone->GetAttribute(AttrMaxVelocity).get_double();
+    if (!std::isfinite(speed) || speed <= 0.0 || !grid->InBubble(movement->GetPosition())) {
+        SetIdle();
+        return;
+    }
 
-    if (m_minedUnits > 0) {
-        if (MiningSeparation(m_pDrone, ship) > 1000.0) {
-            if (!movement->IsFollowing() || movement->GetTargetID() != ship->GetID()) {
-                movement->SetMaxVelocity(m_chaseSpeed);
-                movement->Follow(ship, 500);
-                movement->SendPositionAndVelocity();
-            }
+    if (m_state == DroneAI::State::Departing) {
+        const double returnRadius = m_returnToBay ? 1500.0 : m_pDrone->GetRadius() + ship->GetRadius() + 500.0;
+        movement->ApplyMiningDroneStep(EvEMining::Approach(
+            movement->GetPosition(), ship->GetPosition(), returnRadius, speed), speed);
+
+        const bool inRange = m_returnToBay
+            ? movement->GetPosition().distance(ship->GetPosition()) <= 2500.0
+            : MiningSeparation(m_pDrone, ship) <= 1000.0;
+        if (!inRange || (m_minedUnits > 0 && !DeliverMiningOre(ship)))
+            return;
+        if (m_returnToBay) {
+            m_scoopRequested = true;
             return;
         }
-        if (!DeliverMiningOre(ship))
-            return;
         if (!m_repeatMining) {
             SetIdle();
-            return;
+        } else {
+            m_state = DroneAI::State::Approaching;
+            m_pDrone->StateChange();
         }
+        return;
     }
 
     SystemEntity* target = ship->SystemMgr()->GetSE(m_miningTargetID);
@@ -497,7 +506,6 @@ void DroneAIMgr::ProcessMining() {
         return;
     }
 
-    const InventoryItemRef drone = m_pDrone->GetSelf();
     const InventoryItemRef asteroid = target->GetSelf();
     const double range = drone->GetAttribute(AttrMaxRange).get_double();
     const double unitVolume = asteroid->GetAttribute(AttrVolume).get_double();
@@ -510,35 +518,19 @@ void DroneAIMgr::ProcessMining() {
         SetIdle();
         return;
     }
-    const double preferredOrbit = std::isfinite(m_entityOrbitRange) ? m_entityOrbitRange : 200.0;
-    const uint32 orbitRange = static_cast<uint32>(
-        std::clamp(preferredOrbit, 1.0, std::min(range, static_cast<double>(std::numeric_limits<int32>::max()))));
-    const double separation = MiningSeparation(m_pDrone, target);
-    const double approachRange = std::min(range, static_cast<double>(orbitRange) + m_chaseSpeed);
-    const bool orbiting = movement->IsOrbiting() && movement->GetTargetID() == target->GetID();
-    if (separation > range || (!orbiting && separation > approachRange)) {
+    const double preferredOrbit = drone->GetAttribute(AttrOrbitRange).get_double();
+    const double orbitRadius = m_pDrone->GetRadius() + target->GetRadius() + std::min(preferredOrbit, range * 0.9);
+    const EvEMining::FlightStep flight = EvEMining::Orbit(
+        movement->GetPosition(), target->GetPosition(), orbitRadius, speed);
+    movement->ApplyMiningDroneStep(flight.position, speed);
+    if (!flight.inOrbit || MiningSeparation(m_pDrone, target) > range) {
         StopMiningBeam();
         if (m_state != DroneAI::State::Approaching) {
             m_state = DroneAI::State::Approaching;
             m_pDrone->SetTarget(target);
             m_pDrone->StateChange();
         }
-        if (!movement->IsFollowing() || movement->GetTargetID() != target->GetID()) {
-            movement->SetMaxVelocity(m_chaseSpeed);
-            movement->Follow(target, orbitRange);
-            movement->SendPositionAndVelocity();
-        }
         return;
-    }
-
-    if (!orbiting) {
-        movement->SetMaxVelocity(m_chaseSpeed);
-        movement->Orbit(target, orbitRange);
-        if (!movement->IsOrbiting()) {
-            StopMiningBeam();
-            return;
-        }
-        movement->SendPositionAndVelocity();
     }
 
     if (!m_miningTimer.Enabled()) {
@@ -576,9 +568,6 @@ void DroneAIMgr::ProcessMining() {
     m_state = DroneAI::State::Departing;
     m_pDrone->SetTarget();
     m_pDrone->StateChange();
-    movement->SetMaxVelocity(m_chaseSpeed);
-    movement->Follow(ship, 500);
-    movement->SendPositionAndVelocity();
     if (left < 1.0) {
         m_repeatMining = false;
         pilot->SendNotifyMsg("Your mining drone depleted the asteroid.");
@@ -654,8 +643,10 @@ void DroneAIMgr::Return(bool returnToBay) {
     m_beginFindTarget.Disable();
     m_webifierTimer.Disable();
     m_warpScramblerTimer.Disable();
-    m_pDrone->DestinyMgr()->SetMaxVelocity(m_chaseSpeed);
-    m_pDrone->DestinyMgr()->Follow(m_assignedShip, returnToBay ? 1500.0 : m_entityOrbitRange);
+    if (!IsMiningDrone(m_pDrone)) {
+        m_pDrone->DestinyMgr()->SetMaxVelocity(m_chaseSpeed);
+        m_pDrone->DestinyMgr()->Follow(m_assignedShip, returnToBay ? 1500.0 : m_entityOrbitRange);
+    }
     m_state = DroneAI::State::Departing;
     m_pDrone->StateChange();
 }
@@ -689,8 +680,11 @@ void DroneAIMgr::SetIdle() {
 
     // Orbit only while the owning ship still exists. An orphaned drone remains idle.
     m_assignedShip = m_pDrone->GetHomeShip();
-    if (m_assignedShip != nullptr)
+    if (m_assignedShip != nullptr && (!IsMiningDrone(m_pDrone)
+        || (m_pDrone->SysBubble() != nullptr && m_assignedShip->SysBubble() == m_pDrone->SysBubble())))
         m_pDrone->IdleOrbit(m_assignedShip);
+    else if (IsMiningDrone(m_pDrone) && m_pDrone->DestinyMgr() != nullptr)
+        m_pDrone->DestinyMgr()->Stop();
     m_pDrone->StateChange();
 }
 
