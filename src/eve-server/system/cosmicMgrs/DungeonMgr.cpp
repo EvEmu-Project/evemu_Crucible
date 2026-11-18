@@ -459,9 +459,9 @@ void DungeonMgr::Process()
 
 bool DungeonMgr::MakeDungeon(CosmicSignature& sig, uint32 dungeonID)
 {
-    // TODO: create a new dungeon using the given signature
-
-    Dungeon::Dungeon dData;
+    // Missing static templates leave GetRandomDungeon's output untouched.
+    // Zero-initialize dungeonID for deterministic fail-closed validation.
+    Dungeon::Dungeon dData = Dungeon::Dungeon();
 
     // If we are given a dungeonID, use it otherwise pick a random dungeon based on archetype
     if (dungeonID == 0) {
