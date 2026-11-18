@@ -2110,9 +2110,13 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
         return; // preserve the active warp and its landing point
     m_capNeeded = 0.0;
 
-    // check for autopilot.  it has 'special' checks in client for auto-disable by destiny update
-    if (autoPilot) {
-        Follow(pSE, distance);
+    // Autopilot's distance argument is the warp command's center-based
+    // range. Follow() expects a surface-to-surface range; passing the center
+    // value made the client approach stop an entire gate radius too early.
+    if (autoPilot && pSE != nullptr) {
+        const double surfaceRange = EVEmuMovement::SurfaceSeparation(
+            std::max(0, distance), m_radius, pSE->GetRadius());
+        Follow(pSE, static_cast<uint32>(surfaceRange));
     } else {
         GotoPoint(where);
     }
