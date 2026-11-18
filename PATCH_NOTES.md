@@ -1,3 +1,9 @@
+## 18 November 2026 — Repair gameplay source-invariant CI failure (PR #43)
+
+- The previous [Actions run #44380229744](https://github.com/xrizonx/evemu_Crucible/actions/runs/44380229744) **compiled Linux and Windows successfully and built Docker**, but Linux/Windows later failed `tools/verify_subsystems_audit.py` at line 67. Its invention-safety regression test asserted an obsolete comment string (`Do not consume datacores, runs or ISK`) instead of verifying code behavior.
+- Replace the fragile text assertion with an explicit `ActivityCheck()` invention-branch guard: invention must throw the nonfunctional-invention error, and `InstallJob()` must call `ActivityCheck()` **before** `AccountService::TransferFunds()` and `FactoryDB::InstallJob()`. This preserves fail-closed invention without silently changing gameplay or charging players.
+- The previous undefined `uint64` compiler issue is already fixed. Source audit cross-check against all 11 files now matches, while full refreshed Windows/Linux CTest results remain to be confirmed. No migrations or changes to `master`.
+
 ## 18 November 2026 — Fix Windows/Linux/Docker industry build failure (PR #43)
 
 - CI run [44378451842](https://github.com/xrizonx/evemu_Crucible/actions/runs/44378451842) failed all three C++ builds in `src/eve-server/manufacturing/RamMethods.cpp` because the new industry code used the undefined `uint64` alias; the follow-on `needed`, `available` and `factor` errors are cascading compiler diagnostics.
