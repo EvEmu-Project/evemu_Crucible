@@ -107,8 +107,8 @@ void SovereigntyDataMgr::Populate()
         while (overrideRows.GetRow(overrideRow)) {
             EVESovIndex::Override item = {
                 overrideRow.GetUInt(1),
-                static_cast<uint16>(overrideRow.GetUInt(2)),
-                static_cast<uint16>(overrideRow.GetUInt(3)),
+                overrideRow.GetUInt(2),
+                overrideRow.GetUInt(3),
                 static_cast<uint16>(overrideRow.GetUInt(4))
             };
             m_indexOverrides[overrideRow.GetUInt(0)] = item;
@@ -263,8 +263,8 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
     header->AddColumn("locationID", DBTYPE_I4);
     header->AddColumn("allianceID", DBTYPE_I4);
     header->AddColumn("stationCount", DBTYPE_I2);
-    header->AddColumn("militaryPoints", DBTYPE_I2);
-    header->AddColumn("industrialPoints", DBTYPE_I2);
+    header->AddColumn("militaryPoints", DBTYPE_I4);
+    header->AddColumn("industrialPoints", DBTYPE_I4);
     header->AddColumn("claimedFor", DBTYPE_I4);
     CRowSet *rowset = new CRowSet(&header);
 
@@ -479,11 +479,18 @@ bool SovereigntyDataMgr::ForceLevelFiveIndices(uint32 systemID)
         return false;
     if (!SovereigntyDB::SaveIndexOverride(systemID, claim.claimStructureID))
         return false;
-    m_indexOverrides[systemID] = EVESovIndex::Override{claim.claimStructureID, 5, 5, 100};
+    m_indexOverrides[systemID] = EVESovIndex::Override{
+        claim.claimStructureID,
+        EVESovIndex::LevelFiveMilitaryPoints,
+        EVESovIndex::LevelFiveIndustrialPoints,
+        EVESovIndex::LevelFiveStrategicDays};
     _log(SOV__INFO,
          "DEV set test sovereignty indices for system %u / TCU %u: "
-         "military=5 industrial=5 strategic=100 days; real claimTime unchanged.",
-         systemID, claim.claimStructureID);
+         "military=%u raw points industrial=%u raw points "
+         "strategic=100 days; real claimTime unchanged.",
+         systemID, claim.claimStructureID,
+         EVESovIndex::LevelFiveMilitaryPoints,
+         EVESovIndex::LevelFiveIndustrialPoints);
     return true;
 }
 

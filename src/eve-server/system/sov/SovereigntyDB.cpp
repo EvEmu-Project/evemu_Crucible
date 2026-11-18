@@ -25,6 +25,7 @@
 
 #include "system/sov/SovereigntyDB.h"
 #include "EVE_SovPosIntegrity.h"
+#include "EVE_SovIndexOverride.h"
 
     //TODO: For now, we return 0 as stationCount since such system is not implemented
     //TODO: Handle militaryPoints and industrialPoints, but for now they are 5 by default since we don't have a mechanism for determining them
@@ -153,11 +154,16 @@ bool SovereigntyDB::SaveIndexOverride(uint32 systemID, uint32 claimStructureID)
     if (!sDatabase.RunQuery(err,
             "INSERT INTO mapSovDevelopmentIndexOverrides "
             "(solarSystemID, claimStructureID, militaryPoints, industrialPoints, strategicDays) "
-            "VALUES (%u, %u, 5, 5, 100) "
+            "VALUES (%u, %u, %u, %u, %u) "
             "ON DUPLICATE KEY UPDATE "
             "claimStructureID=VALUES(claimStructureID), "
-            "militaryPoints=5, industrialPoints=5, strategicDays=100",
-            systemID, claimStructureID)) {
+            "militaryPoints=VALUES(militaryPoints), "
+            "industrialPoints=VALUES(industrialPoints), "
+            "strategicDays=VALUES(strategicDays)",
+            systemID, claimStructureID,
+            EVESovIndex::LevelFiveMilitaryPoints,
+            EVESovIndex::LevelFiveIndustrialPoints,
+            uint32(EVESovIndex::LevelFiveStrategicDays))) {
         codelog(SOV__ERROR, "SaveIndexOverride failed for %u: %s",
                 systemID, err.c_str());
         return false;

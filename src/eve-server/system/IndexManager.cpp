@@ -53,7 +53,7 @@ PyResult IndexManager::GetAllDevelopmentIndices(PyCallArgs& call) {
 PyResult IndexManager::GetDevelopmentIndicesForSystem(PyCallArgs& call, PyInt* solarSystemID) {
     DBRowDescriptor *header = new DBRowDescriptor();
     header->AddColumn("attributeID", DBTYPE_I4);
-    header->AddColumn("points", DBTYPE_I2);
+    header->AddColumn("points", DBTYPE_I4);
     header->AddColumn("increasing", DBTYPE_BOOL);
     //CRowSet *rowset = new CRowSet(&header);
 
