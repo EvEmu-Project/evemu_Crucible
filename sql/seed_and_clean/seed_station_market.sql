@@ -13,8 +13,10 @@ INSERT INTO mktOrders (typeID, ownerID, regionID, stationID, price, volEntered, 
 minVolume, duration, solarSystemID, jumps)
   SELECT typeID, stationID, regionID, stationID,
          CASE WHEN basePrice IS NULL OR basePrice <= 0 THEN 100 ELSE GREATEST(0.01, ROUND(basePrice, 2)) END,
-         CASE WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
-         CASE WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
+         CASE WHEN (invGroups.groupID = 18 OR invGroups.groupID BETWEEN 450 AND 462 OR invGroups.groupID IN (465, 467, 468, 469)) THEN 100000000
+               WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
+         CASE WHEN (invGroups.groupID = 18 OR invGroups.groupID BETWEEN 450 AND 462 OR invGroups.groupID IN (465, 467, 468, 469)) THEN 100000000
+               WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
          132478179209572976, 1, 250, solarSystemID, 1
   FROM tStations, invTypes inner join invGroups on invTypes.groupID=invGroups.groupID
   WHERE invTypes.published = 1
