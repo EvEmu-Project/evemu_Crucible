@@ -678,11 +678,15 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     // this is incomplete.  there may be client error msgs (havent looked or found)
     // these errors should throw instead of return.
 
-    // Check for required sovereignty upgrades for certain structures
-    if ((m_generator) or (m_jammer) or (m_bridge)) {
+    // Any structure that declares a sovereignty upgrade prerequisite must
+    // have that upgrade actively installed. Previously this gate was
+    // limited to beacon/jammer/bridge entities and did not cover capital
+    // construction arrays that require Supercapital Construction Facilities.
+    const uint32 upgType = m_self->HasAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1)
+        ? m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_uint32() : 0;
+    if (upgType != 0) {
         SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
         InventoryItemRef ihubRef = sItemFactory.GetItemRef(sovData.hubID);
-        uint32 upgType = m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int();
 
         if (ihubRef.get() == nullptr || ihubRef->GetMyInventory() == nullptr
                 || sItemFactory.GetType(upgType) == nullptr) {
