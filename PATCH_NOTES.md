@@ -1,3 +1,11 @@
+## 18 November 2026 — Industry ME/PE research, blueprint copying and invention safety audit
+
+- Tighten station industry line activity/category permissions, blueprint owner/location checks, completion owner/station authorization and personal job-list access. Prevent client-supplied negative/stale installation costs.
+- Correct research ME/PE skill time reductions, floating-point blueprint PE and truncated 16-bit blueprint copy time. Copy jobs now account for both number of copies and licensed runs, with positive/max-run validation and 30-day submission checks.
+- Persist the `copy` flag in `invBlueprints` on update, preserve original BPO infinite-run sentinels, and reconcile material quotes, multi-stack inventory verification and actual consumption with shared rounding. Extra material requirements no longer get an ME/Production Efficiency discount.
+- Add `IndustryFormulaTest` CTest and Windows/Linux industry source-regression checks. **Invention remains deliberately disabled**: the previous output generator was an incomplete placeholder with no real T2 BPC or invention result. Do not consume resources for false success.
+- No SQL migrations or live database changes. Full station client UI/job-delivery validation and transactional rollback protection remain necessary; POS/remote jobs are not functional. See [industry audit and test matrix](docs/INDUSTRY_RESEARCH_COPY_INVENTION_AUDIT_2026-11-18.md).
+
 ## 18 November 2026 — Follow-up movement drift, bumping and micro-stutter review (ongoing PR #43)
 
 - Synchronized `fix/gate-warp-landing-surface-clearance-2026-11-18` with latest fork `master` while preserving mining-drone PR #42's `ApplyMiningDroneStep` API and DED PR #41's NPC exclusions; retained all existing gate-warp source changes, with an ancestry-preserving merge.

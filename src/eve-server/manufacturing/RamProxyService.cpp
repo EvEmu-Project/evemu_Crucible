@@ -112,14 +112,16 @@ PyResult RamProxyService::AssemblyLinesSelect(PyCallArgs &call, PyString* filter
 }
 
 PyResult RamProxyService::GetJobs2(PyCallArgs &call, PyInt* ownerID, PyBool* completed) {
-    if (ownerID->value() == call.client->GetCorporationID())
-        if ((call.client->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager) {
-            // what other roles (if any) can view corp factory jobs?
-            call.client->SendInfoModalMsg("You cannot view your corporation's jobs because you are not a Factory Manager.");
-            return nullptr;
-        }
-
-    return FactoryDB::GetJobs2(ownerID->value(), completed->value());
+    const int32 requestedOwner = ownerID->value();
+    if (requestedOwner != call.client->GetCharacterID()
+        && requestedOwner != call.client->GetCorporationID())
+        throw UserError("RamCompletionAccessDenied");
+    if (requestedOwner == call.client->GetCorporationID()
+        && (call.client->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager) {
+        call.client->SendInfoModalMsg("You cannot view your corporation's jobs because you are not a Factory Manager.");
+        return nullptr;
+    }
+    return FactoryDB::GetJobs2(requestedOwner, completed->value());
 }
 
 /** @todo update this for corp usage */

@@ -86,10 +86,10 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
             pType = &bpRef->type();
         } break;
         case EvERam::Activity::Invention: {
-            // The completion path still returns placeholder success with
-            // outputTypeID = 0. Do not consume datacores, runs or ISK until
-            // blueprint invention is fully implemented.
-            throw UserError("RamActivityInvalid");
+            // The invention completion code is a placeholder returning
+            // outputTypeID=0 and success=true, not an actual Tech II BPC.
+            // Never debit ISK/datacores or consume a T1 BPC for fake output.
+            throw CustomError("Blueprint invention is not functional on this server yet; no materials or ISK were taken.");
         } break;
         case EvERam::Activity::ReverseEngineering:  // RE is ONLY at experimental POS module...cannot do RE in stations.  right now, this will never hit.
         case EvERam::Activity::ResearchTech:    // cannot find any reference to this.  not used?

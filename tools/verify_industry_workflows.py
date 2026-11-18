@@ -38,5 +38,7 @@ assert '(1.0f - (0.05f * ResearchLevel))' in math
 assert 'utils/IndustryFormulaTest.cpp' in cmake
 # Invention must remain disabled, not silently charge for a fake T2 result.
 assert 'case EvERam::Activity::Invention:' in methods
-assert 'throw UserError("RamActivityInvalid")' in methods
+assert 'Blueprint invention is not functional on this server yet' in methods
+assert 'requestedOwner != call.client->GetCharacterID()' in proxy
+assert 'requestedOwner != call.client->GetCorporationID()' in proxy
 print("PASS: research, copying, industry ownership and invention safety invariants")
