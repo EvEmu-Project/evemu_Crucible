@@ -1,3 +1,10 @@
+## 18 November 2026 — 100-million-unit mineral/ore NPC buy and sell orders
+
+- New EVEDBTool regional and legacy station seeds and Trader Joe's dynamic NPC buy/sell orders now create **100,000,000 units per order per type/station** for minerals (group 18) and ore/ice (450–462, 465, 467–469). Both volume columns start at 100M. Other groups keep their existing amounts and **100% base-price** pricing.
+- Guard against excessive pseudo-escrow: ore/mineral high-volume orders are allowed only up to 10,000,000 ISK/unit (1 quadrillion ISK notional), while other groups retain the existing order-value limits. No player wallets or orders are touched.
+- Added Windows/Linux source invariants and MariaDB fixture checks covering mineral, Arkonor, Ice, existing charge volumes, player-order preservation, re-seed idempotency and high-price exclusions.
+- **No existing orders automatically modified.** Backup and inspect `evedbtool seed -force -dryrun` before refreshing both buys/sells (`seed -buy-only -force` refreshes buys only). See [deployment guide](docs/NPC_ORE_MINERAL_100M_ORDERS_2026-11-18.md). This is committed on upstream draft PR #335's source branch, not fork `master`.
+
 ## 18 November 2026 — Update upstream draft PR #335 to current fork master
 
 - Merge fork `master` at [`2d5cb4d2c7dbd0b33b70467e5caf3021fc52a713`](https://github.com/xrizonx/evemu_Crucible/commit/2d5cb4d2c7dbd0b33b70467e5caf3021fc52a713) into `contrib/upstream-crucible-maintenance-2026-11-15`, retaining earlier branch commits and 15/17 November upstream-review documents.
