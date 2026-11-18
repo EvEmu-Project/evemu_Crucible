@@ -15,6 +15,9 @@
 
 
 void PosMgrDB::DeleteData(uint32 itemID) {
+    // Delete a reciprocal remote bridge link before removing this endpoint.
+    // The update only touches a remote row that actually links back here.
+    UninstallRemoteBridgeLink(itemID);
     DBerror err;
     sDatabase.RunQuery(err, "DELETE FROM posStructureData WHERE itemID = %u", itemID);
     sDatabase.RunQuery(err, "DELETE FROM posCustomsOfficeData WHERE itemID = %u", itemID);
@@ -43,7 +46,7 @@ PyRep* PosMgrDB::GetCorpControlTowers(uint32 corpID)
             "SELECT e.typeID, e.itemID, e.locationID"
             " FROM entity AS e"
             " LEFT JOIN invTypes AS t USING (typeID)"
-            " LEFT JOIN posTowerData AS d USING (itemID)"// we're not looking for towers in cargo
+            " INNER JOIN posTowerData AS d USING (itemID)" // Only deployed towers, not cargo
             " WHERE e.ownerID = %u AND t.groupID = %u", corpID, EVEDB::invGroups::Control_Tower))
     {
         codelog(DATABASE__ERROR, "Error in GetCorpControlTowers query: %s", res.error.c_str());
@@ -283,11 +286,14 @@ void PosMgrDB::UninstallBridgeLink(uint32 itemID)
 void PosMgrDB::UninstallRemoteBridgeLink(uint32 itemID) //Removes a link from the remote bridge
 {
     DBerror err;
+    // MariaDB error 1093: cannot update and select the same table via
+    // scalar subquery. A joined update also protects non-reciprocal links.
     sDatabase.RunQuery(err,
-        "UPDATE posJumpBridgeData SET "
-        " toItemID=0, toTypeID=0, toSystemID=0 "
-        " WHERE itemID=(SELECT toItemID FROM posJumpBridgeData WHERE itemID=%i)",
-        itemID);
+        "UPDATE posJumpBridgeData AS remote "
+        "INNER JOIN posJumpBridgeData AS local "
+        " ON remote.itemID=local.toItemID AND remote.toItemID=local.itemID "
+        "SET remote.toItemID=0, remote.toTypeID=0, remote.toSystemID=0 "
+        "WHERE local.itemID=%u", itemID);
 }
 
 bool PosMgrDB::GetReactorData(ReactorData* pData, EVEPOS::StructureData& sData)
@@ -449,8 +455,8 @@ void PosMgrDB::UpdateSentry(int32 itemID, EVEPOS::TowerData& data)
     DBerror err;
     sDatabase.RunQuery(err,
         "UPDATE posTowerData"
-        " SET standing=%f, statusDrop=%i, corpWar=%i, allyStandings=%i WHERE itemID = %u",
-        data.standing, data.statusDrop, data.corpWar, data.allyStandings, itemID);
+        " SET standing=%f, status=%f, statusDrop=%i, corpWar=%i, allyStandings=%i WHERE itemID = %u",
+        data.standing, data.status, data.statusDrop, data.corpWar, data.allyStandings, itemID);
 }
 
 void PosMgrDB::UpdateHarmonicAndPassword(int32 itemID, EVEPOS::TowerData& data)
@@ -484,6 +490,6 @@ void PosMgrDB::UpdateDeployFlags(int32 itemID, EVEPOS::TowerData& data)
     DBerror err;
     sDatabase.RunQuery(err,
         "UPDATE posTowerData"
-        " SET anchor=%f, unanchor=%i, online=%i, offline=%i WHERE itemID = %u",
+        " SET anchor=%i, unanchor=%i, online=%i, offline=%i WHERE itemID = %u",
         data.anchor, data.unanchor, data.online, data.offline, itemID);
 }

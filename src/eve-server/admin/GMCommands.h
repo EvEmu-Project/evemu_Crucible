@@ -33,8 +33,9 @@ COMMAND( repairmodules, Acct::Role::HEALSELF,
         "(entityID) (itemID) - repair the modules of the character with the entityID" )
 COMMAND( giveskills, Acct::Role::ADMIN,
         "(itemID) - gives skills to character." )
-COMMAND( dogma, Acct::Role::ADMIN,
-        "(attribute) - change item attribute value" )
+// Allow either the existing ADMIN grant or CONTENT developers (DEV).
+COMMAND_ANY( dogma, Acct::Role::CONTENT, Acct::Role::ADMIN,
+        "(itemID|me) (attributeName) = (value) - modify item dogma attribute" )
 COMMAND( kick, Acct::Role::ADMIN,
         "(charName) - kicks [charName] from the server")
 COMMAND( ban, Acct::Role::ADMIN,

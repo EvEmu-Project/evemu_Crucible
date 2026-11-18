@@ -29,6 +29,7 @@
 #include "testing/test.h"
 #include "admin/CommandDispatcher.h" // ---commandlist update
 #include "EVE_Roles.h" // ---commandlist update
+#include "EVE_CommandPermissions.h"
 #include "market/MarketBotMgr.h" // ---marketbot update
 
 // ---comandlist update; helper function to convert role strings into names
@@ -46,6 +47,7 @@ static const std::vector<RoleDisplayInfo> roleDisplayOrder = {
     {Acct::Role::GML,         "GML",         "#cc6600"},
     {Acct::Role::GMH,         "GMH",         "#cc0000"},
     {Acct::Role::PROGRAMMER,  "PROGRAMMER",  "#9933cc"},
+    {Acct::Role::CONTENT,     "CONTENT",     "#8866cc"},
     {Acct::Role::ADMIN,       "ADMIN",       "#990000"},
     {Acct::Role::DEV,         "DEV",         "#6600cc"},
     {Acct::Role::BOSS,        "BOSS",        "#000000"}
@@ -318,7 +320,8 @@ PyResult Command_commandlist(Client* pClient, CommandDB* db, EVEServiceManager& 
     // Group commands by required role
     std::map<int64_t, std::vector<std::pair<std::string, std::string>>> groupedCommands;
     for (const auto& [name, record] : commands) {
-        if (pClient->GetAccountRole() < record->required_role)
+        if (!EvECommand::HasAnyRequiredRole(pClient->GetAccountRole(),
+                record->required_role, record->alternative_role))
             continue;
 
         groupedCommands[record->required_role].emplace_back(name, record->description);
