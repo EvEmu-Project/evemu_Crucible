@@ -69,7 +69,7 @@ m_turnTic(1),
 m_massMKg(1.0f),
 m_alignTime(1.0f),
 m_timeToEnterWarp(10.0f),
-m_shipWarpSpeed(1.0f),
+m_shipWarpSpeed(1.0),
 m_maxShipSpeed(100.0f),
 m_shipAgility(1.0),
 m_shipInertia(1.0),
@@ -1613,7 +1613,7 @@ void DestinyManager::InitWarp() {
         return;
     }
 
-    double warpSpeedInMeters(static_cast<double>(m_shipWarpSpeed) * static_cast<double>(ONE_AU_IN_METERS));
+    double warpSpeedInMeters(m_shipWarpSpeed * ONE_AU_IN_METERS);
 
     /* this is from http://community.eveonline.com/news/dev-blogs/warp-drive-active/
      * x = e^(k*t)
@@ -2678,6 +2678,10 @@ void DestinyManager::WebbedMe(InventoryItemRef modRef, bool apply/*false*/)
     SetSpeedFraction(m_userSpeedFraction, true);
 }
 
+int32 DestinyManager::GetWarpSpeed() const {
+    return EVEmuMovement::WarpSpeedTenths(m_shipWarpSpeed);
+}
+
 //  called from Client::CreateShipSE(), Client::ResetAfterPodded(), NPC::NPC(), Concord::Concord(), Drone::Drone(), DestinyManager::UpdateNewShip()
 void DestinyManager::UpdateShipVariables()
 {
@@ -2698,10 +2702,8 @@ Battleships 0.155
     m_mass = sRef->GetAttribute(AttrMass).get_float();
     m_massMKg = m_mass / 1000000; //changes mass from Kg to milliKg (10^-6)
 
-    // Crucible SDE attribute 600 is the fitted ship's AU/s value, NOT a
-    // relative multiplier. 3.0 * attribute600 yielded 9 AU/s battleships,
-    // 18 AU/s frigates and 27 AU/s for the four bad Logistics records.
-    // Retain hull-specific fitted bonuses and recover missing/invalid data.
+    // The server stores fitted warp speed in AU/s. Keep the full fitted
+    // precision in the movement simulation and round when writing packets.
     const double liveWarpSpeed = sRef->GetAttribute(AttrWarpSpeedMultiplier).get_double();
     const double typeWarpSpeed = sRef->GetDefaultAttribute(AttrWarpSpeedMultiplier).get_double();
     const double resolvedWarpSpeed = EVEmuMovement::CrucibleWarpSpeedAU(
@@ -2713,7 +2715,7 @@ Battleships 0.155
                 mySE->GetName(), mySE->GetID(), liveWarpSpeed, typeWarpSpeed, resolvedWarpSpeed);
         }
     }
-    m_shipWarpSpeed = static_cast<float>(resolvedWarpSpeed);
+    m_shipWarpSpeed = resolvedWarpSpeed;
     if (sRef->HasAttribute(AttrInetia))
         m_shipInertia = sRef->GetAttribute(AttrInetia).get_float();
     if (sRef->HasAttribute(AttrMaxVelocity))

@@ -22,7 +22,7 @@ int utils_MovementFormulaTest(int argc, char* argv[])
     const double invalidOrbit = EVEmuMovement::MinimumOrbitRadius(
         std::numeric_limits<double>::infinity(), 50.0, 1000.0);
 
-    // Crucible 2011 item data stores absolute AU/s in dogma 600.
+    // The server stores absolute AU/s in dogma 600.
     const double battleshipWarp = EVEmuMovement::CrucibleWarpSpeedAU(3.0, 3.0);
     const double frigateWarp = EVEmuMovement::CrucibleWarpSpeedAU(6.0, 6.0);
     const double interceptorWarp = EVEmuMovement::CrucibleWarpSpeedAU(13.5, 13.5);
@@ -30,6 +30,10 @@ int utils_MovementFormulaTest(int argc, char* argv[])
     const double fittedWarpBonus = EVEmuMovement::CrucibleWarpSpeedAU(7.2, 6.0);
     const double fallbackType = EVEmuMovement::CrucibleWarpSpeedAU(0.0, 6.0);
     const double fallbackMissing = EVEmuMovement::CrucibleWarpSpeedAU(0.0, 0.0);
+    const double freighterWarp = EVEmuMovement::CrucibleWarpSpeedAU(0.75, 0.75);
+    const double rorqualWarp = EVEmuMovement::CrucibleWarpSpeedAU(0.0, 1.20);
+    const double orcaWarp = EVEmuMovement::CrucibleWarpSpeedAU(2.70, 2.70);
+    const double fittedOrca = EVEmuMovement::CrucibleWarpSpeedAU(3.24, 2.70);
     const double shortPull = EVEmuMovement::TractorTravelStep(600.0, 500.0, 600.0);
     const double fullPull = EVEmuMovement::TractorTravelStep(2000.0, 500.0, 600.0);
     const double noPull = EVEmuMovement::TractorTravelStep(499.0, 500.0, 600.0);
@@ -48,7 +52,13 @@ int utils_MovementFormulaTest(int argc, char* argv[])
         invalidOrbit == 0.0 &&
         battleshipWarp == 3.0 && frigateWarp == 6.0 &&
         interceptorWarp == 13.5 && logisticsWarp == 3.75 &&
-        fittedWarpBonus == 7.2 && fallbackType == 6.0 && fallbackMissing == 3.0;
+        fittedWarpBonus == 7.2 && fallbackType == 6.0 && fallbackMissing == 3.0 &&
+        freighterWarp == 0.75 && rorqualWarp == 1.20 && orcaWarp == 2.70 && fittedOrca == 3.24 &&
+        EVEmuMovement::WarpSpeedTenths(freighterWarp) == 8 &&
+        EVEmuMovement::WarpSpeedTenths(rorqualWarp) == 12 &&
+        EVEmuMovement::WarpSpeedTenths(orcaWarp) == 27 &&
+        EVEmuMovement::WarpSpeedTenths(fittedOrca) == 32 &&
+        EVEmuMovement::WarpSpeedTenths(1.50) == 15;
 
     if (!passed) {
         ::printf("Movement formula failure: normal=%f touching=%f overlap=%f invalid=%f "
