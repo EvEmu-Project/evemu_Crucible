@@ -14,6 +14,8 @@
 #include "../../eve-server.h"
 
 #include "system/sov/SovereigntyDB.h"
+#include "EVE_SovIndexOverride.h"
+#include <map>
 
 //Shiny multi-index containers
 #include <boost/multi_index_container.hpp>
@@ -47,6 +49,13 @@ public:
     void UpdateSystemBeaconID(uint32 systemID, uint32 beaconID);
     void UpdateClaim(uint32 systemID);
 
+    // DEV/ADMIN-only test overrides (without backdating the real claim).
+    bool ForceLevelFiveIndices(uint32 systemID);
+    uint32 GetEffectiveMilitaryPoints(const SovereigntyData& claim) const;
+    uint32 GetEffectiveIndustrialPoints(const SovereigntyData& claim) const;
+    uint32 GetEffectiveStrategicDays(const SovereigntyData& claim) const;
+    PyRep* GetAllDevelopmentIndicesForClients();
+
 protected:
     void Populate();
 
@@ -77,6 +86,7 @@ private:
                 >>> SovDataContainer;
 
     SovDataContainer m_sovData;
+    std::map<uint32, EVESovIndex::Override> m_indexOverrides;
 };
 
 //Singleton
