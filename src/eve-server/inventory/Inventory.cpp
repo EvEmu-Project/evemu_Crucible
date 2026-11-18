@@ -43,6 +43,7 @@
 #include "system/Container.h"
 #include "system/SolarSystem.h"
 #include "system/sov/SovereigntyDataMgr.h"
+#include "EVE_IHubUpgradeRules.h"
 
 /*
  * Inventory
@@ -218,6 +219,18 @@ void Inventory::AddItem(InventoryItemRef iRef) {
         return;  // already indexed in mContents and m_contentsByFlag
     }
 
+    // A fitted Infrastructure Hub upgrade is an active structure module.
+    // Apply the flag BEFORE indexing m_contentsByFlag, otherwise the flag
+    // map retains its old key and removal/listing becomes inconsistent.
+    // Do not activate unrelated cargo or unsupported upgrade types.
+    if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub
+        && iRef->categoryID() == EVEDB::invCategories::StructureUpgrade
+        && EVESovIHub::RequiredStrategicDays(iRef->typeID()) != 0) {
+        _log(SOV__DEBUG, "Activating Infrastructure Hub upgrade %s(%u).",
+             iRef->name(), iRef->itemID());
+        iRef->SetFlag(EVEItemFlags::flagStructureActive, true);
+    }
+
     // need to find and remove skill in training flag here for proper skill search
     if (IsCharacterID(m_myID)) {
         if (iRef->categoryID() == EVEDB::invCategories::Skill) {
@@ -229,15 +242,6 @@ void Inventory::AddItem(InventoryItemRef iRef) {
         m_contentsByFlag.emplace(iRef->flag(), iRef);
     }
 
-    // Apply iHub upgrades
-    if (m_self->typeID() == EVEDB::invTypes::InfrastructureHub) {
-        _log(SOV__DEBUG, "Applying system upgrade %s to system %s...", iRef->name(), m_self->name());
-
-        // For now, all we need to do is mark the upgrade active,
-        // but in the future upgrades for military and resource harvesting
-        // will need to be 'activated' here
-        iRef->SetFlag(EVEItemFlags::flagStructureActive, true);
-    }
 }
 
 void Inventory::RemoveItem(InventoryItemRef iRef) {
@@ -725,44 +729,62 @@ float Inventory::GetCapacity(EVEItemFlags flag) const {
     return 0.0f;
 }
 
-// Validate an IHub Upgrade and trigger it's activation
+// Validate strategic infrastructure upgrades before changing inventory ownership.
 bool Inventory::ValidateIHubUpgrade(InventoryItemRef iRef) const {
-    // Get days since claim for strategic development index
-    SovereigntyData sovData = svDataMgr.GetSovereigntyData(m_self->locationID());
-    double daysSinceClaim = (GetFileTimeNow() - sovData.claimTime) / Win32Time_Day;
+    if (iRef.get() == nullptr || m_self.get() == nullptr
+        || iRef->categoryID() != EVEDB::invCategories::StructureUpgrade
+        || m_self->typeID() != EVEDB::invTypes::InfrastructureHub)
+        return false;
 
-    // Get client who currently owns the item
-    Client* pClient(sItemFactory.GetUsingClient());
-    //Client* pClient = sEntityList.FindClientByCharID(iRef->ownerID());
-
-    switch (iRef->typeID()) {
-        case EVEDB::invTypes::UpgCynosuralNavigation:
-            if (daysSinceClaim > 2.0f) {
-                break;
-            } else {
-                _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
-                throw CustomError("%s requires a development index of 2", iRef->name());
-            }
-            break;
-        case EVEDB::invTypes::UpgCynosuralSuppression:
-        case EVEDB::invTypes::UpgAdvancedLogisticsNetwork:
-            if (daysSinceClaim > 3.0f) {
-                break;
-            } else {
-                _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s requires a higher development index.", iRef->name());
-                throw CustomError("%s requires a development index of 3", iRef->name());
-            }
-            break;
-        default:
-            _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is not supported currently.", iRef->name());
-            throw CustomError("%s is not currently supported.", iRef->name());
-    }
-    if (m_self->GetMyInventory()->ContainsItem(iRef->itemID())) {
-        _log(INV__WARNING, "Inventory::ValidateIHubUpgrade() - Upgrade %s is already installed.", iRef->name());
-        throw CustomError("%s is already installed.", iRef->name());
+    // The client may be ahead of the database if a TCU/IHub was removed.
+    // Match the *registered* online IHub, not merely an item with this type.
+    const SovereigntyData sovData = svDataMgr.GetSovereigntyData(m_self->locationID());
+    if (sovData.claimStructureID == 0 || sovData.allianceID == 0
+        || sovData.hubID != m_self->itemID()) {
+        _log(INV__WARNING, "IHub upgrade denied: system %u has no matching online IHub claim.",
+             m_self->locationID());
+        throw CustomError("Cannot install this upgrade: Infrastructure Hub sovereignty is missing or offline.");
     }
 
-    // If we didn't hit anything above, it must be okay to insert item
+    Client* pClient = sItemFactory.GetUsingClient();
+    if (pClient == nullptr || pClient->GetSystemID() != m_self->locationID()) {
+        throw CustomError("You must be in the Infrastructure Hub's solar system to install an upgrade.");
+    }
+
+    // A player must belong to the holding alliance. DEV/ADMIN may run
+    // isolated sovereignty tests on their own test server.
+    const int64 roles = pClient->GetAccountRole();
+    const bool devAdmin = (roles & Acct::Role::ADMIN) == Acct::Role::ADMIN
+        || (roles & Acct::Role::DEV) == Acct::Role::DEV;
+    if (!devAdmin && pClient->GetAllianceID() != sovData.allianceID)
+        throw CustomError("Only members of the sovereign alliance may install this Infrastructure Hub upgrade.");
+
+    // Never accept unsupported types silently, even in a GM test.
+    const uint32 requiredDays = EVESovIHub::RequiredStrategicDays(iRef->typeID());
+    if (requiredDays == 0) {
+        _log(INV__WARNING, "IHub upgrade %s(type %u) is not supported.",
+             iRef->name(), iRef->typeID());
+        throw CustomError("%s is not currently supported.", iRef->name());
+    }
+
+    // /sovindex5 simulates development time; claimTime remains unchanged.
+    const uint32 effectiveDays = svDataMgr.GetEffectiveStrategicDays(sovData);
+    if (!EVESovIHub::MeetsStrategicRequirement(iRef->typeID(), effectiveDays)) {
+        _log(INV__WARNING,
+             "IHub upgrade %s requires %u strategic days, current effective %u.",
+             iRef->name(), requiredDays, effectiveDays);
+        throw CustomError("%s requires at least %u days of Strategic sovereignty development.",
+                          iRef->name(), requiredDays);
+    }
+
+    // ContainsItem alone only caught the same itemID, not multiple modules
+    // of the same upgrade type. Reject duplicates without consuming cargo.
+    for (const auto& installed : mContents) {
+        if (installed.second.get() != nullptr
+            && installed.second->typeID() == iRef->typeID()) {
+            throw CustomError("%s is already installed in this Infrastructure Hub.", iRef->name());
+        }
+    }
     return true;
 }
 
