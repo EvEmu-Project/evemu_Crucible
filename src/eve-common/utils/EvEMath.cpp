@@ -8,6 +8,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 #include "../eve-common.h"
+#include <limits>
 
 double EvEMath::Units::MetersToLightYears(double meters) {
     return meters / 9460730472580800;
@@ -67,21 +68,35 @@ int32 EvEMath::RAM::ProductionTime(uint32 BaseTime, float bpProductivityModifier
 
 float EvEMath::RAM::Research_LevelModifier(uint8 BlueprintLevel, int32 Runs)
 {
-    if (BlueprintLevel + Runs > 10){
-        return 0.0f;
-    }
-    const int LEVELMODIFIERS [11] = { 0, 105, 250, 595, 1414, 3360, 8000, 19000, 45255, 107700, 256000 };
-    return (LEVELMODIFIERS[BlueprintLevel + Runs] / 105) - (LEVELMODIFIERS[BlueprintLevel] / 105);
+    // Pre-Crius (Crucible) blueprint research uses the same time per level.
+    // The 10-level exponential table was introduced in the 2014 industry
+    // overhaul and rejects historically valid research levels such as ME 20.
+    (void)BlueprintLevel;
+    return Runs > 0 ? static_cast<float>(Runs) : 0.0f;
 }
 
 int32 EvEMath::RAM::ME_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 MetallurgyLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
 {
-    return (BaseTime * (1.0f - (0.05f * MetallurgyLevel)) * SlotModifier * ImplantModifier * Research_LevelModifier(BlueprintLevel, Runs)) / 13.0f; // Technically this 13 doesnt belong here however it makes the values more realistic based on the SDE crucible uses
+    const double result = (static_cast<double>(BaseTime)
+        * (1.0 - 0.05 * std::min<uint8>(MetallurgyLevel, 5))
+        * SlotModifier * ImplantModifier
+        * Research_LevelModifier(BlueprintLevel, Runs)) / 13.0;
+    if (!std::isfinite(result) || result <= 0.0)
+        return 0;
+    return static_cast<int32>(std::min(result,
+        static_cast<double>(std::numeric_limits<int32>::max())));
 }
 
 int32 EvEMath::RAM::PE_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 ResearchLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
 {
-    return (BaseTime * (1.0f - (0.05f * ResearchLevel)) * SlotModifier * ImplantModifier * Research_LevelModifier(BlueprintLevel, Runs)) / 15.0f; // Technically this 15 doesnt belong here however it makes the values more realistic based on the SDE crucible uses
+    const double result = (static_cast<double>(BaseTime)
+        * (1.0 - 0.05 * std::min<uint8>(ResearchLevel, 5))
+        * SlotModifier * ImplantModifier
+        * Research_LevelModifier(BlueprintLevel, Runs)) / 15.0;
+    if (!std::isfinite(result) || result <= 0.0)
+        return 0;
+    return static_cast<int32>(std::min(result,
+        static_cast<double>(std::numeric_limits<int32>::max())));
 }
 
 int32 EvEMath::RAM::RE_ResearchTime(uint32 BaseTime, uint8 ResearchLevel, float SlotModifier, float ImplantModifier)

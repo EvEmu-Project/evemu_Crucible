@@ -27,6 +27,19 @@ int utils_IndustryFormulaTest(int, char**)
         std::fprintf(stderr, "Industry materials/copy validation mismatch\n");
         return 1;
     }
+    // Pre-Crius research time scales linearly with levels, not the 2014
+    // ten-level exponential table. ME/PE 20+ remains valid within int8.
+    if (EvEMath::RAM::Research_LevelModifier(20, 3) != 3.0f
+        || EvEMath::RAM::Research_LevelModifier(40, 0) != 0.0f
+        || EvEMath::RAM::ME_ResearchTime(1300, 20, 1, 0)
+            != EvEMath::RAM::ME_ResearchTime(1300, 0, 1, 0)
+        || EvEMath::RAM::ME_ResearchTime(1300, 40, 3, 0)
+            != 3 * EvEMath::RAM::ME_ResearchTime(1300, 40, 1, 0)
+        || EvEMath::RAM::PE_ResearchTime(1500, 30, 2, 0)
+            != 2 * EvEMath::RAM::PE_ResearchTime(1500, 30, 1, 0)) {
+        std::fprintf(stderr, "Pre-Crius ME/PE research level timing regression\n");
+        return 1;
+    }
     // Research skills should REDUCE time for both ME and PE, never increase it.
     if (EvEMath::RAM::ME_ResearchTime(1300, 0, 1, 5)
             >= EvEMath::RAM::ME_ResearchTime(1300, 0, 1, 0)

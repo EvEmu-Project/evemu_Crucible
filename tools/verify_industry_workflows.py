@@ -15,6 +15,11 @@ assert 'copy=VALUES(copy)' in factory
 assert 'bool supported = false;' in factory and 'return supported;' in factory
 assert 'if (data.activityID != args.activityID)' in methods
 assert 'if (args.runs <= 0 || args.runs > INT16_MAX)' in methods
+assert methods.count('static_cast<int32>(bpRef->') >= 2
+assert ' + args.runs > INT8_MAX' in methods
+assert 'Research_LevelModifier(uint8 BlueprintLevel, int32 Runs)' in math
+assert 'return Runs > 0 ? static_cast<float>(Runs) : 0.0f;' in math
+assert 'LEVELMODIFIERS [11]' not in math
 assert 'EVEmuIndustry::ValidCopyRuns(' in methods
 assert 'if (args.containerID != data.containerID)' in methods
 assert 'data.ownerID != pClient->GetCharacterID()' in methods

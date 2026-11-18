@@ -8,8 +8,8 @@
 
 | Activity | Source state after this patch | Limitations |
 | --- | --- | --- |
-| Material Efficiency research (activity 4) | Research job quote, location and activity permission checks, skill/time calculation, station job insertion, completion and persisted `invBlueprints.mLevel` update are implemented | Station path requires live UI/database testing; current source only allows cumulative ME up to level **10**, reflecting its existing research time table |
-| Productivity / Time Efficiency research (activity 3) | Same flow for `invBlueprints.pLevel`; skill now reduces rather than increases time, and the PE float calculation no longer truncates to zero | Same 10-level code cap; old PE system is not modern percentage-based TE |
+| Material Efficiency research (activity 4) | Research job quote, location and activity permission checks, skill/time calculation, station job insertion, completion and persisted `invBlueprints.mLevel` update are implemented | Station path requires live UI/database testing; Crucible-era per-level time is now linear; levels up to **127** fit the existing signed-byte blueprint storage. Higher levels require schema/model changes |
+| Productivity / Time Efficiency research (activity 3) | Same flow for `invBlueprints.pLevel`; skill now reduces rather than increases time, and the PE float calculation no longer truncates to zero | Same signed-byte model limit (127); old PE system is not modern percentage-based TE |
 | Blueprint copying (activity 5) | BPO-only check; rejects zero, negative, over-limit and int16-overflow runs; total time = base copy time × BPC count × licensed runs; new BPC retains parent ME/PE and explicit copy metadata | Need game client test confirming every copy is delivered and shown in hangar; job completion is not fully transactional |
 | Invention (activity 8) | **Not functional; explicitly blocked before costs/material consumption** | No persisted output blueprint selection, complete datacore/decryptor mechanics, safe success roll, failure state or authentic Tech II BPC generation |
 | Manufacturing (activity 1) | Existing manufacturing retained; original BPO infinite-run sentinel no longer decremented | Full production economics and material-return behavior need separate live verification |
@@ -37,7 +37,7 @@ Personal jobs require a BOM path owned by the logged-in character, located at th
 - **Invention is disabled, not implemented.** Its old `CompleteJob()` placeholder constructs a fake success response with zero output item/type IDs. Keep installation blocked until a persisted invention job model and T2 blueprint creation/skills/decryptors are implemented and tested.
 - **Non-atomic payment/job/delivery flow:** wallet transfer, `ramJobs` insertion, line scheduling, blueprint move, material deductions and output spawning are not wrapped in one database transaction. A mid-process DB/inventory failure can leave a partially installed/delivered job. Do not claim full financial/inventory crash safety until transactions and rollback tests exist.
 - **Corporate hangar roles and remote/POS labs:** the source contains explicit TODOs and disabled paths. Test personal station research first; avoid announcing corp/POS research as complete.
-- **ME/PE research level cap:** `RamMethods::ActivityCheck` limits `mLevel/pLevel + runs` to 10 and `EvEMath::RAM::Research_LevelModifier` supports that range. Do not silently lift it without implementing higher-level timings and checking the legacy client protocol.
+- **ME/PE research level storage:** the post-Crius 10-level formula was replaced with the Crucible-era linear per-level research time; `RamMethods::ActivityCheck` now permits up to signed-byte level 127. Higher levels need widening of `EvERam::bpData` and underlying `invBlueprints` storage and validation against the legacy client UI. The existing SDE calibration divisors (13/15) are retained and should be checked in live client tests.
 
 ## Automated checks
 
@@ -48,7 +48,7 @@ Personal jobs require a BOM path owned by the logged-in character, located at th
 ## Manual in-game validation
 
 1. In a station with a material research line, put a personal **BPO in the hangar** and quote ME 0 → 1, then install, wait, deliver, relog and verify ME remains 1.
-2. Repeat with a **PE/Time Efficiency** line and verify research skills decrease the quoted time. Test 0 → 1 → 2 and rejection of a request exceeding level 10.
+2. Repeat with a **PE/Time Efficiency** line and verify research skills decrease the quoted time. Test 0 → 1 → 2 → 20 and rejection of a request exceeding signed-byte level 127.
 3. Copy the BPO using 2 copies × 5 licensed runs. Ensure quote time reflects 10 run-equivalents, both new BPCs have `copy=1`, `runs=5` and preserve BPO ME/PE; verify originals remain `copy=0`, `runs=-1`.
 4. Try copying an existing BPC, zero licensed runs and a wrong activity/lab line: each must reject **before payment and item movement**.
 5. Use two separate stacks of required material; quote and submit must match and consume only the owner/corp's authorized stacks.

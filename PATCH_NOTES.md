@@ -1,3 +1,8 @@
+## 18 November 2026 — Restore Crucible-era linear ME/PE research levels
+
+- Remove the post-2014 10-level exponential research-time table from Crucible's ME/PE research formula. Under pre-Crius rules each level used the same base time; the existing code had incorrectly limited both research activities to level 10. Restore linear per-level duration and allow research up to signed-byte level 127, with overflow-safe calculation and the existing 30-day per-job limit. Above 127 requires a future data-model/schema change.
+- Extend industry CTest cases for level 20+, multi-level research and skill modifiers; preserve BPO-only restrictions, invention fail-closed, and copying logic. See [industry audit](docs/INDUSTRY_RESEARCH_COPY_INVENTION_AUDIT_2026-11-18.md).
+
 ## 18 November 2026 — Industry ME/PE research, blueprint copying and invention safety audit
 
 - Tighten station industry line activity/category permissions, blueprint owner/location checks, completion owner/station authorization and personal job-list access. Prevent client-supplied negative/stale installation costs.

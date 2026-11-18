@@ -62,17 +62,18 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
             pType = &bpRef->productType();
         } break;
         case EvERam::Activity::ResearchMaterial: {
-            if (bpRef->mLevel() + args.runs > 10){
-                throw UserError ("RamActivityInvalid"); // The client should have a specific user error for this
-            }
+            // Crucible predates Crius's 10-level ME system. Research levels
+            // are stored as signed bytes, so keep the output in that range
+            // until the blueprint database model is widened.
+            if (static_cast<int32>(bpRef->mLevel()) + args.runs > INT8_MAX)
+                throw UserError("RamActivityInvalid");
             if (bpRef->copy())
                 throw UserError ("RamCannotResearchABlueprintCopy");
             pType = &bpRef->type();
         } break;
         case EvERam::Activity::ResearchTime: {
-            if (bpRef->pLevel() + args.runs > 10){
-                throw UserError ("RamActivityInvalid"); // The client should have a specific user error for this
-            }
+            if (static_cast<int32>(bpRef->pLevel()) + args.runs > INT8_MAX)
+                throw UserError("RamActivityInvalid");
             if (bpRef->copy())
                 throw UserError ("RamCannotResearchABlueprintCopy");
             pType = &bpRef->type();
