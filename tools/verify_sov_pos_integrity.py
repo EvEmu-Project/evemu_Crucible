@@ -68,7 +68,11 @@ assert "!claim.hubID" in _commands
 assert "ForceLevelFiveIndices(systemID)" in _commands
 assert "ResetIndexOverrides(systemID)" in _commands
 assert "mapSovDevelopmentIndexOverrides" in _sovdb
-assert "strategicDays=100" in _sovdb
+# Upsert uses the named parameterized values; inspect the source constant
+# rather than expecting the old hard-coded strategicDays=100 SQL assignment.
+assert "strategicDays=VALUES(strategicDays)" in _sovdb
+assert "EVESovIndex::LevelFiveStrategicDays" in _sovdb
+assert "LevelFiveStrategicDays = 100" in _sov_header
 assert "claimStructureID=VALUES(claimStructureID)" in _sovdb
 assert "AND claimStructureID=%u" in _sovdb
 assert "GetIndexOverrides(overrideRows)" in _sovmanager

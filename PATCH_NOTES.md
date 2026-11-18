@@ -1,3 +1,9 @@
+## 18 November 2026 — Resolve Linux CI source invariant failure for /sovindex5
+
+- CI run 44259205124: Linux GCC **compiled**, but step `Verify sovereignty and POS integrity invariants` failed at line 71 because the checker expected the obsolete SQL string `strategicDays=100`.
+- The upsert intentionally now uses `strategicDays=VALUES(strategicDays)` with an explicit bound C++ constant `EVESovIndex::LevelFiveStrategicDays = 100`. Update regression checker to assert the **current** parameterized query and the constant, keeping Strategic Level 5 unchanged.
+- Docker and MariaDB jobs of the previous run passed; Windows compilation was still running when diagnosed. Repeat CI against this patch to confirm all platforms and regression guards.
+
 ## 18 November 2026 — Repair Level 0 Military/Industry after /sovindex5
 
 - User's gameplay test: Strategic correctly shows Level 5, but Military and Industry still display Level 0. Root cause: old command wrote **5 raw points**, which is not equivalent to displayed Level 5, and 16-bit database/packet fields could not hold valid activity totals.
