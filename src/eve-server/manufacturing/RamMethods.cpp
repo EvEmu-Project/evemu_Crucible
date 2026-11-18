@@ -160,6 +160,12 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
     if (!FactoryDB::GetAssemblyLineRestrictions(args.AssemblyLineID, data))
         throw UserError ("RamInstallationHasNoDefaultContent");
 
+    // Discovery is available, but POS job inputs and delivery still need
+    // structure-specific validation before the station job pipeline can run.
+    if (!sDataMgr.IsStation(data.containerID)
+        && (data.containerID == 0 || data.containerID != pClient->GetShipID()))
+        throw CustomError("POS job installation and delivery are not enabled yet.");
+
     // check validity of activity
     if ((data.activityID < EvERam::Activity::Manufacturing)
     or  (data.activityID > EvERam::Activity::Invention))

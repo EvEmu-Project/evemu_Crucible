@@ -58,6 +58,7 @@ namespace EvERam {
         uint8 activityID;
         uint8 rMask;
         uint32 ownerID;
+        uint32 containerID;
         float minCharSec;
         float maxCharSec;
         float minCorpSec;

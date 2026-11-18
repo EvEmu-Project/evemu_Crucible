@@ -360,6 +360,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mariadb-client
+      - name: Verify POS industry slot migration and provisioning
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE pos_industry_test"
+          python3 tools/tests/verify_pos_industry_lines.py --host=127.0.0.1 --user=root --database=pos_industry_test
       - name: Build the patched EVEDBTool
         run: |
           git clone --quiet --depth 1 --branch 0.0.6 https://github.com/EvEmu-Project/EVEDBTool.git "$RUNNER_TEMP/EVEDBTool"

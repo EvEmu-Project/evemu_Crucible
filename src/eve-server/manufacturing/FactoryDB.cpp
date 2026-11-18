@@ -22,6 +22,7 @@
 #include "eve-server.h"
 
 #include "EVEServerConfig.h"
+#include "StaticDataMgr.h"
 #include "character/Character.h"
 #include "manufacturing/FactoryDB.h"
 
@@ -328,8 +329,45 @@ PyRep *FactoryDB::AssemblyLinesSelectPrivate(const uint32 charID) {
     return DBResultToCRowset(res);
 }
 
-/** @todo  need to add check/query for POS assembly modules here */
+namespace {
+bool EnsurePosAssemblyLines(uint32 corpID, uint32 containerID)
+{
+    // A template quantity is a signed TINYINT. Expand every possible slot
+    // without relying on MariaDB-specific sequence tables.
+    constexpr const char* digits =
+        "(SELECT 0 AS n UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3"
+        " UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6"
+        " UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9)";
+    DBerror err;
+    if (sDatabase.RunQuery(err,
+        "INSERT INTO ramAssemblyLines"
+        " (containerID, assemblyLineTypeID, posSlot, ownerID, activityID,"
+        " UIGroupingID, costInstall, costPerHour, restrictionMask,"
+        " discountPerGoodStandingPoint, surchargePerBadStandingPoint,"
+        " minimumStanding, minimumCharSecurity, maximumCharSecurity,"
+        " minimumCorpSecurity, maximumCorpSecurity)"
+        " SELECT cfg.containerID, cfg.assemblyLineTypeID, slot.n, cfg.ownerID, cfg.activityID,"
+        " 0, 0, 0, %u, 0, 0, 0, -10, 10, -10, 10"
+        " FROM ramOnlinePosLineTypes AS cfg"
+        " JOIN (SELECT 1 + a.n + 10*b.n + 100*c.n AS n"
+        " FROM %s AS a CROSS JOIN %s AS b CROSS JOIN (SELECT 0 AS n UNION ALL SELECT 1) AS c) AS slot"
+        " ON slot.n <= cfg.quantity"
+        " LEFT JOIN ramAssemblyLines AS existing ON existing.containerID = cfg.containerID"
+        " AND existing.assemblyLineTypeID = cfg.assemblyLineTypeID AND existing.posSlot = slot.n"
+        " WHERE cfg.ownerID = %u AND (%u = 0 OR cfg.containerID = %u)"
+        " AND existing.assemblyLineID IS NULL"
+        " ON DUPLICATE KEY UPDATE assemblyLineID = ramAssemblyLines.assemblyLineID",
+        EvERam::RestrictionMask::ByCorp, digits, digits, corpID, containerID, containerID))
+        return true;
+
+    _log(DATABASE__ERROR, "Could not provision POS lines for corporation %u: %s", corpID, err.c_str());
+    return false;
+}
+}
+
 PyRep *FactoryDB::AssemblyLinesSelectCorporation(const uint32 corpID) {
+    // If the migration is unavailable, the original station list remains usable.
+    const bool posAvailable = EnsurePosAssemblyLines(corpID, 0);
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,
@@ -344,8 +382,12 @@ PyRep *FactoryDB::AssemblyLinesSelectCorporation(const uint32 corpID) {
         " FROM ramAssemblyLineStations AS station"
         " LEFT JOIN ramAssemblyLines AS line ON station.stationID = line.containerID AND station.assemblyLineTypeID = line.assemblyLineTypeID AND station.ownerID = line.ownerID"
         " WHERE station.ownerID = %u"
-        " AND (line.restrictionMask & %u) = %u",
-        corpID, EvERam::RestrictionMask::ByCorp, EvERam::RestrictionMask::ByCorp))
+        " AND (line.restrictionMask & %u) = %u"
+        " %s",
+        corpID, EvERam::RestrictionMask::ByCorp, EvERam::RestrictionMask::ByCorp,
+        posAvailable ? (" UNION ALL SELECT cfg.containerID, cfg.containerTypeID, cfg.containerLocationID,"
+            " cfg.assemblyLineTypeID, cfg.quantity, cfg.ownerID, cfg.activityID"
+            " FROM ramOnlinePosLineTypes AS cfg WHERE cfg.ownerID = " + std::to_string(corpID)).c_str() : ""))
     {
         _log(DATABASE__ERROR, "Failed to query corporation assembly lines for corp %u: %s.", corpID, res.error.c_str());
         return nullptr;
@@ -395,9 +437,19 @@ PyRep *FactoryDB::AssemblyLinesSelectAlliance(const int32 allianceID) {
     return DBResultToCRowset(res);
 }
 
-/** @todo  need to add check/query for POS assembly modules here */
-PyRep *FactoryDB::AssemblyLinesGet(const uint32 containerID) {
+PyRep *FactoryDB::AssemblyLinesGet(const uint32 containerID, const uint32 corpID, const uint32 shipID) {
     DBQueryResult res;
+    const bool pos = !sDataMgr.IsStation(containerID) && containerID != shipID;
+    if (pos && !EnsurePosAssemblyLines(corpID, containerID))
+        return nullptr;
+
+    const char* posFilter =
+        " AND EXISTS (SELECT 1 FROM ramOnlinePosLineTypes AS cfg"
+        " WHERE cfg.containerID = ramAssemblyLines.containerID"
+        " AND cfg.assemblyLineTypeID = ramAssemblyLines.assemblyLineTypeID"
+        " AND cfg.ownerID = ramAssemblyLines.ownerID"
+        " AND ramAssemblyLines.posSlot BETWEEN 1 AND cfg.quantity)"
+        " AND ownerID = ";
 
     if (!sDatabase.RunQuery(res,
         "SELECT"
@@ -416,8 +468,8 @@ PyRep *FactoryDB::AssemblyLinesGet(const uint32 containerID) {
         " maximumCharSecurity,"
         " maximumCorpSecurity"
         " FROM ramAssemblyLines"
-        " WHERE containerID = %u",
-        containerID)) {
+        " WHERE containerID = %u%s",
+        containerID, pos ? (posFilter + std::to_string(corpID)).c_str() : "")) {
         _log(DATABASE__ERROR, "Failed to query assembly lines for container %u: %s.", containerID, res.error.c_str());
         return nullptr;
     }
@@ -519,7 +571,8 @@ bool FactoryDB::GetAssemblyLineRestrictions(const int32 assemblyLineID, EvERam::
         " minimumCorpSecurity,"
         " maximumCorpSecurity,"
         " restrictionMask,"
-        " activityID"
+        " activityID,"
+        " containerID"
         " FROM ramAssemblyLines"
         " WHERE assemblyLineID = %i",
         assemblyLineID))
@@ -542,6 +595,7 @@ bool FactoryDB::GetAssemblyLineRestrictions(const int32 assemblyLineID, EvERam::
     data.maxCorpSec     = row.GetFloat(5);
     data.rMask          = row.GetUInt(6);
     data.activityID     = row.GetUInt(7);
+    data.containerID     = row.GetUInt(8);
 
     return true;
 }
