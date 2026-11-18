@@ -39,6 +39,17 @@ Source audit found a reproducible lifecycle gap: `StructureItem::Delete()` calle
 
 Run the new **POS-11 detailed orphan inspection** in `sql/diagnostics/2026-11-17-sov-pos-readonly-audit.sql` to obtain each itemID, towerID, anchorpoint, state, subordinate structure count and related configuration rows. Preserve a backup; reconcile any dependent structures before deciding whether manual cleanup is justified. No automatic UPDATE or DELETE is supplied.
 
+## Confirmed operator database evidence — 18 November 2026
+
+The operator checked the `eve` MariaDB database. Four issue counts were zero: invalid sovereignty claims, missing TCU entities, orphan control towers and broken bridge links. The POS metadata diagnostic reported **two orphaned `posStructureData` entries**:
+
+| itemID | anchorpointID | towerID | state | status | timestamp | tower/bridge rows | child structures | attribute rows |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `140003364` | `40177245` | 0 | 0 | 0 | 0 | 0 / 0 | 0 | 0 |
+| `140003384` | `40177217` | 0 | 0 | 0 | 0 | 0 / 0 | 0 | 0 |
+
+They appear to be stale metadata after missing/deleted inventory entities. This is **not proof of the original deletion event or absence of every possible reference**. The new POS-12 read-only query in the SQL diagnostic checks remaining inventory contents, incoming bridge links, customs metadata and sovereignty references for these specific IDs. **No automatic deletion is performed.** Before any manual repair, stop the server, back up both metadata rows and the database, verify reference counts are zero and recheck record identity/state. The permanent-deletion cleanup fix already committed on this PR is preventative only and does not remove these historical rows.
+
 ## Known unresolved issues and rollout cautions
 
 The bridge connection still performs two SQL UPDATE operations without a transaction. If the second fails, a partial link can remain; use the read-only diagnostics before an operator repairs it. Comprehensive tower fuel simulation, moon mining/reactors, reinforcement cycle/strontium consumption, POS weapons, sovereignty notifications and outpost construction were not proven correct by these edits and remain separate investigations. The source role check intentionally restricts POS mutation to Director/StarbaseConfig or server ADMIN; test legitimate role grants and corp sessions before shipping. Compiling successfully is not proof of persistence, protection against all crafted network packets or gameplay compatibility. PR remains draft until CI and live validation.

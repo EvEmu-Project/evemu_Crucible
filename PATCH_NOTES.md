@@ -1,3 +1,10 @@
+## 18 November 2026 — Confirmed POS orphan IDs and additional read-only reference audit
+
+- Operator's five issue counts: invalid sovereignty claims 0; missing TCU entities 0; orphan towers 0; broken jump bridges 0; orphan structure metadata **2**.
+- Two stale-looking `posStructureData` records: item `140003364` (anchorpoint `40177245`) and item `140003384` (anchorpoint `40177217`). Both have towerID/state/status/timestamp 0, no base `entity`, tower or direct bridge data, child structures or attributes.
+- Added **POS-12 read-only reference check** for these IDs covering remaining inventory contents, customs rows, incoming jump bridges and sovereignty references. No repair SQL executes; back up and reconcile before any manual cleanup.
+- Existing `StructureItem::Delete()` source fix prevents one future orphan pathway but does **not** automatically clean these historical entries.
+
 ## 18 November 2026 — Investigate 2 POS orphan rows and close deletion lifecycle gap
 
 - Operator ran the read-only sovereignty/POS checks: four checks returned zero; two `posStructureData` rows have no `entity` record. Their IDs and relationships are not yet available. Do **not** run automatic cleanup.

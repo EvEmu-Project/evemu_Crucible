@@ -69,3 +69,24 @@ LEFT JOIN posJumpBridgeData AS bridge ON bridge.itemID = p.itemID
 LEFT JOIN posCustomsOfficeData AS customs ON customs.itemID = p.itemID
 WHERE item.itemID IS NULL
 ORDER BY p.itemID;
+
+
+-- POS-12: Operator's two historical metadata-only entries (18 Nov).
+-- Check all remaining important references before archive/manual cleanup.
+-- This query is read-only and intentionally does not remove any records.
+SELECT
+    p.itemID, p.towerID, p.anchorpointID, p.state, p.status, p.timestamp,
+    (SELECT COUNT(*) FROM entity AS e WHERE e.itemID = p.itemID) AS liveEntityRows,
+    (SELECT COUNT(*) FROM entity AS e WHERE e.locationID = p.itemID) AS containedInventoryItems,
+    (SELECT COUNT(*) FROM posStructureData AS child
+       WHERE child.towerID = p.itemID AND child.itemID <> p.itemID) AS dependentStructures,
+    (SELECT COUNT(*) FROM posTowerData AS t WHERE t.itemID = p.itemID) AS towerRows,
+    (SELECT COUNT(*) FROM posCustomsOfficeData AS c WHERE c.itemID = p.itemID) AS customsRows,
+    (SELECT COUNT(*) FROM posJumpBridgeData AS b WHERE b.itemID = p.itemID) AS bridgeRows,
+    (SELECT COUNT(*) FROM posJumpBridgeData AS b WHERE b.toItemID = p.itemID) AS incomingBridgeLinks,
+    (SELECT COUNT(*) FROM entity_attributes AS a WHERE a.itemID = p.itemID) AS attributeRows,
+    (SELECT COUNT(*) FROM mapSystemSovInfo AS sov
+       WHERE sov.claimStructureID = p.itemID OR sov.hubID = p.itemID) AS sovereigntyReferences
+FROM posStructureData AS p
+WHERE p.itemID IN (140003364, 140003384)
+ORDER BY p.itemID;
