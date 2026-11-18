@@ -1,5 +1,10 @@
 # NPC buy orders — standard seed at 100% reference value
 
+## 18 November 2026 — Ore/mineral/ice volume update
+
+The historical **550/550,000 unit** description below remains correct for non-ore items. Newly seeded NPC buy and sell orders for minerals (group 18) and ore/ice (450–462, 465, 467–469) now start at **100,000,000 units each**, with a 10M ISK/unit upper bound for high-volume NPC bid pseudo-escrow. Dynamic Trader Joe orders use the same quantity. For migration/backup and existing order refresh instructions, see [the 100M-unit guide](NPC_ORE_MINERAL_100M_ORDERS_2026-11-18.md). No player order is modified by the source patch.
+
+
 **Prepared:** 17 November 2026 · **Repository:** `xrizonx/evemu_Crucible` · **Scope:** Windows/Linux patched EVEDBTool and market settlement.
 
 ## Goal and reference-value definition
