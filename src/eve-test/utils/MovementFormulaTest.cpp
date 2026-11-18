@@ -67,8 +67,21 @@ int utils_MovementFormulaTest(int argc, char* argv[])
     const auto invalidStop = EVEmuMovement::WarpCenterStopRange(
         0.0, std::numeric_limits<double>::quiet_NaN(), 10000.0,
         EVEmuMovement::GateWarpLandingSurfaceRange);
+    // Simulate the final 1-second approach to a 2.4km surface standoff.
+    // High-speed gate and station approaches must never travel past it.
+    const double gateFinalTick = EVEmuMovement::TractorTravelStep(
+        2750.0, EVEmuMovement::GateWarpLandingSurfaceRange, 500.0);
+    const double gateFullTick = EVEmuMovement::TractorTravelStep(
+        5000.0, EVEmuMovement::GateWarpLandingSurfaceRange, 500.0);
+    const double gateInRange = EVEmuMovement::TractorTravelStep(
+        2300.0, EVEmuMovement::GateWarpLandingSurfaceRange, 500.0);
+    const double gateInvalidSpeed = EVEmuMovement::TractorTravelStep(
+        2750.0, EVEmuMovement::GateWarpLandingSurfaceRange,
+        std::numeric_limits<double>::quiet_NaN());
     const bool passed =
-        gateFrigateStop == 12435 && gateCapitalStop == 14900
+        gateFinalTick == 350.0 && gateFullTick == 500.0
+        && gateInRange == 0.0 && gateInvalidSpeed == 0.0
+        && gateFrigateStop == 12435 && gateCapitalStop == 14900
         && EVEmuMovement::SurfaceSeparation(gateFrigateStop, 35.0, 10000.0) == 2400.0
         && EVEmuMovement::SurfaceSeparation(gateCapitalStop, 2500.0, 10000.0) == 2400.0
         && EVEmuMovement::GateWarpLandingSurfaceRange < EVEmuMovement::GateJumpSurfaceRange
