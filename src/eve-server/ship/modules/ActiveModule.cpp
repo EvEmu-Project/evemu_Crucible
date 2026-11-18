@@ -249,9 +249,12 @@ void ActiveModule::Update()
 void ActiveModule::Clear()
 {
     _log(MODULE__TRACE, "%s(%u) calling Clear()", m_modRef->name(), m_modRef->itemID());
-    if (m_targetSE != nullptr)
+    if (m_targetSE != nullptr) {
+        if (groupID() == EVEDB::invGroups::Tractor_Beam && m_targetSE->DestinyMgr() != nullptr)
+            m_targetSE->DestinyMgr()->TractorBeamStop(itemID());
         if (m_targetSE->TargetMgr() != nullptr)
             m_targetSE->TargetMgr()->RemoveTargetModule(this);
+    }
 
     m_targetSE = nullptr;
 
@@ -409,7 +412,6 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
     SetTimer(DoCycle());
 
     if (!m_timer.Enabled()) {
-        // if the timer wasnt set (for whatever reason), kill activation and return
         Clear();
         return;
     }
@@ -616,11 +618,15 @@ uint32 ActiveModule::DoCycle() {
                 UpdateCharge(AttrCapacitorCharge, AttrCapacitorCapacity, AttrPowerTransferAmount, m_targetSE->GetSelf());
         } break;
         case EVEDB::invGroups::Shield_Transporter: {
-            if (m_targetSE != nullptr)
+            if (m_targetSE != nullptr) {
                 UpdateCharge(AttrShieldCharge, AttrShieldCapacity, AttrShieldBonus, m_targetSE->GetSelf());
+                m_targetSE->SendDamageStateChanged();
+            }
         } break;
         case EVEDB::invGroups::Shield_Booster: {
             UpdateCharge(AttrShieldCharge, AttrShieldCapacity, AttrShieldBonus, m_shipRef);
+            if (ShipSE* ship = m_shipRef->GetPilot()->GetShipSE())
+                ship->SendDamageStateChanged();
         } break;
         case EVEDB::invGroups::Remote_Hull_Repairer: {
             if (m_targetSE != nullptr)
@@ -752,10 +758,7 @@ void ActiveModule::DeactivateCycle(bool abort/*false*/)
     } */
 
     switch (groupID()) {
-        case EVEDB::invGroups::Tractor_Beam: {
-            if (m_targetSE != nullptr && m_targetSE->DestinyMgr() != nullptr)
-                m_targetSE->DestinyMgr()->TractorBeamStop();
-        } break;
+
         case EVEDB::invGroups::Afterburner:
         case EVEDB::invGroups::Microwarpdrive: {
             m_destinyMgr->SpeedBoost(true);
@@ -1042,9 +1045,6 @@ void ActiveModule::UpdateCharge(uint16 attrID, uint16 testAttrID, uint16 srcAttr
             Deactivate();
     }
     iRef->SetAttribute(attrID, newValue);
-
-    if (attrID == AttrShieldCharge)
-        m_shipRef->GetPilot()->GetShipSE()->SendDamageStateChanged();
 }
 
 void ActiveModule::UpdateDamage(uint16 attrID, uint16 srcAttrID, InventoryItemRef iRef)
@@ -1253,8 +1253,11 @@ bool ActiveModule::CanActivate() {
             ShipSE* source = m_shipRef->GetPilot()->GetShipSE();
             if (source == nullptr || m_targetSE->DestinyMgr() == nullptr)
                 return false;
-            m_targetSE->DestinyMgr()->TractorBeamStart(
-                source, GetAttribute(AttrMaxTractorVelocity));
+            if (!m_targetSE->DestinyMgr()->TractorBeamStart(
+                    source, GetAttribute(AttrMaxTractorVelocity), range, itemID())) {
+                m_shipRef->GetPilot()->SendNotifyMsg("That target cannot be tractored right now.");
+                return false;
+            }
         }
     }
 

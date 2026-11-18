@@ -69,7 +69,20 @@ assert 'throw UserError("RamActivityInvalid");' in activity
 
 drone = source("src/eve-server/npc/DroneAI.cpp")
 assert "if (m_pDrone == nullptr)" in drone
-assert "Mining drone extraction is not implemented" in drone, (
-    "Do not misrepresent placeholder mining-drone combat as actual extraction"
-)
+assert "IsMiningDrone(m_pDrone) || (pTarget != nullptr && pTarget->IsAsteroidSE())" in drone
+assert "asteroid->SetAttribute(AttrQuantity, left);" in drone
+assert "ore->MergeTypesInCargo(shipItem.get(), hold);" in drone
+mining = drone.split("void DroneAIMgr::ProcessMining()", 1)[1].split("void DroneAIMgr::StopMiningBeam()", 1)[0]
+assert mining.index("movement->Orbit(target, orbitRange);") < mining.index("m_miningTimer.Start(duration);")
+assert "movement->Stop();" not in mining
+assert "movement->Follow(ship, 500);" in mining and "movement->SendPositionAndVelocity();" in mining
+drone_snapshot = source("src/eve-server/npc/Drone.cpp").split("void DroneSE::EncodeDestiny", 1)[1]
+assert "follow.followRange = m_destiny->GetFollowRange();" in drone_snapshot
+assert "data.speedfraction = m_destiny->GetCommandedSpeedFraction();" in drone_snapshot
+entity = source("src/eve-server/npc/EntityService.cpp")
+assert "pTarget != nullptr && pTarget->IsAsteroidSE()" in entity
+assert "return OrderMiningDrones(call, droneIDs, targetID, false);" in entity
+assert "return OrderMiningDrones(call, droneIDs, targetID, true);" in entity
+assert "ship->TargetMgr()->GetTarget(asteroidID, true) != asteroid" in entity
+assert "drone->GetControllerID() == ship->GetID() && drone->GetHomeShip() == ship" in entity
 print("Source-level gameplay safety guards passed")

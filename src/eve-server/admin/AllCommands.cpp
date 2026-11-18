@@ -32,5 +32,7 @@ void RegisterAllCommands(CommandDispatcher &into) {
 
     #define COMMAND(name, role, description) \
         into.AddCommand( #name, description, role, Command_##name );
+    #define COMMAND_ANY(name, role, alternative, description) \
+        into.AddCommand( #name, description, role, Command_##name, alternative );
     #include "admin/AllCommandsList.h"
 }

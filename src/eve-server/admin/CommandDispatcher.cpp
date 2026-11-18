@@ -29,6 +29,7 @@
 #include "Client.h"
 
 #include "admin/CommandDispatcher.h"
+#include "EVE_CommandPermissions.h"
 #include "system/DestinyManager.h"
 
 CommandDispatcher::CommandDispatcher(EVEServiceManager& services)
@@ -77,30 +78,49 @@ PyResult CommandDispatcher::Execute( Client* from, const char* msg )
 
     CommandRecord* rec = itr->second;
 
-    _log(COMMAND__INFO, "Request access to command '%s' with role %p for '%s' with role %p.",  rec->command.c_str(), rec->required_role, from->GetName(), from->GetAccountRole() );
-    if ((from->GetAccountRole() & rec->required_role) != rec->required_role) {
-        _log(COMMAND__ERROR, "Access denied to %s for command '%s'. --have role %p, need role %p", from->GetName(), rec->command.c_str(), from->GetAccountRole(), rec->required_role );
+    // Role grants are bitmasks, not ordered privilege levels.
+    const int64 roles = from->GetAccountRole();
+    _log(COMMAND__INFO,
+         "Request access to command '%s': have role 0x%016llx,"
+         " need 0x%016llx or 0x%016llx (0=no alternative).",
+         rec->command.c_str(),
+         static_cast<unsigned long long>(roles),
+         static_cast<unsigned long long>(rec->required_role),
+         static_cast<unsigned long long>(rec->alternative_role));
+    if (!EvECommand::HasAnyRequiredRole(
+            roles, rec->required_role, rec->alternative_role)) {
+        _log(COMMAND__ERROR,
+             "Access denied to %s for command '%s': have role 0x%016llx,"
+             " need 0x%016llx or 0x%016llx",
+             from->GetName(), rec->command.c_str(),
+             static_cast<unsigned long long>(roles),
+             static_cast<unsigned long long>(rec->required_role),
+             static_cast<unsigned long long>(rec->alternative_role));
         throw CustomError ("Access denied to command '%s'", sep.arg (0).c_str ());
     }
 
     return ( *rec->function )( from, &m_db, m_services, sep );
 }
 
-void CommandDispatcher::AddCommand( const char* cmd, const char* desc, int64 required_role, CommandFunc function )
+void CommandDispatcher::AddCommand( const char* cmd, const char* desc,
+                                    int64 required_role, CommandFunc function,
+                                    int64 alternative_role )
 {
     std::map<std::string, CommandRecord*>::iterator itr = m_commands.find( cmd );
     if (itr != m_commands.end())
         SafeDelete( itr->second );
 
-    m_commands[cmd] = new CommandRecord( cmd, desc, required_role, function );
+    m_commands[cmd] = new CommandRecord( cmd, desc, required_role, function, alternative_role );
 }
 
 void CommandDispatcher::ListCommands() {
     sLog.Green("  EVEmu", "Currently Loaded %lu Commands:", m_commands.size());
     std::map<std::string, CommandDispatcher::CommandRecord*>::iterator itr = m_commands.begin();
     for (; itr != m_commands.end(); ++itr) {
-        sLog.Magenta("    Call and Role", "%s - %p (%lli)",
-                     itr->first.c_str(), itr->second->required_role, itr->second->required_role);
+        sLog.Magenta("    Call and Role", "%s - requires 0x%016llx or 0x%016llx",
+                     itr->first.c_str(),
+                     static_cast<unsigned long long>(itr->second->required_role),
+                     static_cast<unsigned long long>(itr->second->alternative_role));
     }
 }
 

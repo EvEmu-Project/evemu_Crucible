@@ -162,10 +162,11 @@ struct WARP_Struct {
     int64  warpFactor;          // warp speed in AU/s * 10
 };
 
+// Crucible uses the same target and range fields for Follow and Orbit.
 struct ORBIT_Struct {
     uint8  formationID;
-    uint32 targetID;
-    double followRange;
+    int64  targetID;
+    float  followRange;
 };
 
 struct MISSILE_Struct {

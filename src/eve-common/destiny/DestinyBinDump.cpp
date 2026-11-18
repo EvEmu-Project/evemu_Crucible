@@ -151,7 +151,7 @@ uint32 DumpBall(LogType into, const uint8 *data, uint32 len) {
             const ORBIT_Struct *b = (const ORBIT_Struct *) data;
             data += sizeof(ORBIT_Struct);
             len -= sizeof(ORBIT_Struct);
-            _log(into, "       formID: %u, targetID: %u, distance: %.1f", b->formationID, b->targetID, b->followRange);
+            _log(into, "       formID: %u, targetID: %lli, distance: %.1f", b->formationID, b->targetID, b->followRange);
         } break;
         case Ball::Mode::MISSILE: {
             const MISSILE_Struct *b = (const MISSILE_Struct *) data;

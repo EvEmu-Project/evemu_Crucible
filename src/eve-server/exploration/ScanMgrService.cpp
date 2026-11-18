@@ -60,6 +60,9 @@ void ScanMgrService::BoundReleased (ScanBound* bound) {
 }
 
 PyResult ScanMgrService::GetSystemScanMgr(PyCallArgs& call) {
+    if (call.client == nullptr || call.client->GetShipSE() == nullptr
+        || call.client->SystemMgr() == nullptr)
+        return PyStatic.NewNone();
     DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -105,6 +108,8 @@ PyResult ScanBound::ConeScan( PyCallArgs& call, PyRep* ignored1, PyRep* ignored2
         return PyStatic.NewNone();
     }
 
+    if (m_client->GetShipSE() == nullptr || m_client->SystemMgr() == nullptr)
+        return PyStatic.NewNone();
     DestinyManager* pDestiny = m_client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", m_client->GetName());
@@ -129,6 +134,8 @@ PyResult ScanBound::RequestScans(PyCallArgs& call, std::optional <PyDict*> probe
     _log(SCAN__TRACE, "ScanBound::Handle_RequestScans() - size=%lli", call.tuple->size());
     call.Dump(SCAN__DUMP);
 
+    if (m_client->GetShipSE() == nullptr || m_client->SystemMgr() == nullptr)
+        return PyStatic.NewNone();
     DestinyManager* pDestiny = m_client->GetShipSE()->DestinyMgr();
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
@@ -151,6 +158,8 @@ PyResult ScanBound::RequestScans(PyCallArgs& call, std::optional <PyDict*> probe
 }
 
 PyResult ScanBound::RecoverProbes(PyCallArgs& call, PyList* probeIDs) {
+    if (probeIDs == nullptr || m_client->SystemMgr() == nullptr)
+        return PyStatic.NewNone();
     //successProbeIDs = sm.RemoteSvc('scanMgr').GetSystemScanMgr().RecoverProbes(probeIDs)
     // list of probes successfully scooped to cargo
     // this is tested and added in Probe::RecoverProbe()
@@ -182,6 +191,8 @@ PyResult ScanBound::RecoverProbes(PyCallArgs& call, PyList* probeIDs) {
 }
 
 PyResult ScanBound::DestroyProbe(PyCallArgs& call, PyInt* probeID) {
+    if (probeID == nullptr || m_client->SystemMgr() == nullptr)
+        return PyStatic.NewNone();
     //scanMan = sm.RemoteSvc('scanMgr').GetSystemScanMgr()
     //scanMan.DestroyProbe(probeID)
     _log(SCAN__TRACE, "ScanBound::Handle_DestroyProbe() - size=%lli", call.tuple->size());

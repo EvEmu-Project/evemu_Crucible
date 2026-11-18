@@ -37,6 +37,8 @@ public:
 
     // called by client timer, which was set for probeStateChange
     void ProcessScan(bool useProbe=false);
+    // Revalidate cached system context before scan work after a jump.
+    bool RefreshSystem();
 
     uint8 GetProbeCount()                               { return (uint8)m_probeMap.size(); }
 
@@ -63,6 +65,7 @@ private:
     ManagerDB* m_db;
     Client* m_client;
     SystemManager* m_system;
+    uint32 m_scanSystemID;
 
     void CalcProbeAngles(GPoint& sigPos, std::vector<ProbeSE*>& probeVec, std::map<float, std::pair<ProbeSE*, ProbeSE*>>& angleMap);
 

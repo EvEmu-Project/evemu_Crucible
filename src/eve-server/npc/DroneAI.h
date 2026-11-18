@@ -47,6 +47,7 @@ public:
     DroneAIMgr(DroneSE *who);
 
     void Process();
+    bool Mine(SystemEntity* asteroid, bool repeat);
 
     void Target(SystemEntity *by_who);
     void TargetAcquired(SystemEntity *pTarget);
@@ -76,6 +77,10 @@ protected:
     std::string GetStateName(int8 stateID);
 
 private:
+    void ProcessMining();
+    void StopMiningBeam();
+    bool DeliverMiningOre(ShipSE* ship);
+
     //cached to reduce access times. (faster but uses more memory)
     double m_sigRadius;
     double m_attackSpeed;
@@ -97,6 +102,11 @@ private:
     bool m_returnToBay;
     bool m_scoopRequested;
     bool m_autoEngageEnabled;
+    uint32 m_miningTargetID = 0;
+    uint16 m_minedTypeID = 0;
+    int32 m_minedUnits = 0;
+    bool m_repeatMining = false;
+    Timer m_miningTimer;
 
     TurretFormulas m_formula;
 

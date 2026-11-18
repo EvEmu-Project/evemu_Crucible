@@ -632,20 +632,13 @@ uint32 SystemBubble::CountNPCs() {
     return count;
 }
 
-bool SystemBubble::InBubble(const GPoint& pt, bool inWarp/*false*/) const
+bool SystemBubble::InBubble(const GPoint& pt, bool /*inWarp*/) const
 {
-    if (is_log_enabled(DESTINY__BUBBLE_DEBUG)) {
-        float distance = m_center.distance(pt);
-        bool check = false;
-        if (distance < m_radius + 5000)  // 5k is the grey area between bubbles
-            check = true;
-
-        _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::InBubble(%u) - center: %.1f,%.1f,%.1f - distance: %.1f, check: %s", \
-                m_bubbleID, m_center.x, m_center.y, m_center.z, distance, check?"true":"false");
-        return check;
-    }
-
-    return (m_center.distance(pt) < m_radius);
+    const double distance = m_center.distance(pt);
+    const bool inside = distance < m_radius;
+    _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::InBubble(%u) - center: %.1f,%.1f,%.1f - distance: %.1f, check: %s",
+         m_bubbleID, m_center.x, m_center.y, m_center.z, distance, inside ? "true" : "false");
+    return inside;
 }
 
 bool SystemBubble::IsOverlap( const GPoint& pt ) const
@@ -760,7 +753,7 @@ void SystemBubble::SendAddBalls(SystemEntity* to_who) {
         if (cur.second->DestinyMgr() != nullptr)
             if (cur.second->DestinyMgr()->IsCloaked())
                 continue;
-        if (!cur.second->IsMissileSE() or !cur.second->IsFieldSE())
+        if (!cur.second->IsMissileSE() && !cur.second->IsFieldSE())
             addballs.damageDict[cur.first] = cur.second->MakeDamageState();
         addballs.slims->AddItem( new PyObject( "foo.SlimItem", cur.second->MakeSlimItem() ) );
         cur.second->EncodeDestiny( *destinyBuffer );
@@ -808,7 +801,7 @@ void SystemBubble::SendAddBalls2( SystemEntity* to_who ) {
     addballs2.extraBallData = new PyList();
 
     for (auto cur : m_dynamicEntities) {
-        if (cur.second->IsMissileSE() or cur.second->IsContainerSE()) {
+        if (cur.second->IsMissileSE() || cur.second->IsContainerSE() || cur.second->IsFieldSE()) {
             addballs2.extraBallData->AddItem(cur.second->MakeSlimItem());
         } else {
             PyTuple* balls = new PyTuple(2);
@@ -863,7 +856,8 @@ void SystemBubble::AddBallExclusive( SystemEntity* pSE ) {
     pSE->EncodeDestiny( *destinyBuffer );
     addballs.state = new PyBuffer( &destinyBuffer );
 	//encode damage state
-    addballs.damageDict[ pSE->GetID() ] = pSE->MakeDamageState();
+    if (!pSE->IsMissileSE() && !pSE->IsFieldSE())
+        addballs.damageDict[pSE->GetID()] = pSE->MakeDamageState();
 	//encode SlimItem
     addballs.slims = new PyList();
     addballs.slims->AddItem( new PyObject( "foo.SlimItem", pSE->MakeSlimItem() ) );

@@ -135,8 +135,8 @@ public:
     void SetCloak(bool set=false)                       { m_cloaked = set; }
 
     /* TractorBeam */
-    void TractorBeamStop();
-    void TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed);
+    void TractorBeamStop(uint32 moduleID = 0);
+    bool TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed, double range, uint32 moduleID);
 
     /* Local Movement */
     void Orbit(SystemEntity* pSE, uint32 distance=0);
@@ -163,6 +163,7 @@ public:
     bool IsCloaked()                                    { return m_cloaked; }
     bool IsTurning()                                    { return m_turning; }
     bool IsTractored()                                  { return m_tractored; }
+    float GetTractorStopRange() const                   { return m_followDistance; }
 
     //Destiny Update stuff:
     void Jump(bool showCloak=true);
@@ -174,6 +175,7 @@ public:
     void SetUndockSpeed();
     void DockingAccepted();
     void SendSetState() const;
+    void SendPositionAndVelocity() const;
     void SendJumpOut(uint32 gateID) const;
     void SendJumpOutWormhole(uint32 wormholeID) const;
     void SendGateActivity(uint32 gateID) const;
@@ -193,12 +195,15 @@ public:
 
     //  functions to return protected variables for SystemBubble exclusive WarpTo updates and other methods that need Destiny Variables
     int32 GetDistance()                                 { return m_stopDistance; }
-    int32 GetWarpSpeed() const                          { return static_cast<int32>(m_shipWarpSpeed * 10); }
+    double GetWarpSpeedAU() const                       { return m_shipWarpSpeed; }
+    int32 GetWarpSpeed() const;
     uint32 GetTargetID()                                { return m_targetEntity.first; }
     SystemEntity* GetTargetEntity()                     { return m_targetEntity.second; }
     GPoint GetTargetPoint()                             { return m_targetPoint; }
     double GetMaxVelocity()                             { return m_maxShipSpeed; }
     double GetFollowDistance()                          { return m_targetDistance; }
+    uint32 GetFollowRange() const                       { return m_followDistance; }
+    float GetCommandedSpeedFraction() const             { return m_userSpeedFraction; }
     double GetMass()                                    { return m_mass; }
     double GetAgility()                                 { return m_shipAgility; }
     double GetInertia()                                 { return m_shipInertia; }
@@ -231,7 +236,6 @@ protected:
     void ProcessState();
 
     SystemEntity* const mySE;			//we do not own this.
-    SystemBubble* m_targBubble;         //we do not own this.
 
     bool IsTargetInvalid();              //performs common target checks
 
@@ -239,14 +243,14 @@ protected:
 
     //things dictated by our entity's configuration:
     uint8 m_warpAccelTime;              //in s      - calculated internally for warp stages
-    uint8 m_warpDecelTime;              //in s      - calculated internally for warp stages
+    uint16 m_warpDecelTime;              //in s      - calculated internally for warp stages
 
     float m_mass;                       //in kg
     float m_massMKg;                    //in mg     - Millionths of kg (mg)
     float m_alignTime;                  //in s      - align and enter warp are same (for our purposes)
     float m_prevSpeed;                  //in m/s    - used to calculate speed during decel
     float m_maxShipSpeed;               //in m/s
-    float m_shipWarpSpeed;              //in au/s
+    double m_shipWarpSpeed;             // in AU/s
     float m_timeToEnterWarp;            //in s
     float m_speedToLeaveWarp;           //in m/s    - this is set to 75% of m_maxShipSpeed
 
@@ -278,6 +282,8 @@ protected:
     bool m_turning;                     //used to execute code for ship turning
     bool m_tractored;
     bool m_tractorPause;
+    uint32 m_tractorModuleID = 0;
+    double m_tractorRange = 0.0;
 
     uint8 m_ballMode;                   //current state of ball
 

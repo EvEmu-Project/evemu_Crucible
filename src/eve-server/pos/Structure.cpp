@@ -133,9 +133,15 @@ StructureItemRef StructureItem::Spawn(ItemData &data)
 
 void StructureItem::Delete()
 {
-    // delete contents first
-    pInventory->DeleteContents();
+    // Destroy contained items first, as before. Then retire the structure's
+    // persisted POS/sovereignty-support rows while the itemID is still valid.
+    // Previously only StructureSE::Scoop() performed this cleanup, so
+    // destroyed structures left orphan posStructureData records behind.
+    if (pInventory != nullptr)
+        pInventory->DeleteContents();
 
+    PosMgrDB posDB;
+    posDB.DeleteData(itemID());
     InventoryItem::Delete();
 }
 
@@ -487,12 +493,17 @@ void StructureSE::Init()
         m_duration = 3600000;   // modules default to 1h
     }
 
-    /** @todo check for timestamp here and see if any processes are running.
-     * if so, set varaibles accordingly and continue.
-     */
-    if (m_data.timestamp > 0)
-    {
-        // do something constructive here.
+    // Resume an interrupted tower countdown once the system starts ticking.
+    if (m_tower && m_data.state == EVEPOS::StructureState::Onlining) {
+        m_procState = EVEPOS::ProcState::Onlining;
+        m_delayTime = m_self->GetAttribute(AttrOnliningDelay).get_uint32();
+        const double now = GetFileTimeNow();
+        double elapsedMs = 0;
+        if (m_data.timestamp > 0 && m_data.timestamp < now)
+            elapsedMs = (now - m_data.timestamp) / (Win32Time_Second / 1000);
+        const uint32 remainingMs = elapsedMs >= m_delayTime
+            ? 1 : m_delayTime - static_cast<uint32>(elapsedMs);
+        m_procTimer.Start(remainingMs);
     }
 
     if (m_data.state > EVEPOS::StructureState::Anchored)
@@ -672,11 +683,15 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
     // this is incomplete.  there may be client error msgs (havent looked or found)
     // these errors should throw instead of return.
 
-    // Check for required sovereignty upgrades for certain structures
-    if ((m_generator) or (m_jammer) or (m_bridge)) {
+    // Any structure that declares a sovereignty upgrade prerequisite must
+    // have that upgrade actively installed. Previously this gate was
+    // limited to beacon/jammer/bridge entities and did not cover capital
+    // construction arrays that require Supercapital Construction Facilities.
+    const uint32 upgType = m_self->HasAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1)
+        ? m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_uint32() : 0;
+    if (upgType != 0) {
         SovereigntyData sovData = svDataMgr.GetSovereigntyData(pClient->GetLocationID());
         InventoryItemRef ihubRef = sItemFactory.GetItemRef(sovData.hubID);
-        uint32 upgType = m_self->GetAttribute(EveAttrEnum::AttranchoringRequiresSovUpgrade1).get_int();
 
         if (ihubRef.get() == nullptr || ihubRef->GetMyInventory() == nullptr
                 || sItemFactory.GetType(upgType) == nullptr) {
@@ -685,7 +700,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             pClient->SendErrorMsg("Cannot anchor this structure: its required infrastructure hub or upgrade is unavailable.");
             return;
         }
-        if (!ihubRef->GetMyInventory()->ContainsTypeQty(upgType,1)) {
+        if (!ihubRef->GetMyInventory()->ContainsTypeQtyByFlag(upgType, flagStructureActive, 1)) {
             pClient->SendErrorMsg("This module requires %s to be installed in the Infrastructure Hub.",
             sItemFactory.GetType(upgType)->name().c_str());
             return;
@@ -739,7 +754,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             pClient->SendErrorMsg("Cannot anchor this blockade unit because its stargate is missing.");
             return;
         }
-        uint32 distance(m_gateSE->GetPosition().distance(m_self->position()));
+        uint32 distance(m_gateSE->GetPosition().distance(pos));
         //uint32 anchorMin(m_self->GetAttribute(AttrAnchorDistanceMin).get_uint32());
         uint32 anchorMax(m_self->GetAttribute(AttrAnchorDistanceMax).get_uint32());
 
@@ -774,7 +789,7 @@ void StructureSE::SetAnchor(Client *pClient, GPoint &pos)
             pClient->SendErrorMsg("Cannot anchor this structure because its planet is missing.");
             return;
         }
-        uint32 distance(m_planetSE->GetPosition().distance(m_self->position()));
+        uint32 distance(m_planetSE->GetPosition().distance(pos));
         uint32 anchorMax = (m_planetSE->GetRadius() + 150000000);
 
         if (distance > anchorMax) {

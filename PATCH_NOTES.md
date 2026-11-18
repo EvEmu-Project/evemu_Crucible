@@ -1,9 +1,104 @@
+## 18 November 2026 — Update upstream draft PR #335 to current fork master
+
+- Merge fork `master` at [`2d5cb4d2c7dbd0b33b70467e5caf3021fc52a713`](https://github.com/xrizonx/evemu_Crucible/commit/2d5cb4d2c7dbd0b33b70467e5caf3021fc52a713) into `contrib/upstream-crucible-maintenance-2026-11-15`, retaining earlier branch commits and 15/17 November upstream-review documents.
+- Fork master adds **50 commits and 89 changed paths** since the previous contribution head `c876ce612173d15c71774d05393435d2ed4248ca`; see [18 November upstream reviewer dossier](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-18.md) for the complete file inventory, migration cautions, technical changes, and test gaps. The rest of this file contains the cumulative chronological notes from 13–18 November.
+- Recent changes include `/sovindex5` test overrides and migrations, IHub upgrade-family support (including Supercapital Construction Facilities), POS force-field and ownership repairs, baseline upgraded military/industrial combat/ore sites, scanner fixes and `/dogma` permission checks.
+- Latest integrated master [CI #44346201327](https://github.com/xrizonx/evemu_Crucible/actions/runs/44346201327) passed. Live Crucible client, full manufacturing and sovereignty lifecycle outcomes are not implied. No migrations executed.
+- Excluded as not yet in master: [PR #41](https://github.com/xrizonx/evemu_Crucible/pull/41) Domination Grigori target filtering and [draft PR #42](https://github.com/xrizonx/evemu_Crucible/pull/42) mining-drone flight.
+
 ## 17 November 2026 — Upstream draft PR #335 refreshed with merged expedition + complete delta dossier
 
 - Integrated fork [PR #36](https://github.com/xrizonx/evemu_Crucible/pull/36) into `master` at merge commit `97a98424d2ddcbbc885ec90ca753fa47cd1a5ca2`, preserving the original Blockade and the separate eight-NPC DED/Officer mission 65534 with 500M ISK turn-in, real faction/officer/deadspace loot and True Sansha type-name exclusion.
 - Prepared upstream team handoff [`docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-17.md`](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-17.md): 692 commits/241 changed paths versus upstream baseline; 280 commits/144 changed paths since the previous contribution baseline. Includes exact source file inventory, subsystem patch notes, verification matrix, runtime caveats and rollback guidance.
 - Preserve the [15 November upstream review dossier](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md) and [original contribution-branch patch note snapshot](docs/UPSTREAM_PATCH_NOTES_HISTORY_2026-11-15.md). PR #335 remains **draft**, with no upstream merge and no SQL execution. Published source contribution included **696 commits and 244 changed paths** at first handoff; later documentation-only commits may increment that count.
 - Pre-merge CI [#575](https://github.com/xrizonx/evemu_Crucible/actions/runs/44142537989): Linux and MariaDB successful before merge; Windows UCRT64, Linux GCC, Docker and MariaDB insertion **all completed successfully** after the fork merge; release publication was skipped. Live confirmation of 500M payout and two consecutive crash-free elite encounters remains open.
+
+## 18 November 2026 — Baseline Military/Industrial upgraded IHub combat and ore sites
+
+- On initialized sovereign solar systems, load active upgrades only from the matching TCU/IHub and schedule up to five additional combat anomalies for Military upgrades and five Gravimetric signatures for Industrial upgrades. Actual mineable asteroid objects are created through BeltMgr from existing system ore distribution.
+- Fix DungeonMgr::MakeDungeon erroneously returning false after successfully constructing/registering a dungeon. Missing combat templates cause a clear failure instead of empty success; absent ore distribution causes a mining-site warning. Existing anomaly/site logic is reused.
+- **Scope:** baseline site availability only. CCP-specific quality/rarity/tiers, complete NPC site content, manufacturing jobs, billing, activity-index progression/decay, immediate runtime refresh and site respawn policy still require further implementation and in-game tests.
+- Extend source invariants and operator SQL diagnostics in the IHub test guide.
+
+## 18 November 2026 — Full IHub-family install rules and control tower physical shield bubble
+
+- Added category-39 IHub upgrade installation support for Strategic (group 1016), Industrial (1020) and Military (1021), with static upgrade prerequisite/blocking attributes, active flags, duplicate protection, and holding alliance Director/StarbaseConfig checks. Military/Industry installation remains restricted to simulated Level 5 testing while real activity progression is unimplemented.
+- Expanded POS anchoring prerequisites to all POS with `anchoringRequiresSovUpgrade1`; require active installed upgrade, including Supercapital Construction Facilities for relevant capital arrays.
+- Fixed tower force field spawn requiring nonempty password, missing harmonic persistence across restart, password clearing stopping the field, invalid zero radius (Large defaults to 30km), and force-field/missile packets incorrectly receiving damage state.
+- Added test cases for all three IHub families and TowerShieldRules plus Python source guards. **Full military upgraded NPC/anomaly mechanics, ore cluster effects, actual activity index progression, manufacturing job service and sovereignty upkeep are not implemented by this commit.** Live gameplay testing required.
+
+## 18 November 2026 — Support Supercapital Construction Facilities IHub upgrade installation
+
+- Located exact server-side rejection of type `2009`: `Inventory::ValidateIHubUpgrade` supported only 3 strategic upgrade typeIDs, defaulting to `not currently supported` for Supercapital Construction Facilities.
+- Updated type 2009 to require **100 effective Strategic days**, including `/sovindex5` TCU-bound testing days, rather than the actual TCU claim timestamp. Retain support for existing navigation/suppression/logistics upgrades, and reject other unsupported types explicitly.
+- Require valid active alliance sovereignty and registered IHub, restrict installation to the holding alliance or DEV/ADMIN, prevent duplicate upgrades by type, and mark only supported upgrades `flagStructureActive` before inventory flag indexing. This improves persistence/listing consistency.
+- Add pure `IHubUpgradeRulesTest` CTest and CI invariant checks. No SQL change required beyond previously merged index overrides; live client drag/drop, reload, and visual unlock need gameplay verification.
+
+## 18 November 2026 — Resolve Linux CI source invariant failure for /sovindex5
+
+- CI run 44259205124: Linux GCC **compiled**, but step `Verify sovereignty and POS integrity invariants` failed at line 71 because the checker expected the obsolete SQL string `strategicDays=100`.
+- The upsert intentionally now uses `strategicDays=VALUES(strategicDays)` with an explicit bound C++ constant `EVESovIndex::LevelFiveStrategicDays = 100`. Update regression checker to assert the **current** parameterized query and the constant, keeping Strategic Level 5 unchanged.
+- Docker and MariaDB jobs of the previous run passed; Windows compilation was still running when diagnosed. Repeat CI against this patch to confirm all platforms and regression guards.
+
+## 18 November 2026 — Repair Level 0 Military/Industry after /sovindex5
+
+- User's gameplay test: Strategic correctly shows Level 5, but Military and Industry still display Level 0. Root cause: old command wrote **5 raw points**, which is not equivalent to displayed Level 5, and 16-bit database/packet fields could not hold valid activity totals.
+- Isolated DEV override now writes **1,000,000,000 military points** and **30,000,000 industrial points** (test-only values within signed 32-bit client serialization); Strategic remains 100 effective days. Change C++ override fields to uint32, widen client packed rows to DBTYPE_I4, SQL override columns to INT UNSIGNED.
+- Add follow-up migration `20261118093000-sov-development-index-point-width.sql` that upgrades old (5,5) rows. Do not alter the original migration or any real claim timestamps, TCU, player assets, system ownership, or station settings.
+- Expand CTest/Windows/Linux invariants for raw activity points and data widths. Must run new migration/rebuild/retest client before calling this resolved in gameplay.
+
+## 18 November 2026 — GM Level 5 Infrastructure Hub development index test command
+
+- Verified current `/sov` is only a stub and `SovereigntyDB` currently fakes military/industrial 5 points globally; Strategic is the genuine age from claimTime. The all-system index API previously returned null. Full upgrade installation functionality is not proven.
+- Add `/sovindex5` for **DEV or ADMIN** only in a valid player-claimable null-sec system with real alliance TCU and registered IHub. It persists a 5/5 military/industry override and 100 strategic *effective* days; `/sovindex5 reset` removes the current claim's override. Original claimTime, TCU, inventory and sovereignty ownership are never changed.
+- Add claim-bound table `mapSovDevelopmentIndexOverrides` via migration 20261118070000, loaded on server boot, with a TCU ID marker to prevent orphaned test indices carrying over to a new alliance. Claim removal also purges matching override rows to prevent onlining the same TCU from restoring test indices. The migration **must be applied before using the command**.
+- Expose effective values via system, region, claim view, and completed all-system development indices; add new CTest and Windows/Linux invariants. Document exact command steps, restore action and iHub upgrade gameplay test checklist in [docs/SOV_INDEX_LEVEL5_GM_TEST_2026-11-18.md](docs/SOV_INDEX_LEVEL5_GM_TEST_2026-11-18.md).
+
+## 18 November 2026 — Orphan reference recheck passed (manual cleanup eligible)
+
+- Operator reconfirmed `posStructureData.itemID` **140003364** and **140003384** have zero contained inventory records, customs rows, incoming jump bridge links and sovereignty references. Earlier checks also showed absent base entities, and zero tower data, direct bridge records, dependent POS structures and dynamic attributes.
+- Both rows remain unanchored/default-state metadata (`towerID=0`, `state=0`, `status=0`, `timestamp=0`) with anchorpoints 40177245 and 40177217 respectively. Recommend **manual archive and narrowly scoped deletion with explicit two-row transaction verification** after a full DB backup/server shutdown. Do not recreate items or delete unrelated records.
+- No database modifications were made by this code review. The source lifecycle fix in PR #39 does not retrospectively clean these two records; the in-game deletion and restart path remains to be tested.
+
+## 18 November 2026 — Confirmed POS orphan IDs and additional read-only reference audit
+
+- Operator's five issue counts: invalid sovereignty claims 0; missing TCU entities 0; orphan towers 0; broken jump bridges 0; orphan structure metadata **2**.
+- Two stale-looking `posStructureData` records: item `140003364` (anchorpoint `40177245`) and item `140003384` (anchorpoint `40177217`). Both have towerID/state/status/timestamp 0, no base `entity`, tower or direct bridge data, child structures or attributes.
+- Added **POS-12 read-only reference check** for these IDs covering remaining inventory contents, customs rows, incoming jump bridges and sovereignty references. No repair SQL executes; back up and reconcile before any manual cleanup.
+- Existing `StructureItem::Delete()` source fix prevents one future orphan pathway but does **not** automatically clean these historical entries.
+
+## 18 November 2026 — Investigate 2 POS orphan rows and close deletion lifecycle gap
+
+- Operator ran the read-only sovereignty/POS checks: four checks returned zero; two `posStructureData` rows have no `entity` record. Their IDs and relationships are not yet available. Do **not** run automatic cleanup.
+- Source fix: `StructureItem::Delete()` now calls the existing POS metadata deletion routine before removing the inventory entity; previous scoop-only cleanup left metadata after permanent destruction. POS deletion also clears a reciprocal remote jump-bridge link first.
+- Added POS-11 **read-only detailed orphan query** for item/tower/anchor/child counts and related POS attributes; updated regression source guards and the review dossier.
+- Existing orphan rows remain unchanged until item IDs, dependencies and a backup establish whether manual reconciliation is safe. New source fix requires CI and live POS deletion/restart testing.
+
+## 17 November 2026 — Upstream issue audit and scanner safety review (#128, #37, #170)
+
+- Audited upstream issues against the merged fork before patching: `#319` (`bool` MariaDB reconnect) and core `#170` iterator advance are **already implemented**, so no duplicate replacement. `#35` has a 120-minute wreck timer but remains runtime-unverified.
+- New scanner patch on `fix/upstream-issues-scanner-safety-2026-11-17`: **#128** client scan session now rebinds to the current system after jumps and refuses missing managers; **#37** directional cone calculation now normalizes vectors, checks invalid inputs, and supports full-circle scanning; **#170/#262** probe removal clears both live/active scan maps (partial mitigation only). **#269** post-NPC-death scan crash is not proven fixed.
+- Added new pure scanning math unit test and CTest registration; CI and in-game testing are required before calling upstream reports resolved.
+- [Complete upstream issue audit (123 open reports)](docs/UPSTREAM_ISSUE_AUDIT_2026-11-17.md) includes all open titles, exact code paths, triage decisions, reproduction tests and documented limitations. No SQL changes, upstream issue closures or changes to fork `master`.
+
+## 17 November 2026 — POS requested-position distance validation
+
+- POS-10: SBU and orbital-platform anchor distance rules previously compared the stargate/planet to the structure old stored position, not the requested target. Use the target position for both checks; extend the Windows/Linux source regression guard.
+
+## 17 November 2026 — Sovereignty and POS source integrity and access fixes
+
+- SOV-01/02/03: write 64-bit FILETIME claimTime as BIGINT instead of mismatched %f, preserve cached sovereignty on failed DB insert/delete/query, and count unique online SBU-controlled gates to prevent false contested states.
+- POS-01/02/03/04: lookup silo capacity by real item type; authorize tower settings, passwords, anchoring and jump bridge link/unlink by owner and StarbaseConfig/Director roles or server ADMIN; validate malformed POS access flag packets before writes.
+- POS-05/06/07/08/09: persist tower sentry status and integer deploy flags, exclude packed cargo towers from deployed list, replace MariaDB self-referential bridge unlink with a reciprocal join, and reject wrong-system/occupied/cross-alliance bridge requests.
+- Added CTest SovereigntyPosIntegrityTest and Windows/Linux CI source guard, read-only SQL diagnostics, full review dossier, risk notes and manual test matrix. Existing TCU/IHub and belt security fixes preserved. No migration, SQL mutation or account modification.
+- Remaining work: live reinforcement/fuel, multi-system bridge atomicity, corporation roles and mission/structure playtests. Not merged until tested.
+
+## 17 November 2026 — Fix /dogma access for DEV and ADMIN
+
+- The observed `0x62f8000280c41000` DEV account includes CONTENT but not ADMIN (`0x0100000000000000`). Old `/dogma` required ADMIN only.
+- Register `/dogma` with explicit **CONTENT OR ADMIN** permissions, preserving current ADMIN access. Ordinary/VIP players remain denied, and other ADMIN-only commands such as /kick, /ban and /givelp are unaffected. Do not modify account SQL or grant blanket privileges.
+- Reuse bitmask authorization in `CommandDispatcher` and `/commandlist`, show CONTENT commands, log role masks as real 64-bit hex values instead of pointer `%p` formatting.
+- Reject missing ship, missing item and unknown dogma attribute safely before modifying the item. Add CTest permission regression coverage for DEV, CONTENT, ADMIN, BOSS, VIP, STD and multi-bit roles. Live command check and CI needed.
 
 ## 17 November 2026 — PR #36 DED & Officer Expedition reward to 500M ISK
 
