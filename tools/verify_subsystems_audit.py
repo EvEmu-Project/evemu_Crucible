@@ -73,9 +73,12 @@ assert "IsMiningDrone(m_pDrone) || (pTarget != nullptr && pTarget->IsAsteroidSE(
 assert "asteroid->SetAttribute(AttrQuantity, left);" in drone
 assert "ore->MergeTypesInCargo(shipItem.get(), hold);" in drone
 mining = drone.split("void DroneAIMgr::ProcessMining()", 1)[1].split("void DroneAIMgr::StopMiningBeam()", 1)[0]
-assert mining.index("movement->Orbit(target, orbitRange);") < mining.index("m_miningTimer.Start(duration);")
-assert "movement->Stop();" not in mining
-assert "movement->Follow(ship, 500);" in mining and "movement->SendPositionAndVelocity();" in mining
+assert mining.index("EvEMining::Orbit(") < mining.index("m_miningTimer.Start(duration);")
+assert "if (!flight.inOrbit || MiningSeparation(m_pDrone, target) > range)" in mining
+assert "EvEMining::Approach(" in mining and "movement->ApplyMiningDroneStep(" in mining
+assert "if (!inRange || (m_minedUnits > 0 && !DeliverMiningOre(ship)))" in mining
+assert "movement->Follow(" not in mining
+assert "!m_AI->HasMiningFlight()" in source("src/eve-server/npc/Drone.cpp")
 drone_snapshot = source("src/eve-server/npc/Drone.cpp").split("void DroneSE::EncodeDestiny", 1)[1]
 assert "follow.followRange = m_destiny->GetFollowRange();" in drone_snapshot
 assert "data.speedfraction = m_destiny->GetCommandedSpeedFraction();" in drone_snapshot

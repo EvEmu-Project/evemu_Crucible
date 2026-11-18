@@ -2521,7 +2521,59 @@ void DestinyManager::DockingAccepted()
     pClient->SendNotification("OnDockingAccepted", "charid", &ev);
 }
 
-void DestinyManager::SendPositionAndVelocity() const {
+void DestinyManager::ApplyMiningDroneStep(const GPoint& nextPosition, double speed) {
+    const GVector step(m_position, nextPosition);
+    const double distance = step.length();
+    if (!std::isfinite(distance) || !std::isfinite(speed) || speed <= 0.0 || distance > speed + 0.05)
+        return;
+
+    const bool moving = distance > 0.0;
+    const bool speedChanged = m_maxShipSpeed != speed;
+    if (!moving && !speedChanged && m_ballMode == Destiny::Ball::Mode::STOP && m_velocity.isZero())
+        return;
+
+    const float previousFraction = m_userSpeedFraction;
+    std::vector<PyTuple*> updates;
+    m_maxShipSpeed = speed;
+    if (speedChanged || (moving && m_ballMode != Destiny::Ball::Mode::GOTO)) {
+        SetBallSpeed maxSpeed;
+        maxSpeed.entityID = mySE->GetID();
+        maxSpeed.speed = m_maxShipSpeed;
+        updates.push_back(maxSpeed.Encode());
+    }
+
+    m_position = nextPosition;
+    mySE->SetPosition(m_position);
+    if (moving) {
+        m_targetEntity = {0, nullptr};
+        m_stop = false;
+        ClearOrbit();
+        m_ballMode = Destiny::Ball::Mode::GOTO;
+        m_velocity = step;
+        m_shipHeading = step / distance;
+        m_targetPoint = m_position + step;
+        m_userSpeedFraction = m_activeSpeedFraction = m_timeFraction = std::min(1.0, distance / speed);
+        CmdGotoPoint course;
+        course.entityID = mySE->GetID();
+        course.x = m_targetPoint.x;
+        course.y = m_targetPoint.y;
+        course.z = m_targetPoint.z;
+        updates.push_back(course.Encode());
+        if (previousFraction != m_userSpeedFraction) {
+            CmdSetSpeedFraction fraction;
+            fraction.entityID = mySE->GetID();
+            fraction.fraction = m_userSpeedFraction;
+            updates.push_back(fraction.Encode());
+        }
+    } else {
+        Halt();
+        CmdStop stop;
+        stop.entityID = mySE->GetID();
+        updates.push_back(stop.Encode());
+    }
+
+    // Each command is a local waypoint with authoritative coordinates and
+    // velocity. Clients can interpolate without reconstructing the orbit.
     SetBallPosition position;
     position.entityID = mySE->GetID();
     position.x = m_position.x;
@@ -2532,7 +2584,8 @@ void DestinyManager::SendPositionAndVelocity() const {
     velocity.x = m_velocity.x;
     velocity.y = m_velocity.y;
     velocity.z = m_velocity.z;
-    std::vector<PyTuple*> updates{position.Encode(), velocity.Encode()};
+    updates.push_back(position.Encode());
+    updates.push_back(velocity.Encode());
     SendDestinyUpdate(updates);
 }
 
@@ -2737,8 +2790,13 @@ Battleships 0.155
     if (sRef->HasAttribute(AttrWarpCapacitorNeed))
         m_warpCapacitorNeed = sRef->GetAttribute(AttrWarpCapacitorNeed).get_float() *2;
 
-    if (mySE->IsNPCSE() or mySE->IsDroneSE())
+    if (mySE->IsNPCSE())
         m_maxShipSpeed = sRef->GetAttribute(AttrEntityCruiseSpeed).get_float();
+    else if (mySE->IsDroneSE()) {
+        const float cruiseSpeed = sRef->GetAttribute(AttrEntityCruiseSpeed).get_float();
+        if (std::isfinite(cruiseSpeed) && cruiseSpeed > 0.0f)
+            m_maxShipSpeed = cruiseSpeed;
+    }
 
     /*  per https://forums.eveonline.com/default.aspx?g=posts&m=3912843   post#103
      *

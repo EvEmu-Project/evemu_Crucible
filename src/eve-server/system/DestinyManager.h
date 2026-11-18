@@ -175,7 +175,7 @@ public:
     void SetUndockSpeed();
     void DockingAccepted();
     void SendSetState() const;
-    void SendPositionAndVelocity() const;
+    void ApplyMiningDroneStep(const GPoint& nextPosition, double speed);
     void SendJumpOut(uint32 gateID) const;
     void SendJumpOutWormhole(uint32 wormholeID) const;
     void SendGateActivity(uint32 gateID) const;
