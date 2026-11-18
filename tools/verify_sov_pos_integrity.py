@@ -121,3 +121,33 @@ assert "iRef->categoryID() == EVEDB::invCategories::StructureUpgrade" in _inv
 assert "EVEItemFlags::flagStructureActive, true" in _inv
 assert 'NAME "IHubUpgradeRulesTest"' in cmake
 print("PASS: IHub supercapital Strategic 5 installation, owner and duplicate guards")
+
+
+# Three IHub upgrade classes, metadata dependencies and tower shield lifecycle.
+_fullIHubRules = read("src/eve-common/EVE_IHubUpgradeRules.h")
+_fullInv = read("src/eve-server/inventory/Inventory.cpp")
+_struct = read("src/eve-server/pos/Structure.cpp")
+_tower = read("src/eve-server/pos/Tower.cpp")
+_shield = read("src/eve-common/EVE_TowerShieldRules.h")
+_sysmgr = read("src/eve-server/system/SystemManager.cpp")
+_bubble = read("src/eve-server/system/SystemBubble.cpp")
+assert "StrategicGroup = 1016U" in _fullIHubRules
+assert "IndustrialGroup = 1020U" in _fullIHubRules
+assert "MilitaryGroup = 1021U" in _fullIHubRules
+assert "MeetsActivityRequirement" in _fullIHubRules
+assert "IsSupportedUpgrade(iRef->typeID(), iRef->groupID())" in _fullInv
+assert "AttrsovUpgradeRequiredUpgradeID" in _fullInv
+assert "AttrsovUpgradeBlockingUpgradeID" in _fullInv
+assert "AttrdevIndexIndustrial" in _fullInv
+assert "AttrdevIndexMilitary" in _fullInv
+assert "StarbaseConfig" in _fullInv
+assert "if (upgType != 0)" in _struct
+assert "ContainsTypeQtyByFlag(upgType, flagStructureActive, 1)" in _struct
+assert "m_db.UpdateHarmonicAndPassword(m_data.itemID, m_tdata)" in _tower
+assert "EVEPOS::ShieldRules::EffectiveRadius(m_tsize, configuredRadius)" in _tower
+assert "(!m_tdata.password.empty())" not in _tower
+assert "std::isfinite(configuredRadius)" in _shield
+assert "!cur.second->IsMissileSE() && !cur.second->IsFieldSE()" in _sysmgr
+assert "!cur.second->IsMissileSE() && !cur.second->IsFieldSE()" in _bubble
+assert 'NAME "TowerShieldRulesTest"' in cmake
+print("PASS: IHub group coverage and tower shield visual lifecycle guards")
