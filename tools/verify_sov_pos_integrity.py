@@ -72,6 +72,7 @@ assert "strategicDays=100" in _sovdb
 assert "claimStructureID=VALUES(claimStructureID)" in _sovdb
 assert "AND claimStructureID=%u" in _sovdb
 assert "GetIndexOverrides(overrideRows)" in _sovmanager
+assert "SovereigntyDB::DeleteIndexOverride(systemID, oldClaim.claimStructureID)" in _sovmanager
 assert "GetEffectiveStrategicDays(sData)" in _sovmanager
 assert "GetAllDevelopmentIndicesForClients()" in _indices
 assert "GetEffectiveMilitaryPoints(sovData)" in _indices

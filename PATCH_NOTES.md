@@ -2,7 +2,7 @@
 
 - Verified current `/sov` is only a stub and `SovereigntyDB` currently fakes military/industrial 5 points globally; Strategic is the genuine age from claimTime. The all-system index API previously returned null. Full upgrade installation functionality is not proven.
 - Add `/sovindex5` for **DEV or ADMIN** only in a valid player-claimable null-sec system with real alliance TCU and registered IHub. It persists a 5/5 military/industry override and 100 strategic *effective* days; `/sovindex5 reset` removes the current claim's override. Original claimTime, TCU, inventory and sovereignty ownership are never changed.
-- Add claim-bound table `mapSovDevelopmentIndexOverrides` via migration 20261118070000, loaded on server boot, with a TCU ID marker to prevent orphaned test indices carrying over to a new alliance. The migration **must be applied before using the command**.
+- Add claim-bound table `mapSovDevelopmentIndexOverrides` via migration 20261118070000, loaded on server boot, with a TCU ID marker to prevent orphaned test indices carrying over to a new alliance. Claim removal also purges matching override rows to prevent onlining the same TCU from restoring test indices. The migration **must be applied before using the command**.
 - Expose effective values via system, region, claim view, and completed all-system development indices; add new CTest and Windows/Linux invariants. Document exact command steps, restore action and iHub upgrade gameplay test checklist in [docs/SOV_INDEX_LEVEL5_GM_TEST_2026-11-18.md](docs/SOV_INDEX_LEVEL5_GM_TEST_2026-11-18.md).
 
 ## 18 November 2026 — Orphan reference recheck passed (manual cleanup eligible)

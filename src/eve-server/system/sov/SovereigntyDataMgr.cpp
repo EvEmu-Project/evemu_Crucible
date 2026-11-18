@@ -353,6 +353,9 @@ void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)
 {
     _log(SOV__INFO, "RemoveSovClaim() - Removing claim for %u from DataMgr...", systemID);
 
+    // Remember the TCU before the claim is removed. A later online of the
+    // same itemID must not resurrect an old GM index test override.
+    const SovereigntyData oldClaim = GetSovereigntyData(systemID);
     //Delete sovereignty claim from DB
     if (!SovereigntyDB::RemoveSovereigntyData(systemID)) {
         _log(SOV__ERROR, "RemoveSovClaim() - database delete failed for %u; cache retained.",
@@ -360,6 +363,12 @@ void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)
         return;
     }
     _log(SOV__DEBUG, "RemoveSovClaim() - Claim for %u removed from DB...", systemID);
+
+    if (oldClaim.claimStructureID
+        && !SovereigntyDB::DeleteIndexOverride(systemID, oldClaim.claimStructureID))
+        _log(SOV__WARNING,
+             "RemoveSovClaim() - unable to purge old GM index override for %u.",
+             systemID);
 
     //Remove claim from container
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
