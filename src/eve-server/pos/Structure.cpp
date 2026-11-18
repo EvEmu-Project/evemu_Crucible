@@ -493,12 +493,17 @@ void StructureSE::Init()
         m_duration = 3600000;   // modules default to 1h
     }
 
-    /** @todo check for timestamp here and see if any processes are running.
-     * if so, set varaibles accordingly and continue.
-     */
-    if (m_data.timestamp > 0)
-    {
-        // do something constructive here.
+    // Resume an interrupted tower countdown once the system starts ticking.
+    if (m_tower && m_data.state == EVEPOS::StructureState::Onlining) {
+        m_procState = EVEPOS::ProcState::Onlining;
+        m_delayTime = m_self->GetAttribute(AttrOnliningDelay).get_uint32();
+        const double now = GetFileTimeNow();
+        double elapsedMs = 0;
+        if (m_data.timestamp > 0 && m_data.timestamp < now)
+            elapsedMs = (now - m_data.timestamp) / (Win32Time_Second / 1000);
+        const uint32 remainingMs = elapsedMs >= m_delayTime
+            ? 1 : m_delayTime - static_cast<uint32>(elapsedMs);
+        m_procTimer.Start(remainingMs);
     }
 
     if (m_data.state > EVEPOS::StructureState::Anchored)

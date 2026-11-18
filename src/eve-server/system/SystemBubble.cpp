@@ -808,7 +808,7 @@ void SystemBubble::SendAddBalls2( SystemEntity* to_who ) {
     addballs2.extraBallData = new PyList();
 
     for (auto cur : m_dynamicEntities) {
-        if (cur.second->IsMissileSE() or cur.second->IsContainerSE()) {
+        if (cur.second->IsMissileSE() || cur.second->IsContainerSE() || cur.second->IsFieldSE()) {
             addballs2.extraBallData->AddItem(cur.second->MakeSlimItem());
         } else {
             PyTuple* balls = new PyTuple(2);
@@ -863,7 +863,8 @@ void SystemBubble::AddBallExclusive( SystemEntity* pSE ) {
     pSE->EncodeDestiny( *destinyBuffer );
     addballs.state = new PyBuffer( &destinyBuffer );
 	//encode damage state
-    addballs.damageDict[ pSE->GetID() ] = pSE->MakeDamageState();
+    if (!pSE->IsMissileSE() && !pSE->IsFieldSE())
+        addballs.damageDict[pSE->GetID()] = pSE->MakeDamageState();
 	//encode SlimItem
     addballs.slims = new PyList();
     addballs.slims->AddItem( new PyObject( "foo.SlimItem", pSE->MakeSlimItem() ) );
