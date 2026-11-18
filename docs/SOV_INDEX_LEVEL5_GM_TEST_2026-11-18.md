@@ -21,7 +21,7 @@ After making a backup of the `eve` database and ensuring no other migrations con
 3. Travel to an **alliance-claimed, player-claimable null-sec** solar system with an online, linked Territorial Claim Unit and registered Infrastructure Hub. The override affects only your **current system**, not a named system or entire region.
 4. In chat, execute `/sovindex5`. The server writes **Military 5, Industry 5 and Strategic 100 effective days** to `mapSovDevelopmentIndexOverrides`, keyed to the current TCU. The real `claimTime` remains unchanged.
 5. Reopen the Sovereignty information and IHub management panes to refresh cached index values. Test installing an upgrade that requires Level 5; note the actual client UI and any server errors.
-6. Execute `/sovindex5 reset` to delete only the current TCU override, restoring the normal source values. If the system changes sov holder, the old TCU marker cannot activate for the new claim even if the stale table row remains. On ordinary claim removal, the server also attempts to delete the previous claim\x27s test override so re-onlining the same TCU does not resurrect development test levels.
+6. Execute `/sovindex5 reset` to delete only the current TCU override, restoring the normal source values. If the system changes sov holder, the old TCU marker cannot activate for the new claim even if the stale table row remains. On ordinary claim removal, the server also attempts to delete the previous claim's test override so re-onlining the same TCU does not resurrect development test levels.
 
 The override persists across server restarts and indexes are shared through `GetCurrentSovData`, `GetSystemSovereignty`, `GetDevelopmentIndicesForSystem` and implemented `GetAllDevelopmentIndices`.
 
