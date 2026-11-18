@@ -14,6 +14,7 @@
 #include "EVE_Skills.h"
 
 #include "Client.h"
+#include "EntityList.h"
 #include "StatisticMgr.h"
 #include "character/Character.h"
 #include "tables/invCategories.h"
@@ -462,11 +463,17 @@ void DroneAIMgr::ProcessMining() {
         return;
     }
 
+    // Correct client prediction in all active mining phases. Stagger updates
+    // across the flight so the drones do not all send on the same tick.
+    if (sEntityList.GetStamp() % 5 == m_pDrone->GetID() % 5)
+        movement->SendPositionAndVelocity();
+
     if (m_minedUnits > 0) {
         if (MiningSeparation(m_pDrone, ship) > 1000.0) {
             if (!movement->IsFollowing() || movement->GetTargetID() != ship->GetID()) {
                 movement->SetMaxVelocity(m_chaseSpeed);
                 movement->Follow(ship, 500);
+                movement->SendPositionAndVelocity();
             }
             return;
         }
@@ -498,11 +505,18 @@ void DroneAIMgr::ProcessMining() {
     const ShipItemRef shipItem = pilot->GetShip();
     if (shipItem.get() == nullptr || shipItem->itemID() != ship->GetID()
         || !std::isfinite(remaining) || remaining < 1.0
-        || !std::isfinite(unitVolume) || unitVolume <= 0.0) {
+        || !std::isfinite(unitVolume) || unitVolume <= 0.0
+        || !std::isfinite(range) || range < 1.0) {
         SetIdle();
         return;
     }
-    if (MiningSeparation(m_pDrone, target) > range) {
+    const double preferredOrbit = std::isfinite(m_entityOrbitRange) ? m_entityOrbitRange : 200.0;
+    const uint32 orbitRange = static_cast<uint32>(
+        std::clamp(preferredOrbit, 1.0, std::min(range, static_cast<double>(std::numeric_limits<int32>::max()))));
+    const double separation = MiningSeparation(m_pDrone, target);
+    const double approachRange = std::min(range, static_cast<double>(orbitRange) + m_chaseSpeed);
+    const bool orbiting = movement->IsOrbiting() && movement->GetTargetID() == target->GetID();
+    if (separation > range || (!orbiting && separation > approachRange)) {
         StopMiningBeam();
         if (m_state != DroneAI::State::Approaching) {
             m_state = DroneAI::State::Approaching;
@@ -511,9 +525,20 @@ void DroneAIMgr::ProcessMining() {
         }
         if (!movement->IsFollowing() || movement->GetTargetID() != target->GetID()) {
             movement->SetMaxVelocity(m_chaseSpeed);
-            movement->Follow(target, static_cast<uint32>(std::min(1000.0, range * 0.5)));
+            movement->Follow(target, orbitRange);
+            movement->SendPositionAndVelocity();
         }
         return;
+    }
+
+    if (!orbiting) {
+        movement->SetMaxVelocity(m_chaseSpeed);
+        movement->Orbit(target, orbitRange);
+        if (!movement->IsOrbiting()) {
+            StopMiningBeam();
+            return;
+        }
+        movement->SendPositionAndVelocity();
     }
 
     if (!m_miningTimer.Enabled()) {
@@ -522,7 +547,6 @@ void DroneAIMgr::ProcessMining() {
             SetIdle();
             return;
         }
-        movement->Stop();
         m_state = DroneAI::State::Mining;
         m_pDrone->SetTarget(target);
         m_pDrone->StateChange();
@@ -554,6 +578,7 @@ void DroneAIMgr::ProcessMining() {
     m_pDrone->StateChange();
     movement->SetMaxVelocity(m_chaseSpeed);
     movement->Follow(ship, 500);
+    movement->SendPositionAndVelocity();
     if (left < 1.0) {
         m_repeatMining = false;
         pilot->SendNotifyMsg("Your mining drone depleted the asteroid.");

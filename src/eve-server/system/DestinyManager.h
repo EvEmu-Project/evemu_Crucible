@@ -175,6 +175,7 @@ public:
     void SetUndockSpeed();
     void DockingAccepted();
     void SendSetState() const;
+    void SendPositionAndVelocity() const;
     void SendJumpOut(uint32 gateID) const;
     void SendJumpOutWormhole(uint32 wormholeID) const;
     void SendGateActivity(uint32 gateID) const;
@@ -201,6 +202,8 @@ public:
     GPoint GetTargetPoint()                             { return m_targetPoint; }
     double GetMaxVelocity()                             { return m_maxShipSpeed; }
     double GetFollowDistance()                          { return m_targetDistance; }
+    uint32 GetFollowRange() const                       { return m_followDistance; }
+    float GetCommandedSpeedFraction() const             { return m_userSpeedFraction; }
     double GetMass()                                    { return m_mass; }
     double GetAgility()                                 { return m_shipAgility; }
     double GetInertia()                                 { return m_shipInertia; }

@@ -1351,7 +1351,10 @@ void DestinyManager::Orbit() {
 
     // distances checks for orbit calculations
     GPoint mPos(NULL_ORIGIN);
-    float mPosAdj(0.0f);
+    double mPosAdj = 0.0;
+    const double orbitAdjustment = (mySE->IsDroneSE() && m_targetEntity.second->IsAsteroidSE())
+        ? std::min(m_followDistance / 25.0, m_targetDistance / 4.0)
+        : m_followDistance / 25.0;
     // check distances for this tic
     if ((edges / 2) > m_followDistance) {
         if (m_orbiting == Destiny::Ball::Orbit::TooFar) {
@@ -1384,37 +1387,28 @@ void DestinyManager::Orbit() {
             MoveObject();
             return;
         }
-        // to close to realistically orbit.  move away from target
+        // Move toward the near side of the orbit when inside its radius.
         m_orbiting = Destiny::Ball::Orbit::TooClose;
-        // set point to side of target (based on current position), to avoid near-zero angular velocity
-        double radTarg = atan2(Tp.z - m_position.z, Tp.x - m_position.x);  // rad from '0' to target
-        //radTarg += atan2(m_followDistance, edges);  // rad from 'distance line' to target 'offset'
-        mPos.x = m_followDistance * cos(radTarg);
-        mPos.z = m_followDistance * sin(radTarg);
-        if (Tp.y > m_position.y) {  // target is above us.  set point below target using calculated distance
-            mPos.y = Tp.y - m_position.y;
-        } else { // opposite of above
-            mPos.y = m_position.y - Tp.y;
-        }
-        m_targetPoint = Tp + mPos;
-        GVector heading(m_position, m_targetPoint);
-        heading.normalize();
-        m_shipHeading = heading;    // this sets object velocity using speed
-        _log(DESTINY__ORBIT_TRACE, "2 - way too close - rads:%.3f, heading: %.3f, %.3f, %.3f", \
-                radTarg, m_shipHeading.x, m_shipHeading.y, m_shipHeading.z);
+        GVector outward(Tp, m_position);
+        if (outward.isZero())
+            outward = GVector(1.0, 0.0, 0.0);
+        else
+            outward.normalize();
+        m_targetPoint = Tp + outward * m_followDistance;
+        m_shipHeading = outward;
         MoveObject();
         return;
     } else if ((edges - m_targetDistance / 4) > m_followDistance) {
         m_orbiting = Destiny::Ball::Orbit::Far;
         // fudge distance for a smaller orbit
         // modify this based on calculated distance
-        mPosAdj = -m_followDistance / 25;
+        mPosAdj = -orbitAdjustment;
         _log(DESTINY__ORBIT_TRACE, "2 - too far");
     } else if (centers < m_followDistance) {
         m_orbiting = Destiny::Ball::Orbit::Close;
         // fudge distance for larger orbit
         // modify this based on calculated distance
-        mPosAdj = m_followDistance / 25;
+        mPosAdj = orbitAdjustment;
         _log(DESTINY__ORBIT_TRACE, "2 - too close");
     } else {
         m_orbiting = Destiny::Ball::Orbit::Orbiting;
@@ -2322,18 +2316,23 @@ void DestinyManager::Orbit(SystemEntity *pSE, uint32 distance/*0*/) {
     double four = (6 *  std::cbrt(one + 8 *  std::pow(Rc,6) + three));
     double five =  std::cbrt( std::sqrt(three *  std::pow(Rc,8) + two));
     double six = (one + (8 * Rc2) + (12 * five));
-    m_followDistance =  std::sqrt(four + (24 *  std::pow(Rc, 4) / six) + 12 * Rc2) / 6;
+    const double calculatedRadius = std::sqrt(four + (24 * std::pow(Rc, 4) / six) + 12 * Rc2) / 6;
+    // A drone mining a rock needs clearance from its surface even if the
+    // generic ship orbit calculation puts the waypoint inside a large rock.
+    const bool asteroidDroneOrbit = mySE->IsDroneSE() && pSE->IsAsteroidSE();
+    const double orbitRadius = asteroidDroneOrbit ? std::ceil(safeOrbitRadius) : std::floor(calculatedRadius);
 
     // A zero/nonfinite speed, invalid radius or orbital period must never
     // feed division by zero, NaN or infinite movement into the client.
-    if (!std::isfinite(m_followDistance) || !std::isfinite(m_maxShipSpeed)
-        || m_followDistance < safeOrbitRadius || m_followDistance > BUBBLE_RADIUS_METERS
+    if (!std::isfinite(orbitRadius) || !std::isfinite(m_maxShipSpeed)
+        || orbitRadius < safeOrbitRadius || orbitRadius > BUBBLE_RADIUS_METERS
         || m_maxShipSpeed <= 0.0) {
         _log(DESTINY__ERROR, "Destiny::Orbit() - Invalid orbit geometry/speed for %s(%u).",
              mySE->GetName(), mySE->GetID());
         Stop();
         return;
     }
+    m_followDistance = static_cast<uint32>(orbitRadius);
 
     const double velocity = m_maxShipSpeed * ((distance / m_followDistance) + 0.065);
     if (!std::isfinite(velocity) || velocity <= 0.0) {
@@ -2520,6 +2519,21 @@ void DestinyManager::DockingAccepted()
         oda.stationID = pClient->GetDockStationID();
     PyTuple* ev = oda.Encode();
     pClient->SendNotification("OnDockingAccepted", "charid", &ev);
+}
+
+void DestinyManager::SendPositionAndVelocity() const {
+    SetBallPosition position;
+    position.entityID = mySE->GetID();
+    position.x = m_position.x;
+    position.y = m_position.y;
+    position.z = m_position.z;
+    SetBallVelocity velocity;
+    velocity.entityID = mySE->GetID();
+    velocity.x = m_velocity.x;
+    velocity.y = m_velocity.y;
+    velocity.z = m_velocity.z;
+    std::vector<PyTuple*> updates{position.Encode(), velocity.Encode()};
+    SendDestinyUpdate(updates);
 }
 
 void DestinyManager::SetPosition(const GPoint &pt, bool update /*false*/) {

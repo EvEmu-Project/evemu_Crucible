@@ -1,7 +1,10 @@
 #include "eve-test.h"
 #include "EVE_MovementFormulas.h"
+#include "destiny/DestinyStructs.h"
 
 #include <cmath>
+#include <cstddef>
+#include <cstring>
 #include <cstdlib>
 #include <limits>
 
@@ -21,6 +24,13 @@ int utils_MovementFormulaTest(int argc, char* argv[])
     const double zeroOrbit = EVEmuMovement::MinimumOrbitRadius(0.0, 50.0, 1000.0);
     const double invalidOrbit = EVEmuMovement::MinimumOrbitRadius(
         std::numeric_limits<double>::infinity(), 50.0, 1000.0);
+    const double miningOrbit = EVEmuMovement::MinimumOrbitRadius(200.0, 5.0, 16000.0);
+    static_assert(sizeof(Destiny::ORBIT_Struct) == sizeof(Destiny::FOLLOW_Struct));
+    static_assert(offsetof(Destiny::ORBIT_Struct, targetID) == 1);
+    static_assert(offsetof(Destiny::ORBIT_Struct, followRange) == 9);
+    const Destiny::ORBIT_Struct orbitPacket{0xFF, 4500000000LL, 200.0f};
+    Destiny::FOLLOW_Struct decodedOrbit{};
+    std::memcpy(&decodedOrbit, &orbitPacket, sizeof(decodedOrbit));
 
     // The server stores absolute AU/s in dogma 600.
     const double battleshipWarp = EVEmuMovement::CrucibleWarpSpeedAU(3.0, 3.0);
@@ -49,7 +59,8 @@ int utils_MovementFormulaTest(int argc, char* argv[])
         wreckInRange == 2475.0 && wreckOutOfRange == 2525.0 &&
         overlapping == 0.0 &&
         invalid == 0.0 && orbit == 1575.0 && zeroOrbit == 1075.0 &&
-        invalidOrbit == 0.0 &&
+        invalidOrbit == 0.0 && miningOrbit == 16230.0 &&
+        decodedOrbit.followID == 4500000000LL && decodedOrbit.followRange == 200.0f &&
         battleshipWarp == 3.0 && frigateWarp == 6.0 &&
         interceptorWarp == 13.5 && logisticsWarp == 3.75 &&
         fittedWarpBonus == 7.2 && fallbackType == 6.0 && fallbackMissing == 3.0 &&

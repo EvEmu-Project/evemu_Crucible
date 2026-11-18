@@ -419,7 +419,7 @@ void DroneSE::EncodeDestiny( Buffer& into )
         data.velY = m_destiny->GetVelocity().y;
         data.velZ = m_destiny->GetVelocity().z;
         data.inertia = m_destiny->GetInertia();
-        data.speedfraction = m_destiny->GetSpeedFraction();
+        data.speedfraction = m_destiny->GetCommandedSpeedFraction();
     into.Append( data );
     switch (mode) {
         case Ball::Mode::WARP: {
@@ -428,7 +428,7 @@ void DroneSE::EncodeDestiny( Buffer& into )
         case Ball::Mode::FOLLOW: {
             FOLLOW_Struct follow;
                 follow.followID = m_destiny->GetTargetID();
-                follow.followRange = m_destiny->GetFollowDistance();
+                follow.followRange = m_destiny->GetFollowRange();
                 follow.formationID = 0xFF;
             into.Append( follow );
         }  break;
