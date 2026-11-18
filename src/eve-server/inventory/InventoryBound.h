@@ -66,6 +66,8 @@ protected:
 
     std::vector< int32 > CatSortItems(std::vector< InventoryItemRef >& itemVec);
 
+    void RefreshOwnedShipInventory(Client* client);
+
     PyRep* MoveItems(Client* pClient, std::vector< int32 >& items, EVEItemFlags toFlag, int32 quantity, bool manyFlags, float capacity);
 };
 

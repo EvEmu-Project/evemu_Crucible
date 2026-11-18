@@ -403,12 +403,36 @@ PyResult InventoryBound::MultiAdd(PyCallArgs &call, PyList* itemIDs, PyInt* cont
     return MoveItems( call.client, items, (EVEItemFlags)toFlag, quantity, moveStack, capacity);
 }
 
+void InventoryBound::RefreshOwnedShipInventory(Client* client)
+{
+    if (m_self->categoryID() != EVEDB::invCategories::Ship
+        || m_self->ownerID() != client->GetCharacterID())
+        return;
+
+    // An open inventory moniker can outlive the ship instance it was bound
+    // to. Use the same instance as InventoryItem::Move before reading cargo
+    // or checking the destination's free capacity.
+    InventoryItemRef current = sItemFactory.GetItemRefFromID(m_itemID);
+    if (current.get() == nullptr || current->GetShipItem() == nullptr
+        || current->ownerID() != client->GetCharacterID()
+        || current->GetMyInventory() == nullptr
+        || !current->GetMyInventory()->LoadContents()) {
+        _log(INV__ERROR, "Unable to refresh ship inventory %u.", m_itemID);
+        throw CustomError("The ship inventory is unavailable. Reopen its cargo hold and try again.");
+    }
+
+    m_self = current;
+    pInventory = m_self->GetMyInventory();
+}
+
 PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, EVEItemFlags toFlag, int32 quantity, bool moveStack, float capacity)
 {   // complete method rewrite -allan 21Dec17
     if (pClient == nullptr || m_self.get() == nullptr || pInventory == nullptr) {
         _log(INV__ERROR, "IB::MoveItems: invalid client or destination inventory %u.", m_itemID);
         return nullptr;
     }
+    ScopedInventoryClient factoryClient(pClient);
+    RefreshOwnedShipInventory(pClient);
     ShipItem* pShip = pClient->GetShip().get();
     bool donating = false, ship = false, customs = false;
     int32 origQty = quantity;
@@ -505,13 +529,12 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
 
     if (ship && (pShip == nullptr || m_self->GetShipItem() == nullptr)) {
         _log(INV__ERROR, "IB::MoveItems: ship destination %u has no usable ship entity.", m_itemID);
-        return nullptr;
+        throw CustomError("The destination ship is unavailable. Reopen its cargo hold and try again.");
     }
 
     EVEItemFlags fromFlag(flagNone);
     EVEItemFlags origFlag(toFlag);
     InventoryItemRef iRef(nullptr);
-    ScopedInventoryClient factoryClient(pClient);
 
     std::vector<int32>::const_iterator itr = items.begin();
     for (; itr != items.end(); ++itr) {
@@ -645,6 +668,8 @@ PyRep* InventoryBound::MoveItems(Client* pClient, std::vector< int32 >& items, E
             } else if (IsCargoHoldFlag(toFlag) or IsHangarFlag(toFlag) or (toFlag == flagDroneBay)) {
                 if (!pInventory->ValidateAddItem(toFlag, iRef)) {
                     _log(INV__WARNING, "IB::MoveItems: item %u rejected by ship capacity validation.", iRef->itemID());
+                    if (items.size() == 1 && IsCargoHoldFlag(toFlag))
+                        throw CustomError("The item could not be transferred into the ship's cargo hold.");
                     continue;
                 }
             }
@@ -767,6 +792,8 @@ std::vector< int32 > InventoryBound::CatSortItems(std::vector< InventoryItemRef 
 PyResult InventoryBound::List(PyCallArgs &call, std::optional <PyInt*> listFlag) {
     if (pInventory == nullptr)
         return PyStatic.NewNone();
+
+    RefreshOwnedShipInventory(call.client);
 
     _log(INV__DUMP, "IB::List() dump.");
     call.Dump(INV__DUMP);
