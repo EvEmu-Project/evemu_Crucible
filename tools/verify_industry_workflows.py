@@ -28,6 +28,9 @@ assert 'static_cast<uint64>(args.runs) * static_cast<uint64>(args.copyRuns)' in 
 assert 'into.usageCost *= ceil(into.productionTime / 3600.0f)' in methods
 assert methods.count('EVEmuIndustry::RequiredMaterialQuantity(') >= 3
 assert 'EVEmuIndustry::RequiredMaterialQuantity(' in proxy
+assert 'runs, req.extra)' in methods and 'runs, cur.extra)' in methods
+assert 'args.runs, itemItr->extra)' in proxy
+assert 'if (!bpRef->infinite())' in proxy
 assert 'GetBOMItems( bomLocation, items )' in methods
 assert 'static_cast<float>(m_data.pLevel) / (1.0f + m_data.pLevel)' in blueprint
 assert '(1.0f - (0.05f * MetallurgyLevel))' in math

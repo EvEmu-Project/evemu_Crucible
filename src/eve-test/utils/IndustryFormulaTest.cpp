@@ -10,6 +10,8 @@ int utils_IndustryFormulaTest(int, char**)
     using EVEmuIndustry::ValidCopyRuns;
     if (RequiredMaterialQuantity(3, 1.1, 1.0, 3) != 10
         || RequiredMaterialQuantity(100, 0.9, 1.05, 3) != 285
+        || RequiredMaterialQuantity(100, 0.8, 1.1, 3, true) != 300
+        || RequiredMaterialQuantity(100, 0.8, 1.1, 3, false) != 270
         || RequiredMaterialQuantity(100, 1.0, 1.0, 0) != 0
         || RequiredMaterialQuantity(100, 1.0, 0.5, 5) != 0
         || RequiredMaterialQuantity(5, std::numeric_limits<double>::quiet_NaN(), 1.0, 2) != 0
@@ -19,6 +21,8 @@ int utils_IndustryFormulaTest(int, char**)
         || ValidCopyRuns(0, 10, 10)
         || ValidCopyRuns(2, 0, 10)
         || ValidCopyRuns(2, 11, 10)
+        || ValidCopyRuns(32768, 1, 10)
+        || ValidCopyRuns(1, 32768, 32768)
         || ValidCopyRuns(1, 1, 0)) {
         std::fprintf(stderr, "Industry materials/copy validation mismatch\n");
         return 1;

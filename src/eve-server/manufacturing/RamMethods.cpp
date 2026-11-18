@@ -44,7 +44,7 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
         throw UserError ("RamInventionNoOutput");
 
     // 0/negative runs can otherwise create free or unusable industry jobs.
-    if (args.runs <= 0)
+    if (args.runs <= 0 || args.runs > INT16_MAX)
         throw UserError("RamActivityInvalid");
 
     // check validity of activity
@@ -378,7 +378,8 @@ void RamMethods::MaterialSkillsCheck(Client* const pClient, uint32 runs,
                     .AddFormatValue("skillLevel", new PyInt(req.quantity));
         } else {
             needed[req.typeID] += EVEmuIndustry::RequiredMaterialQuantity(
-                req.quantity, rsp.materialMultiplier, rsp.charMaterialMultiplier, runs);
+                req.quantity, rsp.materialMultiplier, rsp.charMaterialMultiplier,
+                runs, req.extra);
         }
     }
 
@@ -545,13 +546,13 @@ void RamMethods::EncodeBillOfMaterials(const std::vector<EvERam::RequiredItem> &
         }
 
         const uint32 qtyNeeded = EVEmuIndustry::RequiredMaterialQuantity(
-            cur.quantity, materialMultiplier, charMaterialMultiplier, runs);
+            cur.quantity, materialMultiplier, charMaterialMultiplier, runs, cur.extra);
 
         // otherwise, make line for material list
         MaterialList_Line line;
         line.requiredTypeID = cur.typeID;
         line.quantity = static_cast<int32>(std::min<uint32>(INT32_MAX,
-            EVEmuIndustry::RequiredMaterialQuantity(cur.quantity, materialMultiplier, 1.0, runs)));
+            EVEmuIndustry::RequiredMaterialQuantity(cur.quantity, materialMultiplier, 1.0, runs, cur.extra)));
         line.damagePerJob = cur.damagePerJob;
         line.isSkillCheck = false;  // no idea what is this for
         line.requiresHP = false;    // no idea what is this for
@@ -591,7 +592,7 @@ void RamMethods::EncodeMissingMaterials(const std::vector<EvERam::RequiredItem> 
         qtyReq = cur.quantity;
         if (!cur.isSkill) {
             qtyReq = EVEmuIndustry::RequiredMaterialQuantity(
-                cur.quantity, materialMultiplier, charMaterialMultiplier, runs);
+                cur.quantity, materialMultiplier, charMaterialMultiplier, runs, cur.extra);
         }
 
         std::vector<InventoryItemRef>::iterator itri, endi;

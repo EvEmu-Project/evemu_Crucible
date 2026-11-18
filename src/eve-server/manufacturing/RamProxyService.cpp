@@ -395,7 +395,7 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         // calculate needed quantity
         uint32 qtyNeeded = EVEmuIndustry::RequiredMaterialQuantity(
             itemItr->quantity, rsp.materialMultiplier, rsp.charMaterialMultiplier,
-            args.runs);
+            args.runs, itemItr->extra);
 
         // consume required materials
         std::vector<InventoryItemRef>::iterator refItr = items.begin();
@@ -416,8 +416,11 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
     // update runs and do other shit where applicable
     switch (args.activityID) {
         case EvERam::Activity::Manufacturing: {
-            // we just need to update runs here
-            bpRef->UpdateRuns(-args.runs);
+            // Originals have unlimited production runs. Never decrement the
+            // negative sentinel; repeated BPO jobs could eventually overflow
+            // it and turn the original into a finite-run blueprint.
+            if (!bpRef->infinite())
+                bpRef->UpdateRuns(-args.runs);
         } break;
         case EvERam::Activity::ReverseEngineering: {
             bpRef->UpdateRuns(-args.runs);
