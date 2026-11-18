@@ -25,6 +25,7 @@
 */
 
 #include "EVE_Consts.h"
+#include "EVE_MovementFormulas.h"
 #include "EVE_Player.h"
 #include "eve-server.h"
 #include "../eve-common/EVEVersion.h"
@@ -1467,16 +1468,15 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         return;
     }
 
-    const double rangeToGatePerimeter =
-        pShipSE->GetPosition().distance(gate->GetPosition())
-        - pShipSE->GetRadius()
-        - gate->GetRadius();
+    const double rangeToGatePerimeter = EVEmuMovement::SurfaceSeparation(
+        pShipSE->GetPosition().distance(gate->GetPosition()),
+        pShipSE->GetRadius(), gate->GetRadius());
 
     SetAutoPilot(false);
-    if (rangeToGatePerimeter > 2500.0) {
+    if (rangeToGatePerimeter > EVEmuMovement::GateJumpSurfaceRange) {
         m_pendingGateFrom = fromGate;
         m_pendingGateTo = toGate;
-        const uint32 followDistance = static_cast<uint32>(gate->GetRadius() + 2500.0);
+        const uint32 followDistance = static_cast<uint32>(EVEmuMovement::GateWarpLandingSurfaceRange);
         pShipSE->DestinyMgr()->Follow(gate, followDistance);
         _log(AUTOPILOT__MESSAGE, "%s: Approaching stargate %u before jumping; perimeter range %.2fm.",
                 m_char->name(), fromGate, rangeToGatePerimeter);
@@ -1571,15 +1571,14 @@ void Client::ProcessPendingSpaceActions() {
             return;
         }
 
-        const double rangeToGatePerimeter =
-            pShipSE->GetPosition().distance(gate->GetPosition())
-            - pShipSE->GetRadius()
-            - gate->GetRadius();
-        if (rangeToGatePerimeter > 2500.0) {
+        const double rangeToGatePerimeter = EVEmuMovement::SurfaceSeparation(
+            pShipSE->GetPosition().distance(gate->GetPosition()),
+            pShipSE->GetRadius(), gate->GetRadius());
+        if (rangeToGatePerimeter > EVEmuMovement::GateJumpSurfaceRange) {
             // A jump queued during warp still needs a normal gate approach.
             if (!pShipSE->DestinyMgr()->IsFollowing()
                 || pShipSE->DestinyMgr()->GetTargetID() != fromGate) {
-                const uint32 followDistance = static_cast<uint32>(gate->GetRadius() + 2500.0);
+                const uint32 followDistance = static_cast<uint32>(EVEmuMovement::GateWarpLandingSurfaceRange);
                 pShipSE->DestinyMgr()->Follow(gate, followDistance);
                 _log(AUTOPILOT__MESSAGE, "%s: Approaching stargate %u after warp before jumping.",
                         m_char->name(), fromGate);
