@@ -22,7 +22,7 @@ int utils_SovIndexOverrideTest(int argc, char* argv[])
         && EVESovIndex::LevelFiveMilitaryPoints <= 2147483647U
         && EVESovIndex::LevelFiveIndustrialPoints <= 2147483647U
         // Same TCU must receive the override.
-        EVESovIndex::IsActive(140000001, test)
+        && EVESovIndex::IsActive(140000001, test)
         && EVESovIndex::EffectivePoints(0, &test, 140000001, true)
             == EVESovIndex::LevelFiveMilitaryPoints
         && EVESovIndex::EffectivePoints(0, &test, 140000001, false)

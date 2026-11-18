@@ -96,3 +96,7 @@ assert "CREATE TABLE IF NOT EXISTS mapSovDevelopmentIndexOverrides" in _migratio
 assert "claimStructureID" in _migration
 assert "ALTER TABLE mapSystemSovInfo" not in _migration
 print("PASS: /sovindex5 role, claim-bound SQL persistence, index views and reset guards")
+
+# Ensure the C++ raw-point test keeps its boolean condition chained.
+_unit_test = read("src/eve-test/utils/SovIndexOverrideTest.cpp")
+assert "&& EVESovIndex::IsActive(140000001, test)" in _unit_test
