@@ -2126,11 +2126,12 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
     m_targetEntity.first = 0;
     m_targetEntity.second = nullptr;
 
+    const bool npcWarp = mySE->IsNPCSE() || mySE->IsDroneSE();
     m_warpDestination = m_targetPoint;
-    m_stopDistance = std::max(0, distance);
+    m_stopDistance = npcWarp ? distance : std::max(0, distance);
     GVector warpDirection(m_position, m_warpDestination);
     const double centerDistance = warpDirection.length();
-    if (!std::isfinite(centerDistance) || centerDistance <= m_stopDistance) {
+    if (!std::isfinite(centerDistance) || centerDistance <= 0.0 || centerDistance <= m_stopDistance) {
         Stop();
         return;
     }
@@ -2139,17 +2140,20 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
     m_targetPoint = m_warpDestination - warpDirection * m_stopDistance;
 
     // npcs have no warp restrictions (yet)
-    if (mySE->IsNPCSE() or mySE->IsDroneSE()) {
+    if (npcWarp) {
         // do drones warp??
         m_ballMode = Destiny::Ball::Mode::WARP;
 
+        // Spawns also use signed offsets to scatter beyond the reference
+        // point. Send that resolved endpoint directly for a negative offset.
+        const GPoint& packetDestination = m_stopDistance < 0 ? m_targetPoint : m_warpDestination;
         std::vector<PyTuple*> updates;
         CmdWarpTo wt;
             wt.entityID = mySE->GetID();
-            wt.dest_x = m_warpDestination.x;
-            wt.dest_y = m_warpDestination.y;
-            wt.dest_z = m_warpDestination.z;
-            wt.distance = m_stopDistance;
+            wt.dest_x = packetDestination.x;
+            wt.dest_y = packetDestination.y;
+            wt.dest_z = packetDestination.z;
+            wt.distance = std::max(0, m_stopDistance);
             wt.warpSpeed = GetWarpSpeed();
         updates.push_back(wt.Encode());
         OnSpecialFX10 sfx;
@@ -2943,7 +2947,7 @@ bool DestinyManager::TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed, d
     const double clearance = EVEmuMovement::SurfaceSeparation(
         m_targetDistance, m_radius, pShipSE->GetRadius());
     m_tractorPause = clearance <= m_followDistance;
-    m_velocity = m_tractorPause ? NULL_ORIGIN_V : m_shipHeading * m_maxSpeed;
+    m_velocity = m_shipHeading * (m_tractorPause ? 0.0f : m_maxSpeed);
     m_activeSpeedFraction = m_userSpeedFraction = m_timeFraction = m_tractorPause ? 0.0f : 1.0f;
 
     m_targetEntity.first = pShipSE->GetID();

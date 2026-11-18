@@ -49,6 +49,8 @@ assert "EVEmuMovement::TractorTravelStep(" in follow
 # A warp launch uses the requested destination plus a range. The final
 # authoritative stop uses the already range-adjusted endpoint.
 assert "wt.dest_x = m_warpDestination.x;" in destiny
+assert "m_stopDistance = npcWarp ? distance : std::max(0, distance);" in destiny
+assert "m_stopDistance < 0 ? m_targetPoint : m_warpDestination" in destiny
 assert "WarpRemainingAfterAcceleration(m_warpState->total_distance, currentDistance)" in destiny
 warp_stop = destiny.split("void DestinyManager::WarpStop(", 1)[1].split("void DestinyManager::EntityRemoved(", 1)[0]
 assert warp_stop.index("SetPosition(m_targetPoint);") < warp_stop.index("Halt();")
