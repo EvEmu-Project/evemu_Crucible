@@ -472,7 +472,9 @@ jobs:
           expect "SELECT COUNT(*) FROM (SELECT stationID,typeID,COUNT(*) AS n FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250 GROUP BY stationID,typeID HAVING n>1) AS dup" "0"
           # Full seed creates matching NPC sell quantities; players remain untouched.
           (cd sql && ./evedbtool seed -force)
-          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND typeID IN (34,35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "4"
+          # The fixture has a player Tritanium sell: seeded NPC sells must not replace it.
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND typeID IN (35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "3"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000 AND bid=0 AND typeID=34 AND volEntered=10 AND volRemaining=10" "1"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND typeID=100 AND volEntered=550000" "1"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000" "2"
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID IN (34,35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "4"
