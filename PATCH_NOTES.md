@@ -1,3 +1,10 @@
+## 18 November 2026 — Baseline Military/Industrial upgraded IHub combat and ore sites
+
+- On initialized sovereign solar systems, load active upgrades only from the matching TCU/IHub and schedule up to five additional combat anomalies for Military upgrades and five Gravimetric signatures for Industrial upgrades. Actual mineable asteroid objects are created through BeltMgr from existing system ore distribution.
+- Fix DungeonMgr::MakeDungeon erroneously returning false after successfully constructing/registering a dungeon. Missing combat templates cause a clear failure instead of empty success; absent ore distribution causes a mining-site warning. Existing anomaly/site logic is reused.
+- **Scope:** baseline site availability only. CCP-specific quality/rarity/tiers, complete NPC site content, manufacturing jobs, billing, activity-index progression/decay, immediate runtime refresh and site respawn policy still require further implementation and in-game tests.
+- Extend source invariants and operator SQL diagnostics in the IHub test guide.
+
 ## 18 November 2026 — Full IHub-family install rules and control tower physical shield bubble
 
 - Added category-39 IHub upgrade installation support for Strategic (group 1016), Industrial (1020) and Military (1021), with static upgrade prerequisite/blocking attributes, active flags, duplicate protection, and holding alliance Director/StarbaseConfig checks. Military/Industry installation remains restricted to simulated Level 5 testing while real activity progression is unimplemented.

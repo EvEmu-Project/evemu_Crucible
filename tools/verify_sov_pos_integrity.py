@@ -151,3 +151,19 @@ assert "!cur.second->IsMissileSE() && !cur.second->IsFieldSE()" in _sysmgr
 assert "!cur.second->IsMissileSE() && !cur.second->IsFieldSE()" in _bubble
 assert 'NAME "TowerShieldRulesTest"' in cmake
 print("PASS: IHub group coverage and tower shield visual lifecycle guards")
+
+
+# Baseline IHub actual site effect wiring and dungeon creation success.
+_anomaly = read("src/eve-server/system/cosmicMgrs/AnomalyMgr.cpp")
+_dungeon = read("src/eve-server/system/cosmicMgrs/DungeonMgr.cpp")
+assert "sov.hubID && sov.allianceID" in _anomaly
+assert "item.second->flag() != flagStructureActive" in _anomaly
+assert "EVESovIHub::KindForGroup(item.second->groupID())" in _anomaly
+assert "sovMilitarySites < 5" in _anomaly
+assert "sovIndustrialSites < 5" in _anomaly
+assert "m_typeList.push_back(Dungeon::Type::Anomaly);" in _anomaly
+assert "m_typeList.push_back(Dungeon::Type::Gravimetric);" in _anomaly
+assert "dData.dungeonID == 0" in _dungeon
+assert "m_system->GetBeltMgr()->Create(sig, ore)" in _dungeon
+assert "return true; // Previously always returned false" in _dungeon
+print("PASS: active IHub upgrade to combat/mineable site wiring and dungeon success result")

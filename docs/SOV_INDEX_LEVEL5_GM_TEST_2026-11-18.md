@@ -116,3 +116,26 @@ The patch creates the field for any **online** tower independently of password, 
 **Test:** Online a Large Control Tower with no password, verify an actual translucent 30km-or-configured shield visible from inside/outside in the Crucible client, set/unset a tower password without losing the field, relog/re-enter the grid, restart the server and check it remains, then offline the tower and confirm the field disappears. This is *server source validation*, not a verified client rendering result. If still missing, inspect \`TowerSE::CreateForceField\` logs and Destiny AddBalls/MakeSetState packet traces.
 
 No new SQL migrations are required for this change beyond the already-applied /sovindex5 migrations.
+
+
+## 18 November — Baseline Military/Industrial site effects now connected
+
+Follow-up code integrates each **active** Military or Industrial IHub upgrade into the existing \`AnomalyMgr\` at solar-system initialization, subject to the current TCU claim and registered hub. Each installed Military type schedules one additional combat anomaly and each Industrial type one extra Gravimetric mining signature, capped at five added per family. The mining sites use \`BeltMgr::Create\` to create **mineable** asteroid entities from the solar system's existing ore distribution (not merely decorative map markers).
+
+\`DungeonMgr::MakeDungeon\` had another bug: it returned \`false\` even after a dungeon was created. It now returns \`true\` on successful registration, and refuses to create missing-template combat sites. If the static dungeon tables lack the necessary combat templates or valid ore distributions, the server logs the problem instead of claiming success.
+
+**Testing:** After rebuilding/restarting the server, ensure installed upgrades are still \`flagStructureActive\`, then cause the solar-system instance to reload (not just reopening the IHub window). Check additional combat anomalies and Gravimetric mining signatures in the scanner, warp to each, and verify actual NPCs or mineable asteroid entities. Some dungeon archetypes may lack usable templates in your SQL dataset. The current implementation schedules **baseline extra sites**, not historical CCP tier-specific pirate ranks, industrial prospecting ore grades, guaranteed respawn/decay, or automatic immediate refresh when a hub is modified while its solar-system instance remains loaded. Those require follow-up work.
+
+**Read-only installation diagnostic for system 30004759:**
+
+\`\`\`sql
+SELECT s.solarSystemID, s.hubID, e.itemID, e.typeID, t.typeName,
+       t.groupID, e.flag, e.ownerID
+FROM mapSystemSovInfo AS s
+JOIN entity AS e ON e.locationID=s.hubID
+JOIN invTypes AS t ON t.typeID=e.typeID
+WHERE s.solarSystemID=30004759 AND t.groupID IN (1016,1020,1021)
+ORDER BY t.groupID, t.typeID, e.itemID;
+\`\`\`
+
+The physical tower force-field patch is independent: test that the online Large Control Tower displays a visible field without requiring a password and that it survives relog and server restart.
