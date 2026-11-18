@@ -70,6 +70,17 @@ assert "Follow(station, approachDistance);" in destiny
 assert "gateFrigateStop == 12435 && gateCapitalStop == 14900" in movement_test
 assert "requestedTenKm == 20150" in movement_test
 
+# A 1-second movement tick must not carry a ship through the gate after
+# Follow() calculates a safe 2.4km (or manual 0m) surface stand-off.
+move = destiny.split("void DestinyManager::MoveObject()", 1)[1].split(
+    "bool DestinyManager::IsTurn()", 1)[0]
+assert "m_targetEntity.second->IsGateSE()" in move
+assert "const double remaining = std::max(0.0, gap - m_followDistance);" in move
+assert "if (remaining <= static_cast<double>(speed))" in move
+assert "SetPosition(m_position + toGate * remaining, true);" in move
+assert "Halt();\n            CmdStop stop;" in move
+assert "SendDestinyUpdate(updates);" in move
+
 # A warp launch uses the requested destination plus a range. The final
 # authoritative stop uses the already range-adjusted endpoint.
 assert "wt.dest_x = m_warpDestination.x;" in destiny
