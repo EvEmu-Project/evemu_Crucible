@@ -1,3 +1,10 @@
+## 18 November 2026 — Fix stargate warp landing, radius double counting and gate/station approach
+
+- Manual `WarpToStuff` previously subtracted a gate's full radius, then added an arbitrary `radius / 3` and twice the ship radius. Result: variable landing distance and possible client bounce/overshoot. For gates and ordinary warpable objects, keep the original target-center coordinates and calculate the exact center stop distance by adding the ship and target collision radii **once** to the requested surface stand-off. "Warp to zero" gates now target **2,400m** from the surface (inside the 2,500m jump threshold); longer explicit ranges are retained.
+- Autopilot previously used an unadjusted `apWarptoDistance` against an object's *center*, which could overlap large gates/stations. Add both hull radii to the configured surface gap; correct the autopilot initial `Follow()` command to receive a surface range.
+- Fix `Client::StargateJump`, queued post-warp gate approaches and `DestinyManager::AttemptDockOperation` incorrectly passing `targetRadius + 2500` into `Follow()`, which already computes surface separation. Follow at 2,400m; keep activation permissions at 2,500m. Preserve specialist station, moon, planet and wormhole landing paths and accurate bookmark coordinates.
+- Add pure `WarpCenterStopRange` formulas, small-ship/capital and selectable-range CTest cases, Windows/Linux source invariants, warp range diagnostics and [live gameplay checklist](docs/WARP_GATE_LANDING_2500M_2026-11-18.md). Isolated GCC 14.2 C++ landing-math test passed; full CI and the 2012 Crucible client remain **unverified** until tested. No SQL migration or player-data edits.
+
 ## 18 November 2026 — Baseline Military/Industrial upgraded IHub combat and ore sites
 
 - On initialized sovereign solar systems, load active upgrades only from the matching TCU/IHub and schedule up to five additional combat anomalies for Military upgrades and five Gravimetric signatures for Industrial upgrades. Actual mineable asteroid objects are created through BeltMgr from existing system ore distribution.
