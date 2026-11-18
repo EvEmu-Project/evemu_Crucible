@@ -59,3 +59,13 @@ FROM mapSovDevelopmentIndexOverrides;
 ```
 
 Expected new values for the active TCU: `1000000000`, `30000000`, `100`. A matching row establishes the database is storing the correct test data, but only the live client verifies correct UI level calculation. The `/sovindex5 reset` command remains available to revert the GM override. Do not run the migration `Down` in normal operation.
+
+## 18 November — Supercapital Construction Facilities no longer hard-rejected
+
+The client error `Supercapital Construction Facilities is not currently supported.` originated from `Inventory::ValidateIHubUpgrade` in `src/eve-server/inventory/Inventory.cpp`. The old validator supported only Cynosural Navigation, Cynosural Suppression and Advanced Logistics Network, rejecting **all other** structure upgrades, including type `2009`. It also used the **real** TCU claim timestamp instead of the effective Strategic days exposed by `/sovindex5`.
+
+Updated support explicitly accepts **Supercapital Construction Facilities (type 2009)** at **100 effective Strategic days (Level 5)**, without modifying `mapSystemSovInfo.claimTime`. It requires a registered online IHub in an actual sovereign alliance claim, restricts installation to that alliance or a DEV/ADMIN test account, and rejects a duplicate upgrade type rather than moving/converting it twice. `Inventory::AddItem` now applies the active structure flag to supported upgrades **before** indexing its inventory flag, preventing stale flag-map entries; unrelated IHub cargo is not activated.
+
+**No additional SQL migration is required for this specific support fix.** Use the newer server binary from this PR, retain the previous sovereignty index migrations, relog/reopen the management window, then drag the Supercapital Construction Facilities upgrade item into the registered IHub inventory. The server should no longer emit `not currently supported` for type 2009. Check the upgrade item has `flagStructureActive` (and remains after server restart). A functioning capital ship assembly facility, construction job service, fuel/upkeep or client UI lock decoration is **not** proven by this validator change. If it remains visually locked, capture the exact window and logs: UI gating may have separate client-side prerequisites.
+
+New `IHubUpgradeRulesTest` CTest checks 99 vs 100 strategic days, known supported upgrade types and an unsupported type. It does not simulate a full game client inventory transfer; test that manually.

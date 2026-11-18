@@ -1,3 +1,10 @@
+## 18 November 2026 — Support Supercapital Construction Facilities IHub upgrade installation
+
+- Located exact server-side rejection of type `2009`: `Inventory::ValidateIHubUpgrade` supported only 3 strategic upgrade typeIDs, defaulting to `not currently supported` for Supercapital Construction Facilities.
+- Updated type 2009 to require **100 effective Strategic days**, including `/sovindex5` TCU-bound testing days, rather than the actual TCU claim timestamp. Retain support for existing navigation/suppression/logistics upgrades, and reject other unsupported types explicitly.
+- Require valid active alliance sovereignty and registered IHub, restrict installation to the holding alliance or DEV/ADMIN, prevent duplicate upgrades by type, and mark only supported upgrades `flagStructureActive` before inventory flag indexing. This improves persistence/listing consistency.
+- Add pure `IHubUpgradeRulesTest` CTest and CI invariant checks. No SQL change required beyond previously merged index overrides; live client drag/drop, reload, and visual unlock need gameplay verification.
+
 ## 18 November 2026 — Resolve Linux CI source invariant failure for /sovindex5
 
 - CI run 44259205124: Linux GCC **compiled**, but step `Verify sovereignty and POS integrity invariants` failed at line 71 because the checker expected the obsolete SQL string `strategicDays=100`.

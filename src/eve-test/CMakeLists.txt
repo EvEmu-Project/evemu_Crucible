@@ -34,6 +34,7 @@ SET( utils_SOURCE
      "utils/CommandPermissionsTest.cpp"
      "utils/SovereigntyPosIntegrityTest.cpp"
      "utils/SovIndexOverrideTest.cpp"
+     "utils/IHubUpgradeRulesTest.cpp"
      "utils/MissionLifecycleTest.cpp"
      "utils/ContainerAssemblyTest.cpp"
      "utils/StationOfficeIntegrityTest.cpp"
@@ -86,6 +87,8 @@ ADD_TEST( NAME "MovementFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/MovementFormulaTest" )
 ADD_TEST( NAME "DroneControlRangeTest"
           COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )
+ADD_TEST( NAME "IHubUpgradeRulesTest"
+          COMMAND "${TARGET_NAME}" "utils/IHubUpgradeRulesTest" )
 ADD_TEST( NAME "SovIndexOverrideTest"
           COMMAND "${TARGET_NAME}" "utils/SovIndexOverrideTest" )
 ADD_TEST( NAME "SovereigntyPosIntegrityTest"

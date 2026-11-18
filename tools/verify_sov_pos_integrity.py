@@ -104,3 +104,20 @@ print("PASS: /sovindex5 role, claim-bound SQL persistence, index views and reset
 # Ensure the C++ raw-point test keeps its boolean condition chained.
 _unit_test = read("src/eve-test/utils/SovIndexOverrideTest.cpp")
 assert "&& EVESovIndex::IsActive(140000001, test)" in _unit_test
+
+# Supercapital Construction Facilities must be installable with a true or
+# DEV-only simulated Strategic Level 5; older upgrades preserve their rules.
+_rules = read("src/eve-common/EVE_IHubUpgradeRules.h")
+_inv = read("src/eve-server/inventory/Inventory.cpp")
+assert "SupercapitalConstructionFacilities = 2009U" in _rules
+assert "case SupercapitalConstructionFacilities: return 100U;" in _rules
+assert "effectiveDays >= required" in _rules
+assert "GetEffectiveStrategicDays(sovData)" in _inv
+assert "EVESovIHub::MeetsStrategicRequirement(iRef->typeID(), effectiveDays)" in _inv
+assert "sovData.hubID != m_self->itemID()" in _inv
+assert "pClient->GetAllianceID() != sovData.allianceID" in _inv
+assert "installed.second->typeID() == iRef->typeID()" in _inv
+assert "iRef->categoryID() == EVEDB::invCategories::StructureUpgrade" in _inv
+assert "EVEItemFlags::flagStructureActive, true" in _inv
+assert 'NAME "IHubUpgradeRulesTest"' in cmake
+print("PASS: IHub supercapital Strategic 5 installation, owner and duplicate guards")
