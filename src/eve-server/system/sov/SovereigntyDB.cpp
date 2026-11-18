@@ -25,6 +25,7 @@
 
 #include "system/sov/SovereigntyDB.h"
 #include "EVE_SovPosIntegrity.h"
+#include "EVE_SovIndexOverride.h"
 
     //TODO: For now, we return 0 as stationCount since such system is not implemented
     //TODO: Handle militaryPoints and industrialPoints, but for now they are 5 by default since we don't have a mechanism for determining them
@@ -130,4 +131,57 @@ void SovereigntyDB::SetBeaconID(uint32 systemID, uint32 beaconID)
     {
         codelog(SOV__ERROR, "Error in changing Beacon ID: %s", err.c_str());
     }
+}
+
+// Requires sql/migrations/20261118070000-sov-development-index-overrides.sql.
+// A missing table is a failed test setup, not permission to mutate real
+// sovereignty claimTime or silently claim the command succeeded.
+bool SovereigntyDB::GetIndexOverrides(DBQueryResult& res)
+{
+    if (!sDatabase.RunQuery(res,
+            "SELECT solarSystemID, claimStructureID, militaryPoints, "
+            "industrialPoints, strategicDays "
+            "FROM mapSovDevelopmentIndexOverrides")) {
+        codelog(SOV__ERROR, "GetIndexOverrides query failed: %s", res.error.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool SovereigntyDB::SaveIndexOverride(uint32 systemID, uint32 claimStructureID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+            "INSERT INTO mapSovDevelopmentIndexOverrides "
+            "(solarSystemID, claimStructureID, militaryPoints, industrialPoints, strategicDays) "
+            "VALUES (%u, %u, %u, %u, %u) "
+            "ON DUPLICATE KEY UPDATE "
+            "claimStructureID=VALUES(claimStructureID), "
+            "militaryPoints=VALUES(militaryPoints), "
+            "industrialPoints=VALUES(industrialPoints), "
+            "strategicDays=VALUES(strategicDays)",
+            systemID, claimStructureID,
+            EVESovIndex::LevelFiveMilitaryPoints,
+            EVESovIndex::LevelFiveIndustrialPoints,
+            uint32(EVESovIndex::LevelFiveStrategicDays))) {
+        codelog(SOV__ERROR, "SaveIndexOverride failed for %u: %s",
+                systemID, err.c_str());
+        return false;
+    }
+    return true;
+}
+
+
+bool SovereigntyDB::DeleteIndexOverride(uint32 systemID, uint32 claimStructureID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+            "DELETE FROM mapSovDevelopmentIndexOverrides "
+            "WHERE solarSystemID=%u AND claimStructureID=%u",
+            systemID, claimStructureID)) {
+        codelog(SOV__ERROR, "DeleteIndexOverride failed for system %u: %s",
+                systemID, err.c_str());
+        return false;
+    }
+    return true;
 }

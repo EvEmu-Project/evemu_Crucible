@@ -44,8 +44,8 @@ protected:
     PyResult RemoveChargeToHangar(PyCallArgs& call, PyTuple* chargeInfo, std::optional<PyRep*> quantity);
     PyResult RemoveChargeToCargo(PyCallArgs& call, PyTuple* chargeInfo, std::optional<PyRep*> quantity);
     PyResult MultiMerge(PyCallArgs& call, PyList* items, std::optional<PyRep*> sourceContainerID);
-    PyResult Add(PyCallArgs& call, PyInt* itemID, PyInt* containerID);
-    PyResult MultiAdd(PyCallArgs& call, PyList* itemIDs, PyInt* containerID);
+    PyResult Add(PyCallArgs& call, PyRep* itemID, PyRep* containerID);
+    PyResult MultiAdd(PyCallArgs& call, PyList* itemIDs, PyRep* containerID);
     PyResult List(PyCallArgs& call, std::optional <PyInt*> listFlag);
     PyResult CreateBookmarkVouchers(PyCallArgs& call, PyList* bookmarkIDs, PyInt* flag, PyBool* isMove);
     PyResult TakeOutTrash(PyCallArgs& call, PyInt* itemIDs);
@@ -65,6 +65,8 @@ protected:
     InventoryItemRef m_self;
 
     std::vector< int32 > CatSortItems(std::vector< InventoryItemRef >& itemVec);
+
+    void RefreshOwnedShipInventory(Client* client);
 
     PyRep* MoveItems(Client* pClient, std::vector< int32 >& items, EVEItemFlags toFlag, int32 quantity, bool manyFlags, float capacity);
 };

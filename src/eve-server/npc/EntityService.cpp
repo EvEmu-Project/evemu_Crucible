@@ -221,6 +221,8 @@ PyResult EntityBound::CmdEngage(PyCallArgs &call, PyList* droneIDs, PyRep* targe
         return PyStatic.mtDict();
     }
     SystemEntity* pTarget = m_sysMgr->GetSE(targetEntityID);
+    if (pTarget != nullptr && pTarget->IsAsteroidSE())
+        return OrderMiningDrones(call, droneIDs, targetID, true);
     if (pTarget == nullptr || pTarget->SysBubble() == nullptr
         || pTarget->SysBubble() != pShipSE->SysBubble()
         || (!pTarget->IsNPCSE() && !pTarget->IsShipSE())) {
@@ -361,51 +363,49 @@ PyResult EntityBound::CmdGuard(PyCallArgs &call, PyInt* guardID, PyList* droneID
     return new PyDict();
 }
 
-PyResult EntityBound::CmdMine(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {
- // ret = entity.CmdMine(droneIDs, targetID)
-    /*
-     * 16:19:14 [DroneTrace] EntityBound::Handle_CmdMine()
-     * 16:19:14 [DroneDump]   Call Arguments:
-     * 16:19:14 [DroneDump]      Tuple: 2 elements
-     * 16:19:14 [DroneDump]       [ 0]   List: 5 elements
-     * 16:19:14 [DroneDump]       [ 0]   [ 0]    Integer: 140024264
-     * 16:19:14 [DroneDump]       [ 0]   [ 1]    Integer: 140024265
-     * 16:19:14 [DroneDump]       [ 0]   [ 2]    Integer: 140024261
-     * 16:19:14 [DroneDump]       [ 0]   [ 3]    Integer: 140024262
-     * 16:19:14 [DroneDump]       [ 0]   [ 4]    Integer: 140024263
-     * 16:19:14 [DroneDump]       [ 1]    Integer: 450000587
-     */
-
-    _log(DRONE__TRACE, "EntityBound::Handle_CmdMine()");
-    call.Dump(DRONE__DUMP);
-
-    /** @todo MAKE CHECKS IN MINING LASER FOR DRONES BEFORE COMPLETING THIS FUNCTION  **/
-
-    call.client->SendNotifyMsg("Drone Control is not implemented yet.");
-    return new PyDict();
+PyResult EntityBound::CmdMine(PyCallArgs& call, PyList* droneIDs, PyRep* targetID) {
+    return OrderMiningDrones(call, droneIDs, targetID, false);
 }
 
-PyResult EntityBound::CmdMineRepeatedly(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {
- // ret = entity.CmdMineRepeatedly(droneIDs, targetID)
-    /*)
-     * 16:20:28 [DroneTrace] EntityBound::Handle_CmdMineRepeatedly()
-     * 16:20:28 [DroneDump]   Call Arguments:
-     * 16:20:28 [DroneDump]      Tuple: 2 elements
-     * 16:20:28 [DroneDump]       [ 0]   List: 5 elements
-     * 16:20:28 [DroneDump]       [ 0]   [ 0]    Integer: 140024264
-     * 16:20:28 [DroneDump]       [ 0]   [ 1]    Integer: 140024265
-     * 16:20:28 [DroneDump]       [ 0]   [ 2]    Integer: 140024261
-     * 16:20:28 [DroneDump]       [ 0]   [ 3]    Integer: 140024262
-     * 16:20:28 [DroneDump]       [ 0]   [ 4]    Integer: 140024263
-     * 16:20:28 [DroneDump]       [ 1]    Integer: 450000587
-     */
-    _log(DRONE__TRACE, "EntityBound::Handle_CmdMineRepeatedly()");
-    call.Dump(DRONE__DUMP);
+PyResult EntityBound::CmdMineRepeatedly(PyCallArgs& call, PyList* droneIDs, PyRep* targetID) {
+    return OrderMiningDrones(call, droneIDs, targetID, true);
+}
 
-    /** @todo MAKE CHECKS IN MINING LASER FOR DRONES BEFORE COMPLETING THIS FUNCTION  **/
+PyResult EntityBound::OrderMiningDrones(PyCallArgs& call, PyList* droneIDs, PyRep* targetID, bool repeat) {
+    Client* pilot = call.client;
+    ShipSE* ship = pilot != nullptr ? pilot->GetShipSE() : nullptr;
+    if (ship == nullptr || m_sysMgr == nullptr || pilot->SystemMgr() != m_sysMgr
+        || m_sysMgr->GetID() != m_systemID || ship->SysBubble() == nullptr)
+        return PyStatic.mtDict();
 
-    call.client->SendNotifyMsg("Drone Control is not implemented yet.");
-    return new PyDict();
+    uint32 asteroidID = 0;
+    SystemEntity* asteroid = ReadEntityID(targetID, asteroidID) ? m_sysMgr->GetSE(asteroidID) : nullptr;
+    if (asteroid == nullptr || !asteroid->IsAsteroidSE() || asteroid->IsDead()
+        || asteroid->SysBubble() != ship->SysBubble()) {
+        pilot->SendNotifyMsg("Select an ore asteroid in your current grid.");
+        return PyStatic.mtDict();
+    }
+    if (ship->TargetMgr() == nullptr || ship->TargetMgr()->GetTarget(asteroidID, true) != asteroid) {
+        pilot->SendNotifyMsg("Lock the asteroid before ordering your mining drones.");
+        return PyStatic.mtDict();
+    }
+
+    bool started = false;
+    for (PyRep* idArg : droneIDs->items) {
+        uint32 droneID = 0;
+        SystemEntity* entity = ReadEntityID(idArg, droneID) ? m_sysMgr->GetSE(droneID) : nullptr;
+        if (entity == nullptr || !entity->IsDroneSE())
+            continue;
+        DroneSE* drone = entity->GetDroneSE();
+        if (drone->IsEnabled() && drone->GetOwnerID() == pilot->GetCharacterID()
+            && drone->GetControllerID() == ship->GetID() && drone->GetHomeShip() == ship
+            && drone->SysBubble() == ship->SysBubble() && drone->GetAI() != nullptr
+            && drone->GetAI()->Mine(asteroid, repeat))
+            started = true;
+    }
+    if (!started)
+        pilot->SendNotifyMsg("No selected mining drones can mine this asteroid. Check the ore type, drone control range, and hold space.");
+    return PyStatic.mtDict();
 }
 
 PyResult EntityBound::CmdUnanchor(PyCallArgs &call, PyList* droneIDs, PyInt* targetID) {

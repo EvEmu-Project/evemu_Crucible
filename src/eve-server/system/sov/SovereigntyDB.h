@@ -43,6 +43,11 @@ public:
     static void SetHubID(uint32 systemID, uint32 hubID);
     static void SetJammerID(uint32 systemID, uint32 jammerID);
     static void SetBeaconID(uint32 systemID, uint32 beaconID);
+    // Developer-only index override; tied to the current TCU claim so a
+    // sovereignty transfer cannot inherit test-time development levels.
+    static bool GetIndexOverrides(DBQueryResult& res);
+    static bool SaveIndexOverride(uint32 systemID, uint32 claimStructureID);
+    static bool DeleteIndexOverride(uint32 systemID, uint32 claimStructureID);
     static void GetUpgradeData(DBQueryResult& res);
     static void GetUpgradesForSystem(DBQueryResult& res, uint32 systemID);
     static void AddSystemUpgrade(uint32 systemID, uint32 upgradeID);

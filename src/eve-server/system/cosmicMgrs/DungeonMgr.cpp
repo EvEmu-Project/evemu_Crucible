@@ -459,9 +459,9 @@ void DungeonMgr::Process()
 
 bool DungeonMgr::MakeDungeon(CosmicSignature& sig, uint32 dungeonID)
 {
-    // TODO: create a new dungeon using the given signature
-
-    Dungeon::Dungeon dData;
+    // Missing static templates leave GetRandomDungeon's output untouched.
+    // Zero-initialize dungeonID for deterministic fail-closed validation.
+    Dungeon::Dungeon dData = Dungeon::Dungeon();
 
     // If we are given a dungeonID, use it otherwise pick a random dungeon based on archetype
     if (dungeonID == 0) {
@@ -470,6 +470,13 @@ bool DungeonMgr::MakeDungeon(CosmicSignature& sig, uint32 dungeonID)
         sDunDataMgr.GetDungeon(dData, dungeonID);
     }
 
+    // Invalid templates must not create success-looking empty combat sites.
+    // Gravimetric sites can use BeltMgr without a dungeon template.
+    if (dData.dungeonID == 0 && sig.dungeonType != Dungeon::Type::Gravimetric) {
+        _log(COSMIC_MGR__WARNING, "Missing anomaly dungeon template (type %u) in system %u.",
+             sig.dungeonType, m_system->GetID());
+        return false;
+    }
     if ((sig.sigGroupID == EVEDB::invGroups::Cosmic_Signature) || (sig.sigGroupID == EVEDB::invGroups::Cosmic_Anomaly)) {
         // Create a new anomaly inventory item to track entire dungeon under
         ItemData iData(sig.sigTypeID, sig.ownerID, sig.systemID, flagNone, sig.sigName.c_str(), sig.position/*, info*/);
@@ -554,8 +561,21 @@ bool DungeonMgr::MakeDungeon(CosmicSignature& sig, uint32 dungeonID)
             roomCounter++;
         }
 
+        // Gravimetric sites need mineable AsteroidSE entities; the existing
+        // BeltMgr creates those using this system's normal ore distribution.
+        if (sig.dungeonType == Dungeon::Type::Gravimetric) {
+            std::unordered_multimap<float, uint16> ore;
+            sDataMgr.GetRoidDist(m_system->GetSystemSecurityClass(), ore);
+            if (ore.empty() || m_system->GetBeltMgr() == nullptr
+                || !m_system->GetBeltMgr()->Create(sig, ore)) {
+                _log(COSMIC_MGR__WARNING, "Unable to create IHub mining site in system %u.",
+                     m_system->GetID());
+                return false;
+            }
+        }
         // Finally add the new dungeon to the system-wide list for tracking
         m_dungeonList.insert({newDungeon.anomalyID, newDungeon});
+        return true; // Previously always returned false after successful spawn.
     }
     return false;
 }

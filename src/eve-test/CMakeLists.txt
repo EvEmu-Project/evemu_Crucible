@@ -29,11 +29,15 @@ SET( utils_SOURCE
      "utils/EvilNumberTest.cpp"
      "utils/WeaponFormulaTest.cpp"
      "utils/MovementFormulaTest.cpp"
+     "utils/MiningFormulaTest.cpp"
      "utils/ScanDirectionTest.cpp"
      "utils/DroneControlRangeTest.cpp"
      "utils/AgentHelpersTest.cpp"
      "utils/CommandPermissionsTest.cpp"
      "utils/SovereigntyPosIntegrityTest.cpp"
+     "utils/SovIndexOverrideTest.cpp"
+     "utils/IHubUpgradeRulesTest.cpp"
+     "utils/TowerShieldRulesTest.cpp"
      "utils/MissionLifecycleTest.cpp"
      "utils/ContainerAssemblyTest.cpp"
      "utils/StationOfficeIntegrityTest.cpp"
@@ -86,8 +90,16 @@ ADD_TEST( NAME "ScanDirectionTest"
           COMMAND "${TARGET_NAME}" "utils/ScanDirectionTest" )
 ADD_TEST( NAME "MovementFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/MovementFormulaTest" )
+ADD_TEST( NAME "MiningFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/MiningFormulaTest" )
 ADD_TEST( NAME "DroneControlRangeTest"
           COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )
+ADD_TEST( NAME "TowerShieldRulesTest"
+          COMMAND "${TARGET_NAME}" "utils/TowerShieldRulesTest" )
+ADD_TEST( NAME "IHubUpgradeRulesTest"
+          COMMAND "${TARGET_NAME}" "utils/IHubUpgradeRulesTest" )
+ADD_TEST( NAME "SovIndexOverrideTest"
+          COMMAND "${TARGET_NAME}" "utils/SovIndexOverrideTest" )
 ADD_TEST( NAME "SovereigntyPosIntegrityTest"
           COMMAND "${TARGET_NAME}" "utils/SovereigntyPosIntegrityTest" )
 ADD_TEST( NAME "CommandPermissionsTest"

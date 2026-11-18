@@ -1,3 +1,44 @@
+## 18 November 2026 — Baseline Military/Industrial upgraded IHub combat and ore sites
+
+- On initialized sovereign solar systems, load active upgrades only from the matching TCU/IHub and schedule up to five additional combat anomalies for Military upgrades and five Gravimetric signatures for Industrial upgrades. Actual mineable asteroid objects are created through BeltMgr from existing system ore distribution.
+- Fix DungeonMgr::MakeDungeon erroneously returning false after successfully constructing/registering a dungeon. Missing combat templates cause a clear failure instead of empty success; absent ore distribution causes a mining-site warning. Existing anomaly/site logic is reused.
+- **Scope:** baseline site availability only. CCP-specific quality/rarity/tiers, complete NPC site content, manufacturing jobs, billing, activity-index progression/decay, immediate runtime refresh and site respawn policy still require further implementation and in-game tests.
+- Extend source invariants and operator SQL diagnostics in the IHub test guide.
+
+## 18 November 2026 — Full IHub-family install rules and control tower physical shield bubble
+
+- Added category-39 IHub upgrade installation support for Strategic (group 1016), Industrial (1020) and Military (1021), with static upgrade prerequisite/blocking attributes, active flags, duplicate protection, and holding alliance Director/StarbaseConfig checks. Military/Industry installation remains restricted to simulated Level 5 testing while real activity progression is unimplemented.
+- Expanded POS anchoring prerequisites to all POS with `anchoringRequiresSovUpgrade1`; require active installed upgrade, including Supercapital Construction Facilities for relevant capital arrays.
+- Fixed tower force field spawn requiring nonempty password, missing harmonic persistence across restart, password clearing stopping the field, invalid zero radius (Large defaults to 30km), and force-field/missile packets incorrectly receiving damage state.
+- Added test cases for all three IHub families and TowerShieldRules plus Python source guards. **Full military upgraded NPC/anomaly mechanics, ore cluster effects, actual activity index progression, manufacturing job service and sovereignty upkeep are not implemented by this commit.** Live gameplay testing required.
+
+## 18 November 2026 — Support Supercapital Construction Facilities IHub upgrade installation
+
+- Located exact server-side rejection of type `2009`: `Inventory::ValidateIHubUpgrade` supported only 3 strategic upgrade typeIDs, defaulting to `not currently supported` for Supercapital Construction Facilities.
+- Updated type 2009 to require **100 effective Strategic days**, including `/sovindex5` TCU-bound testing days, rather than the actual TCU claim timestamp. Retain support for existing navigation/suppression/logistics upgrades, and reject other unsupported types explicitly.
+- Require valid active alliance sovereignty and registered IHub, restrict installation to the holding alliance or DEV/ADMIN, prevent duplicate upgrades by type, and mark only supported upgrades `flagStructureActive` before inventory flag indexing. This improves persistence/listing consistency.
+- Add pure `IHubUpgradeRulesTest` CTest and CI invariant checks. No SQL change required beyond previously merged index overrides; live client drag/drop, reload, and visual unlock need gameplay verification.
+
+## 18 November 2026 — Resolve Linux CI source invariant failure for /sovindex5
+
+- CI run 44259205124: Linux GCC **compiled**, but step `Verify sovereignty and POS integrity invariants` failed at line 71 because the checker expected the obsolete SQL string `strategicDays=100`.
+- The upsert intentionally now uses `strategicDays=VALUES(strategicDays)` with an explicit bound C++ constant `EVESovIndex::LevelFiveStrategicDays = 100`. Update regression checker to assert the **current** parameterized query and the constant, keeping Strategic Level 5 unchanged.
+- Docker and MariaDB jobs of the previous run passed; Windows compilation was still running when diagnosed. Repeat CI against this patch to confirm all platforms and regression guards.
+
+## 18 November 2026 — Repair Level 0 Military/Industry after /sovindex5
+
+- User's gameplay test: Strategic correctly shows Level 5, but Military and Industry still display Level 0. Root cause: old command wrote **5 raw points**, which is not equivalent to displayed Level 5, and 16-bit database/packet fields could not hold valid activity totals.
+- Isolated DEV override now writes **1,000,000,000 military points** and **30,000,000 industrial points** (test-only values within signed 32-bit client serialization); Strategic remains 100 effective days. Change C++ override fields to uint32, widen client packed rows to DBTYPE_I4, SQL override columns to INT UNSIGNED.
+- Add follow-up migration `20261118093000-sov-development-index-point-width.sql` that upgrades old (5,5) rows. Do not alter the original migration or any real claim timestamps, TCU, player assets, system ownership, or station settings.
+- Expand CTest/Windows/Linux invariants for raw activity points and data widths. Must run new migration/rebuild/retest client before calling this resolved in gameplay.
+
+## 18 November 2026 — GM Level 5 Infrastructure Hub development index test command
+
+- Verified current `/sov` is only a stub and `SovereigntyDB` currently fakes military/industrial 5 points globally; Strategic is the genuine age from claimTime. The all-system index API previously returned null. Full upgrade installation functionality is not proven.
+- Add `/sovindex5` for **DEV or ADMIN** only in a valid player-claimable null-sec system with real alliance TCU and registered IHub. It persists a 5/5 military/industry override and 100 strategic *effective* days; `/sovindex5 reset` removes the current claim's override. Original claimTime, TCU, inventory and sovereignty ownership are never changed.
+- Add claim-bound table `mapSovDevelopmentIndexOverrides` via migration 20261118070000, loaded on server boot, with a TCU ID marker to prevent orphaned test indices carrying over to a new alliance. Claim removal also purges matching override rows to prevent onlining the same TCU from restoring test indices. The migration **must be applied before using the command**.
+- Expose effective values via system, region, claim view, and completed all-system development indices; add new CTest and Windows/Linux invariants. Document exact command steps, restore action and iHub upgrade gameplay test checklist in [docs/SOV_INDEX_LEVEL5_GM_TEST_2026-11-18.md](docs/SOV_INDEX_LEVEL5_GM_TEST_2026-11-18.md).
+
 ## 18 November 2026 — Orphan reference recheck passed (manual cleanup eligible)
 
 - Operator reconfirmed `posStructureData.itemID` **140003364** and **140003384** have zero contained inventory records, customs rows, incoming jump bridge links and sovereignty references. Earlier checks also showed absent base entities, and zero tower data, direct bridge records, dependent POS structures and dynamic attributes.

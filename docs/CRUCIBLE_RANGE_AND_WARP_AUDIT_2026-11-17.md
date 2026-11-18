@@ -3,16 +3,31 @@
 ## Parsed user data
 The four attached exports yielded **376 ship hulls, 61 published hulls without attribute 600, 1,312 module rows and 234 missile-charge rows**. The files are query-result text serialized as `INSERT INTO UnknownTable`; they are NOT real database migrations.
 
-### Warp-speed interpretation — now verified from the user's SDE
+### Warp-speed interpretation
 - Battleships have raw attribute 600 = **3**; T1 frigates = **6**, and interceptors = **13.5**, matching pre-Rubicon units in AU/s. 2013 CCP documentation explicitly states interceptors previously had **13.5 AU/s**.
-- Therefore the old server logic `3.0f * warpSpeedMultiplier` applies an incorrect additional threefold scaling. Runtime now reads fitted attribute 600 as AU/s and falls back to historical type value, then 3.0 only if both are missing.
+- The server database expects attribute 600 in AU/s. The archived Crucible 1.6 export uses a multiplier on the 3 AU/s client baseline. The bundled seed includes some archived multiplier values alongside values already expressed in AU/s. Use the hull's verified value before interpreting or changing a row.
 - 4 Logistics hulls incorrectly store **9**; CCP's Crucible official patch changed them to **3.75 AU/s**.
 - 47 published T1 cruiser/battlecruiser/destroyer rows are missing attribute 600 and should use **3 AU/s**, consistent with early 2012 player observations.
 - Other confirmed problems in the user export include 11 ordinary industrials set to 0.75 (2012 standard **4.5**), 4 Marauders at 13.5 (historical **3.0**), 4 HICs at 9 (historical **3.75**), 8 Recon cruisers at 1.25 (historical **3.75**), and all 8 transport ships at 0.75 (historical deep space **3.0** vs blockade runners **9.0**). Four combat interceptors should be **9.0** rather than 13.5, while the four fleet interceptors remain **13.5**. Standard Assault Frigates were historically **6.0**, not **13.5**; specialty tournament hulls remain excluded.
 - These corrections are typeID-scoped and old-value guarded in `sql/diagnostics/2026-11-17-crucible-warp-speed-verified-repair.sql` (98 hull records). **Manual backup, preview and staging run required; PR does not run SQL against your server.**
 
+### Capitals and Orca
+
+The comparison covered 27 published hulls in eight groups. The archive stores base warp speed 1 for each of these hulls. Multiplying the archived attribute 600 by 3 yields the base speeds below.
+
+| Hulls | Archived attribute 600 | Base AU/s | Bundled seed before migration |
+| --- | ---: | ---: | ---: |
+| Freighters | 0.25 | 0.75 | 0.25 |
+| Jump freighters | 0.25 | 0.75 | 0.75 |
+| Dreadnoughts, carriers, supercarriers and titans | 0.50 | 1.50 | 1.50 |
+| Rorqual | 0.40 | 1.20 | 1.50 |
+| Orca | 0.90 | 2.70 | 1.50 |
+
+The [capital warp migration](../sql/migrations/20261118130000-crucible-capital-warp-speeds.sql) updates the four freighters, the Rorqual and the Orca when their static rows match the bundled seed. It keeps fitted item overrides and other edited values. Restart the server after applying the migration to reload the type attributes. The server simulates warp at the exact fitted speed, and the client movement packet carries the nearest tenth of an AU/s.
+
 ### Still requiring individual corroboration
-Not all 61 absent values should be filled with 3 automatically: the remaining **14 absent published entries** are 8 Command Ships, 4 Strategic Cruisers, and Noctis/Primae. Other outliers, rare tournament hulls, stealth bombers, electronic attack frigates, freighters and capital variants should be checked against pinned *Crucible 1.6 / 2012* SDE by typeID before changing them. Do not use post-Rubicon values.
+
+Check any other outlier against the pinned Crucible 1.6 export by type ID before making further corrections.
 
 ## Weapon / mining / tractor observations from 1,312 exported module rows
 - Fitted energy/hybrid/projectile turret types already have distinct **optimal** (`54`) and **falloff** (`158`) values, so avoid a universal range multiplier; runtime now reads live effective values in double precision.
@@ -31,7 +46,7 @@ Not all 61 absent values should be filled with 3 automatically: the remaining **
   - https://lib-corp.wikidot.com/marauder
   - https://lib-corp.wikidot.com/heavyinterdictor
   - https://lib-corp.wikidot.com/interceptor
-- For a reproducible exact typeID comparison, CCP's Crucible 1.6 archived SDE was identified as `Crucible_1.6_65449_db.zip` in 2012 discussions, but its contents are not yet available locally. https://forums-archive.eveonline.com/message/1064377/
+- The capital comparison uses [Fuzzwork's conversion of the CCP Crucible 1.6 export](https://www.fuzzwork.co.uk/dump/old/Crucible/cru16/).
 
 ## In-game QA before merging
 1. Verify a loaded battleship warps at **3 AU/s** (not 9) and a standard frigate at **6 AU/s** (not 18).

@@ -360,6 +360,62 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y mariadb-client
+      - name: Verify POS industry slot migration and provisioning
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE pos_industry_test"
+          python3 tools/tests/verify_pos_industry_lines.py --host=127.0.0.1 --user=root --database=pos_industry_test
+      - name: Verify guarded Crucible static attribute migration
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          set -euo pipefail
+          mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE crucible_attribute_test"
+          {
+            cat <<'SQL'
+          CREATE TABLE invTypes (typeID INT PRIMARY KEY, radius DOUBLE, mass DOUBLE, capacity DOUBLE);
+          CREATE TABLE dgmTypeAttributes (typeID INT, attributeID INT, valueInt INT, valueFloat DOUBLE, PRIMARY KEY (typeID, attributeID));
+          CREATE TABLE entity (itemID INT PRIMARY KEY, typeID INT, locationID INT, flag INT);
+          INSERT INTO invTypes VALUES (4256,1,1,150),(450,1,1,0),(451,1,420,0),(12346,100,1,0);
+          INSERT INTO dgmTypeAttributes VALUES (22852,271,NULL,0.97),(22544,12,4,NULL),(2998,12,5,NULL);
+          INSERT INTO entity VALUES (100,22544,0,0),(101,1,100,11);
+          SQL
+            sed '/^-- +migrate Down/,$d' sql/migrations/20261118123000-crucible-static-attribute-corrections.sql
+            cat <<'SQL'
+          SELECT GROUP_CONCAT(CONCAT(typeID,':',radius,':',mass,':',capacity) ORDER BY typeID)
+          FROM invTypes WHERE typeID IN (4256,450,451);
+          SELECT GROUP_CONCAT(CONCAT(typeID,':',COALESCE(valueInt,valueFloat)) ORDER BY typeID)
+          FROM dgmTypeAttributes;
+          SELECT radius FROM invTypes WHERE typeID = 12346;
+          SQL
+          } | mariadb --host=127.0.0.1 --user=root --database=crucible_attribute_test --batch --skip-column-names > "$RUNNER_TEMP/crucible-attribute-test.txt"
+          diff -u <(printf '%s\n' '450:1:500:0,451:1:420:0,4256:1:1:225' '2998:3,22544:4,22852:1' '10') "$RUNNER_TEMP/crucible-attribute-test.txt"
+      - name: Verify Crucible capital warp seed and rollback
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          set -euo pipefail
+          mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE crucible_capital_warp_test"
+          migration=sql/migrations/20261118130000-crucible-capital-warp-speeds.sql
+          {
+            cat <<'SQL'
+          CREATE TABLE invTypes (typeID INT PRIMARY KEY, groupID INT, published BIT);
+          CREATE TABLE dgmTypeAttributes (typeID INT, attributeID INT, valueInt INT, valueFloat DOUBLE, PRIMARY KEY (typeID, attributeID)) ENGINE=MyISAM;
+          INSERT INTO invTypes VALUES (671,30,1),(20183,513,1),(20185,513,1),(20187,513,0),(20189,513,1),(28352,883,1),(28606,941,1),(28844,902,1);
+          INSERT INTO dgmTypeAttributes VALUES (671,600,NULL,1.5),(20183,600,NULL,0.25),(20185,600,NULL,0.75),(20187,600,NULL,0.25),(20189,600,NULL,0.5),(28352,600,NULL,1.5),(28606,600,NULL,1.5),(28606,1281,1,NULL),(28844,600,NULL,0.75);
+          SQL
+            sed '/^-- +migrate Down/,$d' "$migration"
+            sed '/^-- +migrate Down/,$d' "$migration"
+            cat <<'SQL'
+          SELECT COUNT(*) FROM crucibleCapitalWarpPrevious;
+          SELECT GROUP_CONCAT(CONCAT(typeID,':',attributeID,':',COALESCE(valueFloat,valueInt)) ORDER BY typeID,attributeID) FROM dgmTypeAttributes;
+          UPDATE dgmTypeAttributes SET valueFloat=3.3 WHERE typeID=28606 AND attributeID=600;
+          SQL
+            sed -n '/^-- +migrate Down/,$p' "$migration"
+            printf '%s\n' "SELECT GROUP_CONCAT(CONCAT(typeID,':',attributeID,':',COALESCE(valueFloat,valueInt)) ORDER BY typeID,attributeID) FROM dgmTypeAttributes;"
+          } | mariadb --host=127.0.0.1 --user=root --database=crucible_capital_warp_test --batch --skip-column-names > "$RUNNER_TEMP/crucible-capital-warp.txt"
+          diff -u <(printf '%s\n' '3' '671:600:1.5,20183:600:0.75,20185:600:0.75,20187:600:0.25,20189:600:0.5,28352:600:1.2,28606:600:2.7,28606:1281:1,28844:600:0.75' '671:600:1.5,20183:600:0.25,20185:600:0.75,20187:600:0.25,20189:600:0.5,28352:600:1.5,28606:600:3.3,28606:1281:1,28844:600:0.75') "$RUNNER_TEMP/crucible-capital-warp.txt"
       - name: Build the patched EVEDBTool
         run: |
           git clone --quiet --depth 1 --branch 0.0.6 https://github.com/EvEmu-Project/EVEDBTool.git "$RUNNER_TEMP/EVEDBTool"

@@ -428,7 +428,7 @@ PyResult Command_shipvars(Client* pClient, CommandDB* db, EVEServiceManager &ser
              "Inertia: %.3f<br>" //27
              "Heading: %.3f,%.3f,%.3f<br>", //21
                 pClient->GetShipSE()->GetName(), pClient->GetShipID(), dm->GetMass(), dm->GetAlignTime(),
-             dm->GetAccelTime(), dm->GetMaxVelocity(), (float)(dm->GetWarpSpeed() /10), dm->GetWarpTime(),
+             dm->GetAccelTime(), dm->GetMaxVelocity(), dm->GetWarpSpeedAU(), dm->GetWarpTime(),
              dm->GetWarpDropSpeed(), dm->GetRadius(), dm->GetCapNeed(), dm->GetAgility(), dm->GetInertia(),
              heading.x, heading.y, heading.z
             );

@@ -582,7 +582,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
         case EVEDB::invCategories::Asteroid: {
             InventoryItemRef asteroid = sItemFactory.GetItemRef( entity.itemID );
             if (asteroid.get() == nullptr)
-                ; /** @todo make error msg here */
+                return nullptr;
             AsteroidSE* aSE = new AsteroidSE(asteroid, sysMgr.GetServiceMgr(), &sysMgr);
             _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making AsteroidSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return aSE;
@@ -1368,7 +1368,7 @@ void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) c
 
     //go through all visible entities and gather the info we need...
     for (auto cur : visibleEntities) {
-        if (!cur.second->IsMissileSE() or !cur.second->IsFieldSE())
+        if (!cur.second->IsMissileSE() && !cur.second->IsFieldSE())
             into.damageState[ cur.first ] = cur.second->MakeDamageState();
 
         into.slims->AddItem( new PyObject( "foo.SlimItem", cur.second->MakeSlimItem()));

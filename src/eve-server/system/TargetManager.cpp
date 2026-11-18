@@ -493,7 +493,12 @@ void TargetManager::ClearModules() {
 
         cur = m_modules.erase (cur);
 
-        module->AbortCycle ();
+        // A depleted asteroid cannot pay out a pending laser cycle. Clear the
+        // module before its target is removed, even if it was already stopping.
+        if (mySE->IsAsteroidSE() && module->IsMiningLaser())
+            module->GetMiningModule()->CancelOnError();
+        else
+            module->AbortCycle();
     }
 }
 
