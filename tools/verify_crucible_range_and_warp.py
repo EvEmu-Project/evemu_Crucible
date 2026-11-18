@@ -41,7 +41,20 @@ assert "m_timeFraction > 0.749" not in alignment
 assert "warp align/speed is incorrect" not in alignment
 assert "headingReady && speedReady" in alignment
 # Stop() must not fall through to a stale Follow() movement tick.
-assert "Stop();\n                // One authoritative sync at completion" in destiny
+follow = destiny.split("void DestinyManager::Follow()", 1)[1].split("void DestinyManager::Orbit()", 1)[0]
+assert "Stop();" in follow
+assert "SetPosition(m_position, true);\n            return;" in follow
+assert "EVEmuMovement::TractorTravelStep(" in follow
+
+# A warp launch uses the requested destination plus a range. The final
+# authoritative stop uses the already range-adjusted endpoint.
+assert "wt.dest_x = m_warpDestination.x;" in destiny
+assert "WarpRemainingAfterAcceleration(m_warpState->total_distance, currentDistance)" in destiny
+warp_stop = destiny.split("void DestinyManager::WarpStop(", 1)[1].split("void DestinyManager::EntityRemoved(", 1)[0]
+assert warp_stop.index("SetPosition(m_targetPoint);") < warp_stop.index("Halt();")
+assert "SetBallVelocity velocity;" in warp_stop and "SetPosition(m_position, true);" in warp_stop
+wreck = source("src/eve-server/system/Container.cpp").split("void WreckSE::EncodeDestiny", 1)[1]
+assert "tractored ? Ball::Mode::FOLLOW : Ball::Mode::TROLL" in wreck
 invbroker = source("src/eve-server/inventory/InvBrokerService.cpp")
 assert "case EVEDB::invGroups::Wreck:" in invbroker
 assert "shipSE->GetPosition().distance(containerSE->GetPosition())" in invbroker

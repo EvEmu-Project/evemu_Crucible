@@ -76,7 +76,6 @@ m_shipInertia(1.0),
 m_warpAccelTime(1),
 m_warpDecelTime(1),
 m_warpState(nullptr),
-m_targBubble(nullptr),
 m_warpCapacitorNeed(0.00001),
 m_frozen(false),
 m_ticAlign(false),
@@ -165,7 +164,7 @@ void DestinyManager::EncodeWarpState(Buffer& into) const {
     warp.totalDistance = (m_warpState != nullptr)
         ? m_warpState->total_distance
         : -1.0;
-    warp.minRange = static_cast<double>(m_stopDistance);
+    warp.minRange = (m_warpState != nullptr) ? 0.0 : static_cast<double>(m_stopDistance);
     warp.warpFactor = static_cast<int64>(GetWarpSpeed());
     into.Append(warp);
 }
@@ -455,7 +454,6 @@ void DestinyManager::UpdateVelocity(bool isMoving) {
         logType = 1;
         m_accel = false;
         m_decel = true;
-        m_targBubble = nullptr;
         m_maxSpeed = m_speedToLeaveWarp;
         m_prevSpeed = m_speedToLeaveWarp;
         m_velocity = m_shipHeading * m_maxSpeed;
@@ -1223,6 +1221,39 @@ void DestinyManager::Follow() {
     m_targetDistance = EVEmuMovement::SurfaceSeparation(
         centerDistance, m_radius, m_targetEntity.second->GetRadius());
 
+    if (m_tractored) {
+        if (!std::isfinite(centerDistance) || m_targetDistance > m_tractorRange) {
+            TractorBeamStop();
+            return;
+        }
+
+        const double step = EVEmuMovement::TractorTravelStep(m_targetDistance, m_followDistance, m_maxShipSpeed);
+        if (step > 0.0) {
+            heading.normalize();
+            m_shipHeading = heading;
+            m_velocity = heading * step;
+            SetPosition(m_position + m_velocity);
+        } else {
+            m_velocity = NULL_ORIGIN_V;
+        }
+
+        const bool reachedTarget = step >= std::max(0.0, m_targetDistance - m_followDistance);
+        if (m_tractorPause != reachedTarget) {
+            m_tractorPause = reachedTarget;
+            m_userSpeedFraction = m_activeSpeedFraction = m_timeFraction = reachedTarget ? 0.0f : 1.0f;
+            CmdSetSpeedFraction fraction;
+            fraction.entityID = mySE->GetID();
+            fraction.fraction = m_userSpeedFraction;
+            PyTuple* update = fraction.Encode();
+            SendSingleDestinyUpdate(&update);
+            if (reachedTarget) {
+                m_velocity = NULL_ORIGIN_V;
+                SetPosition(m_position, true);
+            }
+        }
+        return;
+    }
+
     if (m_targetDistance < m_followDistance) {
         if (mySE->HasPilot())
             if (mySE->GetPilot()->IsAutoPilot()) {
@@ -1230,58 +1261,21 @@ void DestinyManager::Follow() {
                 _log(AUTOPILOT__TRACE, "DestinyManager::Follow() - Target within FollowDistance.  SpeedFraction = 0.1.");
                 return;
             }
-    // this will allow following entities to keep their follow state, yet stop movement if within their follow distance.
-    //  by keeping their follow state, once the distance is greater than their follow distance, they will begin movement again.
-        if (m_tractored) {
-            // specific to tractored entities.  sudden halt to mimic tractor stopping
-            if (!m_tractorPause) {
-                std::vector<PyTuple*> updates;
-                CmdSetSpeedFraction ssf;
-                    ssf.entityID = mySE->GetID();
-                    ssf.fraction = 0;
-                updates.push_back(ssf.Encode());
-                SendDestinyUpdate(updates);
-            }
-            m_velocity = NULL_ORIGIN_V;
-            m_tractorPause = true;
-            m_activeSpeedFraction = m_userSpeedFraction = m_timeFraction = m_prevSpeedFraction = 0.0f;
-            return;
+        if (m_targetEntity.second->IsDynamicEntity()
+            && m_targetEntity.second->DestinyMgr() != nullptr
+            && m_targetEntity.second->DestinyMgr()->IsMoving()) {
+            SetSpeedFraction(0.2);
         } else {
-            if ((m_targetEntity.second->IsDynamicEntity()) and (m_targetEntity.second->DestinyMgr()->IsMoving())) {
-                // this will mimic real movement, where ship will decel instead of a sudden halt
-                //  still need to call MoveObject() here
-                SetSpeedFraction(0.2);
-            } else {
-                // Stop() clears the follow range. Never run MoveObject()
-                // with that reset state, or approach prediction will drift.
-                Stop();
-                // One authoritative sync at completion, not every tick.
-                if (mySE->HasPilot())
-                    SetPosition(m_position, true);
-                return;
-            }
+            // Stop() clears the follow range. Never run MoveObject()
+            // with that reset state, or approach prediction will drift.
+            Stop();
+            // One authoritative sync at completion, not every tick.
+            if (mySE->HasPilot())
+                SetPosition(m_position, true);
+            return;
         }
-    } else {
-        if (m_tractored and m_tractorPause) {
-            // tractored object is outside follow distance.  begin movement again
-            if (m_tractorPause) {
-                std::vector<PyTuple*> updates;
-                CmdSetSpeedFraction ssf;
-                    ssf.entityID = mySE->GetID();
-                    ssf.fraction = 1;
-                updates.push_back(ssf.Encode());
-                SendDestinyUpdate(updates);
-            }
-            m_tractorPause = false;
-            m_velocity = m_shipHeading * m_maxSpeed;
-            m_moveTime = GetTimeMSeconds();
-            m_stateStamp = sEntityList.GetStamp();
-            m_prevSpeedFraction = 0.0f;
-            // there is no accel/decel for tractor'd items
-            m_activeSpeedFraction = m_userSpeedFraction = m_timeFraction = 1;
-        } else if (m_userSpeedFraction != 0.0f) {
-            SetSpeedFraction(1.0f);
-        }
+    } else if (m_userSpeedFraction != 0.0f) {
+        SetSpeedFraction(1.0f);
     }
 
     // Aim for the near-side stand-off point, not beyond the target's center.
@@ -1612,6 +1606,13 @@ void DestinyManager::InitWarp() {
         );
     }
 
+    // The ship moves while aligning. Measure from its actual warp entry.
+    m_targetDistance = m_position.distance(m_targetPoint);
+    if (!std::isfinite(m_targetDistance) || m_targetDistance <= 0.0) {
+        Stop();
+        return;
+    }
+
     double warpSpeedInMeters(static_cast<double>(m_shipWarpSpeed) * static_cast<double>(ONE_AU_IN_METERS));
 
     /* this is from http://community.eveonline.com/news/dev-blogs/warp-drive-active/
@@ -1728,8 +1729,6 @@ void DestinyManager::InitWarp() {
         );
     }
 
-    // reset deceltime (from duration to time) for time check in WarpDecel()
-    m_warpDecelTime = m_warpAccelTime + floor(cruiseTime);
     m_stateStamp = sEntityList.GetStamp();
 
     SafeDelete(m_warpState);
@@ -1767,33 +1766,20 @@ void DestinyManager::WarpAccel(uint16 sec_into_warp) {
      * distance = e^(k*s)
      * speed = k*e^(k*s)
      */
-    double currentDistance = exp(3 * sec_into_warp);
+    double currentDistance = std::expm1(3.0 * sec_into_warp);
 
-    if (mySE->SysBubble() != nullptr && currentDistance > BUBBLE_RADIUS_METERS && mySE->SysBubble() != m_targBubble) {
-        if (is_log_enabled(DESTINY__WARP_TRACE)) {
-            _log(
-                DESTINY__WARP_TRACE,
-                "Destiny::WarpAccel(): %s(%u) is being removed from bubble %u.",
-                mySE->GetName(),
-                mySE->GetID(),
-                mySE->SysBubble()->GetID()
-            );
-        }
-
-        mySE->SysBubble()->Remove(mySE);
-    }
-
-    if (currentDistance > m_warpState->accelDist) {
+    if (currentDistance >= m_warpState->accelDist) {
         currentDistance = m_warpState->accelDist;
         m_warpState->accel = false;
         if (m_warpState->cruiseDist > 0) {
             m_warpState->cruise = true;
         } else {
             m_warpState->decel = true;
+            m_warpDecelTime = sec_into_warp;
         }
     }
 
-    m_targetDistance -= currentDistance;
+    m_targetDistance = EVEmuMovement::WarpRemainingAfterAcceleration(m_warpState->total_distance, currentDistance);
     double currentShipSpeed = (3 * currentDistance);
 
     if (is_log_enabled(DESTINY__WARP_TRACE) && m_warpState->accel) {
@@ -1814,11 +1800,12 @@ void DestinyManager::WarpAccel(uint16 sec_into_warp) {
 
 void DestinyManager::WarpCruise(uint16 sec_into_warp) {
     /* in cruise....calculate distance only to update internal position data. */
-    m_targetDistance -= m_warpState->warpSpeed;
+    m_targetDistance = std::max(m_warpState->decelDist, m_targetDistance - m_warpState->warpSpeed);
 
-    if ((m_targetDistance - m_warpState->warpSpeed) < m_warpState->decelDist) {
+    if (m_targetDistance <= m_warpState->decelDist) {
         m_warpState->cruise = false;
         m_warpState->decel = true;
+        m_warpDecelTime = sec_into_warp;
     }
 
     if (is_log_enabled(DESTINY__WARP_TRACE)) {
@@ -1841,10 +1828,10 @@ void DestinyManager::WarpDecel(uint16 sec_into_warp) {
      * distance = e^(k*s)
      * speed = -k*e^(k*s)
      */
-    uint8 decelTime = (sec_into_warp - m_warpDecelTime);
-    double currentDistance = (m_warpState->total_distance - (exp(-decelTime) * m_warpState->decelDist));
-    m_targetDistance = static_cast<double>(m_warpState->total_distance - currentDistance);
-    double currentShipSpeed = (m_warpState->warpSpeed * exp(-decelTime));
+    const int32 decelTime = sec_into_warp - m_warpDecelTime;
+    const double decelFactor = std::exp(-static_cast<double>(decelTime));
+    m_targetDistance = std::min(m_targetDistance, m_warpState->decelDist * decelFactor);
+    const double currentShipSpeed = m_warpState->warpSpeed * decelFactor;
 
     if (is_log_enabled(DESTINY__WARP_TRACE))
         _log(DESTINY__WARP_TRACE, "Destiny::WarpDecel(): %s(%u) - Warp Decelerating(%us/%us): velocity %.4f m/s with %.2f m left to go.", \
@@ -1856,48 +1843,23 @@ void DestinyManager::WarpDecel(uint16 sec_into_warp) {
 }
 
 void DestinyManager::WarpUpdate(double currentShipSpeed) {
-    //  update position and velocity for all stages.
-    //  this method is ~1000m off actual.  could be due to rounding.   -allan 9Jan15
-    m_velocity = (m_warpState->warp_vector * currentShipSpeed);
+    m_velocity = m_warpState->warp_vector * currentShipSpeed;
     SetPosition(m_targetPoint - (m_warpState->warp_vector * m_targetDistance));
-
-    if (is_log_enabled(DESTINY__WARP_TRACE)) {
-        _log(
-            DESTINY__WARP_TRACE,
-            "Destiny::WarpUpdate()  %s(%u): Ship is %f from center of target bubble %u.",
-            mySE->GetName(),
-            mySE->GetID(),
-            m_targBubble->GetCenter().distance(m_position),
-            m_targBubble->GetID()
-        );
+    if (SystemBubble* current = mySE->SysBubble()) {
+        if (!current->InBubble(m_position))
+            current->Remove(mySE);
     }
 
-    if (m_targBubble->InBubble(m_position, true)) {
-        if (is_log_enabled(DESTINY__WARP_TRACE)) {
-            _log(
-                DESTINY__WARP_TRACE,
-                "Destiny::WarpUpdate()  %s(%u): Ship at %.2f,%.2f,%.2f is calling Add() for bubble %u.",
-                mySE->GetName(),
-                mySE->GetID(),
-                m_position.x,
-                m_position.y,
-                m_position.z,
-                m_targBubble->GetID()
-            );
+    // Destination grids can expire during alignment or cruise. Resolve the
+    // grid near arrival, and keep the ship out of unrelated grids en route.
+    if (m_warpState->decel && m_targetDistance <= BUBBLE_RADIUS_METERS) {
+        SystemBubble* destination = sBubbleMgr.GetBubble(mySE->SystemMgr(), m_targetPoint);
+        if (destination != nullptr && destination != mySE->SysBubble()
+            && destination->InBubble(m_position)) {
+            if (mySE->SysBubble() != nullptr)
+                mySE->SysBubble()->Remove(mySE);
+            destination->Add(mySE);
         }
-
-        m_targBubble->Add(mySE);
-
-        SetPosition(m_position, true);
-    } else {
-        _log(
-            DESTINY__WARP_TRACE,
-            "Destiny::WarpUpdate()  %s(%u): adding to midWarpSystemBubble.",
-            mySE->GetName(),
-            mySE->GetID()
-        );
-        SystemBubble* midWarpSystemBubble(sBubbleMgr.GetBubble(mySE->SystemMgr(), m_position));
-        midWarpSystemBubble->Add(mySE);
     }
 }
 
@@ -1908,28 +1870,27 @@ void DestinyManager::WarpStop(double currentShipSpeed) {
         _log(DESTINY__WARP_TRACE, "Destiny::WarpStop(): %s(%u): Ship currently at %.2f,%.2f,%.2f.", \
                 mySE->GetName(), mySE->GetID(), m_position.x, m_position.y, m_position.z);
     }
-    if (mySE->IsShipSE()) {
+    if (mySE->HasPilot()) {
         _log(AUTOPILOT__MESSAGE, "Destiny::WarpStop(): %s(%u) - Warp complete.", mySE->GetName(), mySE->GetID());
         mySE->GetPilot()->SetLoginWarpComplete();
     }
-    m_targetPoint += (m_warpState->warp_vector *10000);
-    // SetSpeedFraction() checks for m_state = Warp and warpstate != null to set decel variables correctly with warp decel.
-    //   have to call this BEFORE deleting or reseting m_state or WarpState.
-    SetSpeedFraction(0.0f);
-    m_stop = true;
-    SafeDelete(m_warpState);
-    m_targBubble = nullptr;
-    if ((mySE->IsNPCSE()) and (mySE->GetNPCSE()->GetAIMgr() != nullptr)) {
-        mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
-    }
-
-    // TODO: when exiting warp, and attempting to warp again shortly after, the
-    // ball mode reaches a weird state where it goes from Warp to a regular
-    // move. Halting the ship after warp completes seems to fix this, but it's
-    // not a good fix, because the client shows that the ship moves a few meters
-    // forward while decelerating - meaning that the client and server are
-    // briefly out of sync because the server thinks the ship is halted.
+    // Commit the same landing point and stopped velocity on the server
+    // and client. No residual warp velocity should move the ship afterward.
+    SetPosition(m_targetPoint);
     Halt();
+    sBubbleMgr.Add(mySE);
+
+    CmdStop stop;
+    stop.entityID = mySE->GetID();
+    SetBallVelocity velocity;
+    velocity.entityID = mySE->GetID();
+    velocity.x = velocity.y = velocity.z = 0.0;
+    std::vector<PyTuple*> updates{stop.Encode(), velocity.Encode()};
+    SendDestinyUpdate(updates);
+    SetPosition(m_position, true);
+
+    if (mySE->IsNPCSE() && mySE->GetNPCSE()->GetAIMgr() != nullptr)
+        mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
 }
 
 //called whenever an entity is going away and can no longer be used as a target
@@ -1942,7 +1903,10 @@ void DestinyManager::EntityRemoved(SystemEntity *pSE) {
             case Destiny::Ball::Mode::FOLLOW:
             case Destiny::Ball::Mode::ORBIT: {
                 _log(DESTINY__DEBUG, "%u: Our target entity has gone away. Stopping.", mySE->GetID());
-                Stop();
+                if (m_tractored)
+                    TractorBeamStop();
+                else
+                    Stop();
             } break;
         }
     }
@@ -1951,9 +1915,18 @@ void DestinyManager::EntityRemoved(SystemEntity *pSE) {
 bool DestinyManager::IsTargetInvalid()
 {
     /** @todo  this needs a good lookover */
-    if (mySE->SystemMgr()->GetSE(m_targetEntity.first) == nullptr) {
-        // Our target was removed
-        Stop();
+    if (m_targetEntity.second == nullptr
+        || mySE->SystemMgr()->GetSE(m_targetEntity.first) != m_targetEntity.second) {
+        if (m_tractored)
+            TractorBeamStop();
+        else
+            Stop();
+        return true;
+    }
+    if (m_tractored && (mySE->SysBubble() == nullptr
+        || m_targetEntity.second->SysBubble() != mySE->SysBubble()
+        || m_targetEntity.second->IsDead())) {
+        TractorBeamStop();
         return true;
     }
     if (!m_targetEntity.second->IsDynamicEntity())
@@ -1961,13 +1934,19 @@ bool DestinyManager::IsTargetInvalid()
     if (m_targetEntity.second->HasPilot()) {
         if (m_targetEntity.second->GetPilot()->IsDocked()) {  // Our target docked, so STOP
             //mySE->TargetMgr()->ClearTarget(m_targetEntity.second);
-            Stop();
+            if (m_tractored)
+                TractorBeamStop();
+            else
+                Stop();
             return true;
         }
     }
-    if (m_targetEntity.second->DestinyMgr()->IsWarping()) { // The target is warping
-        //mySE->TargetMgr()->ClearTarget(m_targetEntity.second);
-        Stop();
+    if (m_targetEntity.second->DestinyMgr() != nullptr
+        && m_targetEntity.second->DestinyMgr()->IsWarping()) { // The target is warping
+        if (m_tractored)
+            TractorBeamStop();
+        else
+            Stop();
         return true;
     }
     return false;
@@ -2133,8 +2112,9 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
      * pick destination -> align/accel -> aura "warp drive active" -> cap drain -> accel
      *      -> enter warp -> warp -> decel -> leave warp -> coast -> stop
      */
-    m_warpDestination = where;
-    SafeDelete(m_warpState);
+    if (IsWarping())
+        return; // preserve the active warp and its landing point
+    m_capNeeded = 0.0;
 
     // check for autopilot.  it has 'special' checks in client for auto-disable by destiny update
     if (autoPilot) {
@@ -2146,22 +2126,17 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
     m_targetEntity.first = 0;
     m_targetEntity.second = nullptr;
 
-    m_stopDistance = distance;
-    // get warp target point
-    GVector warp_distance(m_position, where);
-    m_targetDistance = warp_distance.length();
-    m_targetDistance -= static_cast<double>(m_stopDistance);
-    // change to heading
-    warp_distance.normalize();
-    // adjust for stop distance from our travel direction
-    warp_distance *= m_stopDistance;
-    // adjust target point by calculated stopping point
-    m_targetPoint -= warp_distance;
-
-    m_targBubble = sBubbleMgr.GetBubble(mySE->SystemMgr(), m_targetPoint);
-    if (is_log_enabled(DESTINY__WARP_TRACE))
-        _log(DESTINY__TRACE, "Destiny::WarpTo() - %s(%u) target bubble: %u  m_stopDistance: %i  m_targetDistance: %.2f",
-            mySE->GetName(), mySE->GetID(), m_targBubble->GetID(), m_stopDistance, m_targetDistance);
+    m_warpDestination = m_targetPoint;
+    m_stopDistance = std::max(0, distance);
+    GVector warpDirection(m_position, m_warpDestination);
+    const double centerDistance = warpDirection.length();
+    if (!std::isfinite(centerDistance) || centerDistance <= m_stopDistance) {
+        Stop();
+        return;
+    }
+    warpDirection.normalize();
+    m_targetDistance = centerDistance - m_stopDistance;
+    m_targetPoint = m_warpDestination - warpDirection * m_stopDistance;
 
     // npcs have no warp restrictions (yet)
     if (mySE->IsNPCSE() or mySE->IsDroneSE()) {
@@ -2171,9 +2146,9 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
         std::vector<PyTuple*> updates;
         CmdWarpTo wt;
             wt.entityID = mySE->GetID();
-            wt.dest_x = m_targetPoint.x;
-            wt.dest_y = m_targetPoint.y;
-            wt.dest_z = m_targetPoint.z;
+            wt.dest_x = m_warpDestination.x;
+            wt.dest_y = m_warpDestination.y;
+            wt.dest_z = m_warpDestination.z;
             wt.distance = m_stopDistance;
             wt.warpSpeed = GetWarpSpeed();
         updates.push_back(wt.Encode());
@@ -2185,10 +2160,6 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
             sfx.active = true;
         updates.push_back(sfx.Encode());
         SendDestinyUpdate(updates);
-        if (is_log_enabled(NPC__MESSAGE))
-            _log(NPC__MESSAGE, "Destiny::WarpTo() NPC %s(%u) to:%u from:%u, m_targetPoint: %.2f,%.2f,%.2f  m_stopDistance: %i  m_targetDistance: %.2f",\
-                    mySE->GetName(), mySE->GetID(), m_targBubble->GetID(), mySE->SysBubble()->GetID(), \
-                    m_targetPoint.x, m_targetPoint.y, m_targetPoint.z, m_stopDistance, m_targetDistance);
         return;
     }
 
@@ -2220,53 +2191,25 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
         /*  capacitor for warp formulas from https://oldforums.eveonline.com/?a=topic&threadID=332116
          *  Energy to warp = warpCapacitorNeed * mass * au * (1 - warp_drive_operation_skill_level * 0.10)
          */
-        float currentShipCap = pClient->GetShip()->GetAttribute(AttrCapacitorCharge).get_float();
-        float capNeeded = m_mass * m_warpCapacitorNeed * (static_cast<double>(m_targetDistance) / static_cast<double>(ONE_AU_IN_METERS));
-        capNeeded *= (1.0f - (0.1f *pClient->GetChar()->GetSkillLevel(EvESkill::WarpDriveOperation)));
-
-        _log(DESTINY__WARNING, "Warp Cap need for %s(%u) is %.4f", mySE->GetName(), mySE->GetID(), capNeeded);
-
-        //  check if ship has enough capacitor to warp full distance
+        const double currentShipCap = pClient->GetShip()->GetAttribute(AttrCapacitorCharge).get_double();
+        const double costPerAU = m_mass * m_warpCapacitorNeed
+            * (1.0 - 0.1 * pClient->GetChar()->GetSkillLevel(EvESkill::WarpDriveOperation));
+        const double capNeeded = costPerAU * (m_targetDistance / ONE_AU_IN_METERS);
         if (capNeeded > currentShipCap) {
-            // not enough cap.  reset everything based on available cap
-            capNeeded = (currentShipCap /m_warpCapacitorNeed) /m_mass;
-            if (capNeeded > 1) {
-                m_targetDistance = static_cast<double>(capNeeded) * static_cast<double>(ONE_AU_IN_METERS);
-                GVector warp_direction(m_position, where);
-                GPoint newTarget(m_position + (warp_direction * m_targetDistance));
-
-                m_targBubble = sBubbleMgr.GetBubble(mySE->SystemMgr(), newTarget);
-                if (is_log_enabled(DESTINY__WARP_TRACE))
-                    _log(DESTINY__TRACE, "Destiny::WarpTo():Update - %s(%u) target bubble: %u  m_stopDistance: %i  m_targetDistance: %.2f",
-                        mySE->GetName(), mySE->GetID(), m_targBubble->GetID(), m_stopDistance, m_targetDistance);
-            } else {
-                // if not enough cap to do min warp, cancel and return
+            const double affordableDistance = (currentShipCap / costPerAU) * ONE_AU_IN_METERS;
+            if (!std::isfinite(affordableDistance) || affordableDistance < minWarpDistance) {
                 pClient->SendErrorMsg("You don't have enough capacitor charge to warp.");
-                _log(DESTINY__WARNING, "Destiny::WarpTo() - %s(%u): Capacitor needed vs current  %.3f / %.3f",
-                        mySE->GetName(), mySE->GetID(), capNeeded, currentShipCap);
-
-                m_ballMode = Destiny::Ball::Mode::STOP;
-                m_targBubble = nullptr;
-                SafeDelete(m_warpState);
+                Stop();
                 return;
             }
+            m_targetDistance = affordableDistance;
+            m_targetPoint = m_position + warpDirection * affordableDistance;
+            m_warpDestination = m_targetPoint;
+            m_stopDistance = 0;
+            m_capNeeded = 0.0;
         } else {
-            capNeeded = currentShipCap - capNeeded;
+            m_capNeeded = currentShipCap - capNeeded;
         }
-
-        m_capNeeded = capNeeded;
-    }
-
-    /*  TODO PUT CHECK HERE FOR WARP BUBBLES
-     *     and other things that affect warp-in point.....when we get to there.
-     * AttrWarpBubbleImmune = 1538,
-     * AttrWarpBubbleImmuneModifier = 1539,
-     *   NOTE:  warp bubble in path (or within 100km of m_targetPoint) will change m_targetDistance and m_targetPoint
-     *   however, this does NOT affect original calculations for energy needed, etc...
-     */
-    if (m_targBubble->HasWarpBubble()) {
-        if (!mySE->GetSelf()->HasAttribute(AttrWarpBubbleImmune))
-            ;   // not immune to bubble
     }
 
     m_ballMode = Destiny::Ball::Mode::WARP;
@@ -2277,9 +2220,9 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
     // acknowledge client's warpto request
     CmdWarpTo wt;
     wt.entityID = mySE->GetID();
-    wt.dest_x = m_targetPoint.x;
-    wt.dest_y = m_targetPoint.y;
-    wt.dest_z = m_targetPoint.z;
+    wt.dest_x = m_warpDestination.x;
+    wt.dest_y = m_warpDestination.y;
+    wt.dest_z = m_warpDestination.z;
     wt.distance = m_stopDistance;
     wt.warpSpeed = GetWarpSpeed(); // warp speed x10
 
@@ -2304,19 +2247,9 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
     PyTuple *up = bm.Encode();
     SendSingleDestinyUpdate(&up, true);   // consumed
 
-    if (is_log_enabled(DESTINY__WARP_TRACE)) {
-        _log(
-            DESTINY__WARP_TRACE,
-            "Destiny::WarpTo() toBubble:%u from:%u, m_targetPoint: %.2f,%.2f,%.2f  m_stopDistance: %i  m_targetDistance: %.2f",
-            m_targBubble->GetID(),
-            mySE->SysBubble()->GetID(),
-            m_targetPoint.x,
-            m_targetPoint.y,
-            m_targetPoint.z,
-            m_stopDistance,
-            m_targetDistance
-        );
-    }
+    _log(DESTINY__WARP_TRACE, "Warp landing for %s(%u): %.2f, %.2f, %.2f; distance %.2f m.",
+         mySE->GetName(), mySE->GetID(), m_targetPoint.x, m_targetPoint.y, m_targetPoint.z,
+         m_targetDistance);
 }
 
 void DestinyManager::Orbit(SystemEntity *pSE, uint32 distance/*0*/) {
@@ -2974,9 +2907,17 @@ void DestinyManager::UnCloak() {
         mySE->SysBubble()->AddBallExclusive(mySE);
 }
 
-void DestinyManager::TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed)
+bool DestinyManager::TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed, double range, uint32 moduleID)
 {
-    /** @todo  need to update this */
+    const double tractorSpeed = speed.get_double();
+    if (m_tractored || pShipSE == nullptr || !std::isfinite(tractorSpeed) || tractorSpeed <= 0.0
+        || !std::isfinite(range) || range <= 0.0
+        || mySE->SysBubble() == nullptr || mySE->SysBubble() != pShipSE->SysBubble())
+        return false;
+
+    m_tractorPause = false;
+    m_tractorModuleID = moduleID;
+    m_tractorRange = range;
     m_ballMode = Destiny::Ball::Mode::FOLLOW;
 
     m_stop = false;
@@ -2990,17 +2931,20 @@ void DestinyManager::TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed)
     m_targetPoint = pShipSE->GetPosition();
     GVector moveVector(m_position, m_targetPoint);
     m_targetDistance = static_cast<double>(moveVector.length());
-    moveVector.normalize();
+    if (m_targetDistance > 0.0)
+        moveVector.normalize();
     m_shipHeading = moveVector;
 
-    m_maxShipSpeed = speed.get_float();   //AttrMaxTractorVelocity
+    m_maxShipSpeed = tractorSpeed;
     m_maxSpeed = m_maxShipSpeed;
-    m_velocity = m_shipHeading * m_maxSpeed;
-
-    m_followDistance = 500 + pShipSE->GetRadius();
+    m_followDistance = 500; // surface clearance, both radii are already accounted for
     m_shipAccelTime = 0.1f;
 
-    m_activeSpeedFraction = m_userSpeedFraction = m_timeFraction = 1.0f;
+    const double clearance = EVEmuMovement::SurfaceSeparation(
+        m_targetDistance, m_radius, pShipSE->GetRadius());
+    m_tractorPause = clearance <= m_followDistance;
+    m_velocity = m_tractorPause ? NULL_ORIGIN_V : m_shipHeading * m_maxSpeed;
+    m_activeSpeedFraction = m_userSpeedFraction = m_timeFraction = m_tractorPause ? 0.0f : 1.0f;
 
     m_targetEntity.first = pShipSE->GetID();
     m_targetEntity.second = pShipSE;
@@ -3020,7 +2964,7 @@ void DestinyManager::TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed)
     updates.push_back(sbmass.Encode());
     CmdSetSpeedFraction ssf;
         ssf.entityID = mySE->GetID();
-        ssf.fraction = 1;
+        ssf.fraction = m_userSpeedFraction;
     updates.push_back(ssf.Encode());
     CmdFollowBall fb;
         fb.entityID = mySE->GetID();
@@ -3028,12 +2972,19 @@ void DestinyManager::TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed)
         fb.range = m_followDistance;
     updates.push_back(fb.Encode());
     SendDestinyUpdate(updates);
+    return true;
 }
 
-void DestinyManager::TractorBeamStop()
+void DestinyManager::TractorBeamStop(uint32 moduleID)
 {
+    if (!m_tractored || (moduleID != 0 && moduleID != m_tractorModuleID))
+        return;
     Halt();
     m_tractored = false;
+    m_tractorPause = false;
+    m_tractorModuleID = 0;
+    m_tractorRange = 0.0;
+    m_maxShipSpeed = 0.0;
     std::vector<PyTuple*> updates;
     SetBallSpeed ms;
         ms.entityID = mySE->GetID();
@@ -3047,7 +2998,12 @@ void DestinyManager::TractorBeamStop()
         sbmass.entityID = mySE->GetID();
         sbmass.mass = m_mass;
     updates.push_back(sbmass.Encode());
+    CmdStop stop;
+    stop.entityID = mySE->GetID();
+    updates.push_back(stop.Encode());
     SendDestinyUpdate(updates);
+    if (mySE->SysBubble() != nullptr)
+        SetPosition(m_position, true);
 }
 
 /*

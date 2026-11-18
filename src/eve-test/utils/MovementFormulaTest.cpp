@@ -30,7 +30,17 @@ int utils_MovementFormulaTest(int argc, char* argv[])
     const double fittedWarpBonus = EVEmuMovement::CrucibleWarpSpeedAU(7.2, 6.0);
     const double fallbackType = EVEmuMovement::CrucibleWarpSpeedAU(0.0, 6.0);
     const double fallbackMissing = EVEmuMovement::CrucibleWarpSpeedAU(0.0, 0.0);
+    const double shortPull = EVEmuMovement::TractorTravelStep(600.0, 500.0, 600.0);
+    const double fullPull = EVEmuMovement::TractorTravelStep(2000.0, 500.0, 600.0);
+    const double noPull = EVEmuMovement::TractorTravelStep(499.0, 500.0, 600.0);
+    const double invalidPull = EVEmuMovement::TractorTravelStep(2000.0, 500.0,
+        std::numeric_limits<double>::infinity());
+    const double warpTickOne = EVEmuMovement::WarpRemainingAfterAcceleration(10000, 10);
+    const double warpTickTwo = EVEmuMovement::WarpRemainingAfterAcceleration(10000, 200);
+    const double warpEnd = EVEmuMovement::WarpRemainingAfterAcceleration(10000, 20000);
     const bool passed =
+        shortPull == 100 && fullPull == 600 && noPull == 0 && invalidPull == 0 &&
+        warpTickOne == 9990 && warpTickTwo == 9800 && warpEnd == 0 &&
         normal == 350.0 && touching == 0.0 &&
         wreckInRange == 2475.0 && wreckOutOfRange == 2525.0 &&
         overlapping == 0.0 &&

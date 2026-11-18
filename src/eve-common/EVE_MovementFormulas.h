@@ -1,6 +1,7 @@
 #ifndef EVEMU_MOVEMENT_FORMULAS_H
 #define EVEMU_MOVEMENT_FORMULAS_H
 
+#include <algorithm>
 #include <cmath>
 
 namespace EVEmuMovement {
@@ -14,6 +15,21 @@ inline double SurfaceSeparation(double centerDistance, double radiusA, double ra
     const double separation = centerDistance -
         ((radiusA > 0.0 ? radiusA : 0.0) + (radiusB > 0.0 ? radiusB : 0.0));
     return (separation > 0.0) ? separation : 0.0;
+}
+
+// Destiny advances once per tick. Tractor targets stop at the requested
+// surface clearance even when a full-speed step would travel farther.
+inline double TractorTravelStep(double separation, double stopRange, double speed) {
+    if (!std::isfinite(separation) || !std::isfinite(stopRange)
+        || !std::isfinite(speed) || speed <= 0.0)
+        return 0.0;
+    return std::min(speed, std::max(0.0, separation - stopRange));
+}
+
+// Warp acceleration reports total distance traveled from entry, not the
+// increment to deduct from the previous tick.
+inline double WarpRemainingAfterAcceleration(double total, double traveled) {
+    return std::max(0.0, total - traveled);
 }
 
 // Requested orbit distance is from the target surface, not its center.

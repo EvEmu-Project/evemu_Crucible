@@ -121,6 +121,10 @@ void BubbleManager::Process() {
 }
 
 void BubbleManager::CheckBubble(SystemEntity *pSE) {
+    // An active warp joins its destination grid from the warp state machine.
+    if (pSE->DestinyMgr() != nullptr && pSE->DestinyMgr()->IsWarping())
+        return;
+
     SystemBubble *pBubble = pSE->SysBubble();
     if (pBubble != nullptr) {
         if (pBubble->InBubble(pSE->GetPosition())) {

@@ -135,8 +135,8 @@ public:
     void SetCloak(bool set=false)                       { m_cloaked = set; }
 
     /* TractorBeam */
-    void TractorBeamStop();
-    void TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed);
+    void TractorBeamStop(uint32 moduleID = 0);
+    bool TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed, double range, uint32 moduleID);
 
     /* Local Movement */
     void Orbit(SystemEntity* pSE, uint32 distance=0);
@@ -163,6 +163,7 @@ public:
     bool IsCloaked()                                    { return m_cloaked; }
     bool IsTurning()                                    { return m_turning; }
     bool IsTractored()                                  { return m_tractored; }
+    float GetTractorStopRange() const                   { return m_followDistance; }
 
     //Destiny Update stuff:
     void Jump(bool showCloak=true);
@@ -231,7 +232,6 @@ protected:
     void ProcessState();
 
     SystemEntity* const mySE;			//we do not own this.
-    SystemBubble* m_targBubble;         //we do not own this.
 
     bool IsTargetInvalid();              //performs common target checks
 
@@ -239,7 +239,7 @@ protected:
 
     //things dictated by our entity's configuration:
     uint8 m_warpAccelTime;              //in s      - calculated internally for warp stages
-    uint8 m_warpDecelTime;              //in s      - calculated internally for warp stages
+    uint16 m_warpDecelTime;              //in s      - calculated internally for warp stages
 
     float m_mass;                       //in kg
     float m_massMKg;                    //in mg     - Millionths of kg (mg)
@@ -278,6 +278,8 @@ protected:
     bool m_turning;                     //used to execute code for ship turning
     bool m_tractored;
     bool m_tractorPause;
+    uint32 m_tractorModuleID = 0;
+    double m_tractorRange = 0.0;
 
     uint8 m_ballMode;                   //current state of ball
 
