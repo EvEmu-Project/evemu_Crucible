@@ -14,7 +14,7 @@ header = read("src/eve-common/EVE_RAM.h")
 assert 'copy=VALUES(copy)' in factory
 assert 'bool supported = false;' in factory and 'return supported;' in factory
 assert 'if (data.activityID != args.activityID)' in methods
-assert 'if (args.runs <= 0)' in methods
+assert 'if (args.runs <= 0 || args.runs > INT16_MAX)' in methods
 assert 'EVEmuIndustry::ValidCopyRuns(' in methods
 assert 'if (args.containerID != data.containerID)' in methods
 assert 'data.ownerID != pClient->GetCharacterID()' in methods
