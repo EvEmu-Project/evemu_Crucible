@@ -164,3 +164,18 @@ bool SovereigntyDB::SaveIndexOverride(uint32 systemID, uint32 claimStructureID)
     }
     return true;
 }
+
+
+bool SovereigntyDB::DeleteIndexOverride(uint32 systemID, uint32 claimStructureID)
+{
+    DBerror err;
+    if (!sDatabase.RunQuery(err,
+            "DELETE FROM mapSovDevelopmentIndexOverrides "
+            "WHERE solarSystemID=%u AND claimStructureID=%u",
+            systemID, claimStructureID)) {
+        codelog(SOV__ERROR, "DeleteIndexOverride failed for system %u: %s",
+                systemID, err.c_str());
+        return false;
+    }
+    return true;
+}

@@ -51,6 +51,7 @@ public:
 
     // DEV/ADMIN-only test overrides (without backdating the real claim).
     bool ForceLevelFiveIndices(uint32 systemID);
+    bool ResetIndexOverrides(uint32 systemID);
     uint32 GetEffectiveMilitaryPoints(const SovereigntyData& claim) const;
     uint32 GetEffectiveIndustrialPoints(const SovereigntyData& claim) const;
     uint32 GetEffectiveStrategicDays(const SovereigntyData& claim) const;

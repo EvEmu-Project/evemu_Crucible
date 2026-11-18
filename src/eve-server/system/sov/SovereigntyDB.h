@@ -47,6 +47,7 @@ public:
     // sovereignty transfer cannot inherit test-time development levels.
     static bool GetIndexOverrides(DBQueryResult& res);
     static bool SaveIndexOverride(uint32 systemID, uint32 claimStructureID);
+    static bool DeleteIndexOverride(uint32 systemID, uint32 claimStructureID);
     static void GetUpgradeData(DBQueryResult& res);
     static void GetUpgradesForSystem(DBQueryResult& res, uint32 systemID);
     static void AddSystemUpgrade(uint32 systemID, uint32 upgradeID);

@@ -493,3 +493,19 @@ PyRep* SovereigntyDataMgr::GetAllDevelopmentIndicesForClients()
     }
     return list;
 }
+
+
+bool SovereigntyDataMgr::ResetIndexOverrides(uint32 systemID)
+{
+    const SovereigntyData claim = GetSovereigntyData(systemID);
+    if (!claim.solarSystemID || !claim.claimStructureID)
+        return false;
+    if (!SovereigntyDB::DeleteIndexOverride(systemID, claim.claimStructureID))
+        return false;
+
+    m_indexOverrides.erase(systemID);
+    _log(SOV__INFO,
+         "DEV reset test sovereignty development index override in system %u.",
+         systemID);
+    return true;
+}

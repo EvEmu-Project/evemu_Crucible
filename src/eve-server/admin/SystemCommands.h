@@ -36,6 +36,8 @@ COMMAND( cloak, Acct::Role::VIP,
          " - instantly and unconditionally toggles cloak state of your vessel")
 COMMAND( sov, Acct::Role::CONTENT,
          " - unknown at this time")
+COMMAND_ANY( sovindex5, Acct::Role::DEV, Acct::Role::ADMIN,
+         "[reset] - simulate Level 5 military/industrial/strategic in current owned null-sec IHub for testing" )
 COMMAND( pos, Acct::Role::PROGRAMMER,
          " - commands item to Immediately anchor")
 COMMAND( hop, Acct::Role::CONTENT,
