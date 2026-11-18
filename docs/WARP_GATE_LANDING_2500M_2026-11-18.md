@@ -38,3 +38,18 @@ The client and server use different concepts of distance:
 If bouncing persists, compare the gate's actual rendered collision mesh and ball radius in the installed Crucible SDE, plus the encoded client ball/radius packets. A non-spherical model or mismatched client radius can require an additional **type-specific** clearance; do not blindly increase every target's distance or disable collision globally.
 
 No SQL migration, player inventory edit or deployed-server update is performed by this code patch.
+
+## Movement drift, bump and micro-stutter review — 18 November 2026
+
+The continuing review of PR #43 against the newly merged `master` (including mining-drone PR #42 and DED PR #41) found **three further reproducible source-level risks**:
+
+- In `DestinyManager::ProcessState()`, the STOP state called `Stop()` once per simulation tick even when the ship was already stationary, rebroadcasting `CmdStop` and unnecessarily resetting movement state. Now a stationary STOP does not transmit repeated packets; it only simulates an active speed transition or performs a **single** zero-velocity correction for a stale velocity.
+- `MoveObject()` previously clamped the final one-second movement step only for stargates. This now covers both **gates and stations**, with a minimum 2,400m surface stand-off even for a manual **Approach 0m** to these large static objects. On completion it emits one combined `SetBallPosition`, `CmdStop` and zero `SetBallVelocity` update, rather than independent conflicting updates.
+- `WarpStop()` used to send its zero-velocity/stop update separately from a following position correction. It now sends a single ordered position/stop/velocity packet batch after synchronizing the server's final position. `GetSpeed()` now reports actual velocity magnitude rather than the acceleration timer fraction, improving moving-target orbit prediction. Invalid movement speed/heading stops instead of propagating NaN positions.
+
+Regression checks cover these source invariants plus C++ final-approach math (full speed, last partial tick, already-in-range, and invalid speed). The prior gate surface 2,400m/activation 2,500m and selected warp stand-offs remain unchanged.
+
+**Scope and limits:** this is a source-path audit, not a complete per-line manual review of every file in the 1,399-entry repository tree. Key inspected files: `BeyonceService.cpp`, `Client.cpp`, `DestinyManager.cpp/.h`, `SystemBubble.cpp`, `BubbleManager.cpp`, `SystemEntity.cpp`, `DroneAI.cpp`, `EVE_MovementFormulas.h`, `gpoint.h`, Destiny state packets and movement regression tests. `CheckBump()` only notifies on player/player close contact: it **does not implement server-side stargate collision physics**. Therefore genuine client-mesh collision and micro-stutter elimination **cannot be certified** from unit tests or builds. If the client still bounces, collect the installed gate's ball radius/model collision shape, 2012-client Destiny stream and server timestamps before trying type-specific geometry adjustments.
+
+**Required follow-up playtest:** frigate/battleship/capital warp at 0m, 10km and 100km; immediate gate jump from a fresh warp; manual Approach 0m to a stargate and station; autopilot approach/jump; queued docking; repeated idle for at least 60 simulation ticks; check client overview surface range, speed overlay, collision/wobble, frame pacing and network packet rates. Also test mining drone flight/return because `master` PR #42 updated the same Destiny subsystem. No database migration.
+
