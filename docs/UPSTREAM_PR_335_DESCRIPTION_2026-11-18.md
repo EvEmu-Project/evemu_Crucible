@@ -11,10 +11,10 @@ New NPC ore/ice/mineral **buy and sell** orders now start at **100,000,000 units
 | Field | Value |
 | --- | --- |
 | Source branch | `xrizonx:contrib/upstream-crucible-maintenance-2026-11-15` |
-| Source merge commit | `32eb2e5cd0e6b8c327268ea0b6cd3f80348332e6` |
+| Historical master-import merge commit | `32eb2e5cd0e6b8c327268ea0b6cd3f80348332e6` (PR's live head will be newer) |
 | Integrated fork `master` | `2d5cb4d2c7dbd0b33b70467e5caf3021fc52a713` |
 | Upstream `master` snapshot | `f55b488a006e3090470d3b481aee47a1d7a0dade` |
-| GitHub cumulative PR comparison at update | 748 commits; 291 changed paths; +21,109 / −3,405 lines |
+| GitHub PR comparison before the 100M market patch | 748 commits; 291 changed paths; +21,109 / −3,405 lines (historical baseline; see live PR for current totals) |
 | Master delta imported since 17 Nov handoff | 50 newer master commits; 89 changed paths |
 
 **Complete [patch notes](https://github.com/xrizonx/evemu_Crucible/blob/contrib/upstream-crucible-maintenance-2026-11-15/PATCH_NOTES.md)** (13–18 Nov) and **[new 18 November reviewer dossier](https://github.com/xrizonx/evemu_Crucible/blob/contrib/upstream-crucible-maintenance-2026-11-15/docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-18.md)** (all 89 paths, migrations, scope, CI and live-test gaps). Earlier [17 November](https://github.com/xrizonx/evemu_Crucible/blob/contrib/upstream-crucible-maintenance-2026-11-15/docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-17.md) and [15 November](https://github.com/xrizonx/evemu_Crucible/blob/contrib/upstream-crucible-maintenance-2026-11-15/docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md) dossiers are retained.
