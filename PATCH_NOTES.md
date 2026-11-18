@@ -1,3 +1,9 @@
+## 18 November 2026 — Orphan reference recheck passed (manual cleanup eligible)
+
+- Operator reconfirmed `posStructureData.itemID` **140003364** and **140003384** have zero contained inventory records, customs rows, incoming jump bridge links and sovereignty references. Earlier checks also showed absent base entities, and zero tower data, direct bridge records, dependent POS structures and dynamic attributes.
+- Both rows remain unanchored/default-state metadata (`towerID=0`, `state=0`, `status=0`, `timestamp=0`) with anchorpoints 40177245 and 40177217 respectively. Recommend **manual archive and narrowly scoped deletion with explicit two-row transaction verification** after a full DB backup/server shutdown. Do not recreate items or delete unrelated records.
+- No database modifications were made by this code review. The source lifecycle fix in PR #39 does not retrospectively clean these two records; the in-game deletion and restart path remains to be tested.
+
 ## 18 November 2026 — Confirmed POS orphan IDs and additional read-only reference audit
 
 - Operator's five issue counts: invalid sovereignty claims 0; missing TCU entities 0; orphan towers 0; broken jump bridges 0; orphan structure metadata **2**.
