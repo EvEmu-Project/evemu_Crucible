@@ -38,6 +38,7 @@
  */
 
 #include "eve-server.h"
+#include "EVE_MovementFormulas.h"
 
 #include "Client.h"
 #include "inventory/AttributeEnum.h"
@@ -90,7 +91,17 @@ NPCAIMgr::NPCAIMgr(NPC* who)
     // absolute (boosted) Max Ship Speed
     m_maxSpeed = m_self->GetAttribute(AttrMaxVelocity).get_uint32();
     // Orbit Velocity
-    m_orbitSpeed = m_self->GetAttribute(AttrEntityCruiseSpeed).get_uint32();   // ship speed when not chasing target
+    const double configuredCruise = m_self->GetAttribute(AttrEntityCruiseSpeed).get_double();
+    const double resolvedCruise = EVEmuMovement::NpcCruiseSpeed(
+        configuredCruise, m_self->GetAttribute(AttrMaxVelocity).get_double());
+    m_orbitSpeed = static_cast<uint16>(std::min(
+        resolvedCruise, static_cast<double>(UINT16_MAX)));
+    if (m_orbitSpeed == 0 && resolvedCruise > 0.0)
+        m_orbitSpeed = 1; // retain very slow, but valid, movement
+    if (configuredCruise <= 0.0 && m_orbitSpeed > 0)
+        _log(NPC__AI_TRACE,
+             "NPC %s(%u) missing entityCruiseSpeed; using maxVelocity %.1fm/s.",
+             m_npc->GetName(), m_npc->GetID(), resolvedCruise);
     //AttrEntityChaseMaxDelay  - time before 'chase speed' kicks in
     //AttrEntityChaseMaxDelayChance  - chance npc will wait AttrEntityChaseMaxDelay before chasing
     //AttrEntityChaseMaxDuration  - max time a chase will last (unless weapons fired)
@@ -421,6 +432,12 @@ void NPCAIMgr::SetWander()
     if (pBubble->IsAnomaly() or pBubble->IsIncursion() or pBubble->IsMission()) {
         return;
     } else if (pBubble->HasDynamics() and pBubble->IsBelt()) {
+        if (m_orbitSpeed == 0) {
+            // Static NPCs must not request zero-speed orbits every tick.
+            if (m_destiny->IsMoving())
+                m_destiny->Stop();
+            return;
+        }
         // pick random entity and loosely orbit it.  if no entity found, orbit center of belt
         SystemEntity* pSE = pBubble->GetRandomEntity();
         if (pSE == nullptr)
@@ -509,7 +526,15 @@ void NPCAIMgr::SetEngaged(SystemEntity* pSE) {
         return;
     _log(NPC__AI_TRACE, "%s(%u): Begin engaging.  Target is %s(%u).", \
          m_npc->GetName(), m_npc->GetID(), pSE->GetName(), pSE->GetID());
-    // actively fighting
+    // A stationary spawn can still fight. Never retry an impossible 0m/s
+    // orbit each NPC AI tick; mobile NPCs use the validated cruise speed.
+    if (m_orbitSpeed == 0) {
+        if (m_state != NPCAI::State::Engaged)
+            m_destiny->Stop();
+        m_state = NPCAI::State::Engaged;
+        m_warpOutTimer.Disable();
+        return;
+    }
     m_destiny->SetMaxVelocity(m_orbitSpeed);
     m_destiny->Orbit(pSE, m_optimalRange);  //try to get inside orbit range
     m_state = NPCAI::State::Engaged;

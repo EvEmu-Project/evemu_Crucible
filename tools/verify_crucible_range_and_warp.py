@@ -94,6 +94,23 @@ assert "position.Encode(), stop.Encode(), velocity.Encode()" in move
 assert "SendDestinyUpdate(updates);" in move
 assert "m_shipHeading.isNaN() || m_shipHeading.isInf()" in move
 
+# Repeated Guristas NPC errors: the original orbit equation can compute a
+# center radius inside the physically safe hull-to-hull clearance. Clamp
+# recoverable geometry and use a static-data speed fallback for movable NPCs.
+npc = source("src/eve-server/npc/NPCAI.cpp")
+assert "ResolvedOrbitRadius(double minimumRadius" in formulas
+assert "NpcCruiseSpeed(double cruiseSpeed" in formulas
+assert "EVEmuMovement::ResolvedOrbitRadius(" in destiny
+assert "orbitRadius < safeOrbitRadius" not in destiny
+assert "EVEmuMovement::NpcCruiseSpeed(" in destiny
+assert "EVEmuMovement::NpcCruiseSpeed(" in npc
+assert "sEntityList.GetStamp() % 30u == 0u" in destiny
+assert "mySE->IsNPCSE() ? DESTINY__WARNING : DESTINY__ERROR" in destiny
+assert "if (m_orbitSpeed == 0)" in npc
+assert "fixedGuristasOrbit == 10150.0" in movement_test
+assert "fixedLargeOrbit == 20150.0" in movement_test
+assert "zeroNpcCruise == 190.0" in movement_test
+
 # A warp launch uses the requested destination plus a range. The final
 # authoritative stop uses the already range-adjusted endpoint.
 assert "wt.dest_x = m_warpDestination.x;" in destiny

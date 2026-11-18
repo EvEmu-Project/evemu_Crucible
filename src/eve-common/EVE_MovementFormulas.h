@@ -67,6 +67,32 @@ inline double MinimumOrbitRadius(double requestedRange, double selfRadius, doubl
         (targetRadius > 0.0 ? targetRadius : 0.0) + 25.0;
 }
 
+// Clamp the legacy orbit equation to both hulls' actual surface clearance.
+// Return zero only if no valid orbit fits within the current bubble.
+inline double ResolvedOrbitRadius(double minimumRadius, double predictedRadius,
+                                  double maximumRadius) {
+    if (!std::isfinite(minimumRadius) || minimumRadius <= 0.0
+        || !std::isfinite(maximumRadius) || maximumRadius <= 0.0)
+        return 0.0;
+    const double clearance = std::ceil(minimumRadius);
+    if (clearance > maximumRadius)
+        return 0.0;
+    if (!std::isfinite(predictedRadius) || predictedRadius < clearance
+        || predictedRadius > maximumRadius)
+        return clearance;
+    return std::max(clearance, std::floor(predictedRadius));
+}
+
+// Some archived NPCs have no entityCruiseSpeed. Use actual maxVelocity,
+// not an invented universal speed; truly stationary NPCs remain stationary.
+inline double NpcCruiseSpeed(double cruiseSpeed, double maxVelocity) {
+    if (std::isfinite(cruiseSpeed) && cruiseSpeed > 0.0)
+        return cruiseSpeed;
+    if (std::isfinite(maxVelocity) && maxVelocity > 0.0)
+        return maxVelocity;
+    return 0.0;
+}
+
 // The server seed stores attribute 600 in AU/s. The archived Crucible
 // export stores a multiplier of the 3 AU/s client baseline.
 inline double CrucibleWarpSpeedAU(double fittedSpeed, double typeSpeed) {

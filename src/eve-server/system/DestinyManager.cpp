@@ -2325,6 +2325,10 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
 }
 
 void DestinyManager::Orbit(SystemEntity *pSE, uint32 distance/*0*/) {
+    if (pSE == nullptr) {
+        Stop();
+        return;
+    }
     if ((m_ballMode == Destiny::Ball::Mode::ORBIT)
     and (m_targetEntity.second == pSE)
     and (m_targetDistance == static_cast<double>(distance)))
@@ -2394,15 +2398,29 @@ void DestinyManager::Orbit(SystemEntity *pSE, uint32 distance/*0*/) {
     // A drone mining a rock needs clearance from its surface even if the
     // generic ship orbit calculation puts the waypoint inside a large rock.
     const bool asteroidDroneOrbit = mySE->IsDroneSE() && pSE->IsAsteroidSE();
-    const double orbitRadius = asteroidDroneOrbit ? std::ceil(safeOrbitRadius) : std::floor(calculatedRadius);
+    const double predictedRadius = asteroidDroneOrbit
+        ? std::ceil(safeOrbitRadius) : std::floor(calculatedRadius);
+    const double orbitRadius = EVEmuMovement::ResolvedOrbitRadius(
+        safeOrbitRadius, predictedRadius, BUBBLE_RADIUS_METERS);
 
-    // A zero/nonfinite speed, invalid radius or orbital period must never
-    // feed division by zero, NaN or infinite movement into the client.
-    if (!std::isfinite(orbitRadius) || !std::isfinite(m_maxShipSpeed)
-        || orbitRadius < safeOrbitRadius || orbitRadius > BUBBLE_RADIUS_METERS
+    // The legacy high-order orbit equation can underestimate the required
+    // hull-to-hull clearance by metres (especially around 10-20km ranges).
+    // Correct the orbit rather than Stop()->AI retry every server tick.
+    if (orbitRadius > 0.0 && orbitRadius != predictedRadius
+        && is_log_enabled(DESTINY__ORBIT_TRACE))
+        _log(DESTINY__ORBIT_TRACE,
+            "Orbit radius corrected for %s(%u): predicted %.1fm, safe %.1fm, using %.1fm.",
+            mySE->GetName(), mySE->GetID(), predictedRadius, safeOrbitRadius, orbitRadius);
+
+    // Impossible geometry or missing speed must never enter the simulation.
+    // NPCs receive a sampled diagnostic; pilot errors are not suppressed.
+    if (orbitRadius <= 0.0 || !std::isfinite(m_maxShipSpeed)
         || m_maxShipSpeed <= 0.0) {
-        _log(DESTINY__ERROR, "Destiny::Orbit() - Invalid orbit geometry/speed for %s(%u).",
-             mySE->GetName(), mySE->GetID());
+        if (!mySE->IsNPCSE() || sEntityList.GetStamp() % 30u == 0u)
+            _log(mySE->IsNPCSE() ? DESTINY__WARNING : DESTINY__ERROR,
+                "Destiny::Orbit(): Unusable orbit for %s(%u), target %u, range %um, clearance %.1fm, predicted %.1fm, speed %.2fm/s.",
+                mySE->GetName(), mySE->GetID(), pSE->GetID(),
+                distance, safeOrbitRadius, predictedRadius, m_maxShipSpeed);
         Stop();
         return;
     }
@@ -2869,7 +2887,9 @@ Battleships 0.155
         m_warpCapacitorNeed = sRef->GetAttribute(AttrWarpCapacitorNeed).get_float() *2;
 
     if (mySE->IsNPCSE())
-        m_maxShipSpeed = sRef->GetAttribute(AttrEntityCruiseSpeed).get_float();
+        m_maxShipSpeed = static_cast<float>(EVEmuMovement::NpcCruiseSpeed(
+            sRef->GetAttribute(AttrEntityCruiseSpeed).get_double(),
+            sRef->GetAttribute(AttrMaxVelocity).get_double()));
     else if (mySE->IsDroneSE()) {
         const float cruiseSpeed = sRef->GetAttribute(AttrEntityCruiseSpeed).get_float();
         if (std::isfinite(cruiseSpeed) && cruiseSpeed > 0.0f)

@@ -1,3 +1,11 @@
+## 18 November 2026 — Correct NPC orbit geometry and repeated DestinyError spam
+
+- Analyzed repeated `Destiny::Orbit() - Invalid orbit geometry/speed` from Guristas Terrorist NPCs. The inherited high-order orbit calculation sometimes predicts a radius **below ship+target surface clearance** at normal 10–20km ranges (example: 10,143m vs 10,150m safe). Previously the server called `Stop()` and AI retried the same failed order each second.
+- Clamp recoverable orbit radii to the minimum physically safe center distance; if the legacy equation overflows, use that safe clearance rather than feeding invalid geometry to the client. Truly impossible geometry (outside the bubble) still stops safely.
+- Use valid `maxVelocity` when archived NPC static data omit `entityCruiseSpeed`; do not invent a speed for stationary NPCs. Immobile NPCs can still engage from a STOP state without reattempting a zero-speed orbit every tick.
+- Successful repairs no longer emit a DestinyError; optional orbit trace explains clamping. Unrecoverable NPC errors are sampled once every 30 ticks as warnings, while player movement errors remain visible. Add C++ unit cases and source-invariant checks for radius underestimates, overflow, bubble limits and NPC speed fallback.
+- No changes to warp targets, mining-drone movement, industry, market SQL, or server configuration. No SQL migration. Validate with live Guristas spawns on the patched server before declaring the behavior fixed.
+
 ## 18 November 2026 — Repair gameplay source-invariant CI failure (PR #43)
 
 - The previous [Actions run #44380229744](https://github.com/xrizonx/evemu_Crucible/actions/runs/44380229744) **compiled Linux and Windows successfully and built Docker**, but Linux/Windows later failed `tools/verify_subsystems_audit.py` at line 67. Its invention-safety regression test asserted an obsolete comment string (`Do not consume datacores, runs or ISK`) instead of verifying code behavior.

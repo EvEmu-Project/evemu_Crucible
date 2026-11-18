@@ -25,6 +25,23 @@ int utils_MovementFormulaTest(int argc, char* argv[])
     const double invalidOrbit = EVEmuMovement::MinimumOrbitRadius(
         std::numeric_limits<double>::infinity(), 50.0, 1000.0);
     const double miningOrbit = EVEmuMovement::MinimumOrbitRadius(200.0, 5.0, 16000.0);
+    // The legacy high-order equation can predict a center radius inside
+    // the required hull clearance at normal 10-20km NPC orbit distances.
+    const double fixedGuristasOrbit = EVEmuMovement::ResolvedOrbitRadius(
+        10150.0, 10143.0, 1000000.0);
+    const double fixedLargeOrbit = EVEmuMovement::ResolvedOrbitRadius(
+        20150.0, 19942.0, 1000000.0);
+    const double validOrbit = EVEmuMovement::ResolvedOrbitRadius(
+        1050.2, 1180.9, 1000000.0);
+    const double overflowOrbit = EVEmuMovement::ResolvedOrbitRadius(
+        10150.0, std::numeric_limits<double>::infinity(), 1000000.0);
+    const double impossibleOrbit = EVEmuMovement::ResolvedOrbitRadius(
+        1100000.0, 1150000.0, 1000000.0);
+    const double zeroNpcCruise = EVEmuMovement::NpcCruiseSpeed(0.0, 190.0);
+    const double validNpcCruise = EVEmuMovement::NpcCruiseSpeed(145.0, 190.0);
+    const double stationaryNpc = EVEmuMovement::NpcCruiseSpeed(0.0, 0.0);
+    const double invalidNpc = EVEmuMovement::NpcCruiseSpeed(
+        std::numeric_limits<double>::quiet_NaN(), 140.0);
     static_assert(sizeof(Destiny::ORBIT_Struct) == sizeof(Destiny::FOLLOW_Struct));
     static_assert(offsetof(Destiny::ORBIT_Struct, targetID) == 1);
     static_assert(offsetof(Destiny::ORBIT_Struct, followRange) == 9);
@@ -98,6 +115,11 @@ int utils_MovementFormulaTest(int argc, char* argv[])
         overlapping == 0.0 &&
         invalid == 0.0 && orbit == 1575.0 && zeroOrbit == 1075.0 &&
         invalidOrbit == 0.0 && miningOrbit == 16230.0 &&
+        fixedGuristasOrbit == 10150.0 && fixedLargeOrbit == 20150.0 &&
+        validOrbit == 1180.0 && overflowOrbit == 10150.0 &&
+        impossibleOrbit == 0.0 && zeroNpcCruise == 190.0 &&
+        validNpcCruise == 145.0 && stationaryNpc == 0.0 &&
+        invalidNpc == 140.0 &&
         decodedOrbit.followID == 4500000000LL && decodedOrbit.followRange == 200.0f &&
         battleshipWarp == 3.0 && frigateWarp == 6.0 &&
         interceptorWarp == 13.5 && logisticsWarp == 3.75 &&
