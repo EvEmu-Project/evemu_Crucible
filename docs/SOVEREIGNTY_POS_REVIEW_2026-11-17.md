@@ -31,6 +31,14 @@ The new C++ SovereigntyPosIntegrityTest checks FILETIME preservation, permitted 
 
 Required in-game checks: create an alliance-owned TCU in test null-sec, restart twice and verify stable claimID and claimTime; use SBUs on distinct versus duplicate stargates and confirm contested threshold and invulnerability transitions; test tower password, notifications, sentry settings and access permissions with Director, StarbaseConfig, ordinary member and foreign-corporation accounts; verify personal container anchoring and true silo capacity. Deploy/link/unlink same-alliance jump bridges and reject cross-alliance, occupied or wrong-system links. After restarting, verify sentry status and deploy flags persisted and corporation tower list contains only deployed towers.
 
+## Follow-up: two POS metadata rows with no inventory entity (18 November 2026)
+
+The operator's read-only query reports zero invalid sovereignty claims, missing TCU inventory entities, orphaned tower rows and broken jump bridge links, but **two posStructureData rows with no corresponding entity row**. This does not prove the rows can be deleted safely: their tower references, subordinate modules and historical state must first be inspected.
+
+Source audit found a reproducible lifecycle gap: `StructureItem::Delete()` called `InventoryItem::Delete()` without the `PosMgrDB::DeleteData()` cleanup that `StructureSE::Scoop()` already uses. Permanent destruction now removes own POS metadata, and `PosMgrDB::DeleteData()` first clears a reciprocal remote jump bridge reference. This prevents one plausible future orphan source but **does not alter the two existing database rows**.
+
+Run the new **POS-11 detailed orphan inspection** in `sql/diagnostics/2026-11-17-sov-pos-readonly-audit.sql` to obtain each itemID, towerID, anchorpoint, state, subordinate structure count and related configuration rows. Preserve a backup; reconcile any dependent structures before deciding whether manual cleanup is justified. No automatic UPDATE or DELETE is supplied.
+
 ## Known unresolved issues and rollout cautions
 
 The bridge connection still performs two SQL UPDATE operations without a transaction. If the second fails, a partial link can remain; use the read-only diagnostics before an operator repairs it. Comprehensive tower fuel simulation, moon mining/reactors, reinforcement cycle/strontium consumption, POS weapons, sovereignty notifications and outpost construction were not proven correct by these edits and remain separate investigations. The source role check intentionally restricts POS mutation to Director/StarbaseConfig or server ADMIN; test legitimate role grants and corp sessions before shipping. Compiling successfully is not proof of persistence, protection against all crafted network packets or gameplay compatibility. PR remains draft until CI and live validation.

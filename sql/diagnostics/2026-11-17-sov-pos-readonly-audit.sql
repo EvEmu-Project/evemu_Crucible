@@ -48,3 +48,24 @@ SELECT 'claims' AS dataset, COUNT(*) AS count_records FROM mapSystemSovInfo
 UNION ALL SELECT 'posStructureData', COUNT(*) FROM posStructureData
 UNION ALL SELECT 'posTowerData', COUNT(*) FROM posTowerData
 UNION ALL SELECT 'posJumpBridgeData', COUNT(*) FROM posJumpBridgeData;
+
+
+-- POS-11: Detailed orphan metadata inspection (READ ONLY).
+-- Returned rows have no matching inventory entity. Do not assume that
+-- they can be safely deleted before inspecting dependents and backups.
+SELECT p.itemID, p.towerID, p.anchorpointID, p.state, p.status, p.timestamp,
+       p.canUse, p.canView, p.canTake,
+       CASE WHEN tower.itemID IS NOT NULL THEN 1 ELSE 0 END AS hasTowerData,
+       CASE WHEN bridge.itemID IS NOT NULL THEN 1 ELSE 0 END AS hasBridgeData,
+       CASE WHEN customs.itemID IS NOT NULL THEN 1 ELSE 0 END AS hasCustomsData,
+       (SELECT COUNT(*) FROM posStructureData AS child
+        WHERE child.towerID = p.itemID AND child.itemID <> p.itemID) AS dependentStructures,
+       (SELECT COUNT(*) FROM entity_attributes AS attr
+        WHERE attr.itemID = p.itemID) AS orphanAttributeRows
+FROM posStructureData AS p
+LEFT JOIN entity AS item ON item.itemID = p.itemID
+LEFT JOIN posTowerData AS tower ON tower.itemID = p.itemID
+LEFT JOIN posJumpBridgeData AS bridge ON bridge.itemID = p.itemID
+LEFT JOIN posCustomsOfficeData AS customs ON customs.itemID = p.itemID
+WHERE item.itemID IS NULL
+ORDER BY p.itemID;

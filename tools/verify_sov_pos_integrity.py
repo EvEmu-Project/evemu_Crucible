@@ -43,6 +43,9 @@ assert '" SET standing=%f, status=%f, statusDrop=%i' in db
 assert '" SET anchor=%i, unanchor=%i, online=%i' in db
 assert '"INNER JOIN posJumpBridgeData AS local "' in db
 assert "remote.toItemID=local.itemID" in db
+assert "posDB.DeleteData(itemID());" in structure
+assert "void StructureItem::Delete()" in structure
+assert "UninstallRemoteBridgeLink(itemID);" in db
 assert "SovereigntyPosIntegrityTest.cpp" in cmake
 assert 'NAME "SovereigntyPosIntegrityTest"' in cmake
 print("PASS: sovereignty FILETIME, cache, SBU, POS permissions and SQL invariants")

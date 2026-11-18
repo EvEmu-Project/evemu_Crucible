@@ -1,3 +1,10 @@
+## 18 November 2026 — Investigate 2 POS orphan rows and close deletion lifecycle gap
+
+- Operator ran the read-only sovereignty/POS checks: four checks returned zero; two `posStructureData` rows have no `entity` record. Their IDs and relationships are not yet available. Do **not** run automatic cleanup.
+- Source fix: `StructureItem::Delete()` now calls the existing POS metadata deletion routine before removing the inventory entity; previous scoop-only cleanup left metadata after permanent destruction. POS deletion also clears a reciprocal remote jump-bridge link first.
+- Added POS-11 **read-only detailed orphan query** for item/tower/anchor/child counts and related POS attributes; updated regression source guards and the review dossier.
+- Existing orphan rows remain unchanged until item IDs, dependencies and a backup establish whether manual reconciliation is safe. New source fix requires CI and live POS deletion/restart testing.
+
 ## 17 November 2026 — POS requested-position distance validation
 
 - POS-10: SBU and orbital-platform anchor distance rules previously compared the stargate/planet to the structure old stored position, not the requested target. Use the target position for both checks; extend the Windows/Linux source regression guard.

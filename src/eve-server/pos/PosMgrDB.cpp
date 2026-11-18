@@ -15,6 +15,9 @@
 
 
 void PosMgrDB::DeleteData(uint32 itemID) {
+    // Delete a reciprocal remote bridge link before removing this endpoint.
+    // The update only touches a remote row that actually links back here.
+    UninstallRemoteBridgeLink(itemID);
     DBerror err;
     sDatabase.RunQuery(err, "DELETE FROM posStructureData WHERE itemID = %u", itemID);
     sDatabase.RunQuery(err, "DELETE FROM posCustomsOfficeData WHERE itemID = %u", itemID);
