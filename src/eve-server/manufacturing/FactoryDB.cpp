@@ -137,6 +137,7 @@ bool FactoryDB::SaveBlueprintData(uint32 blueprintID, EvERam::bpData& data) {
         " VALUES"
         "  (%u, %u, %i, %i, %i)"
         "ON DUPLICATE KEY UPDATE "
+        "copy=VALUES(copy), "
         "mLevel=VALUES(mLevel), "
         "pLevel=VALUES(pLevel), "
         "runs=VALUES(runs) ",
@@ -687,7 +688,8 @@ bool FactoryDB::GetJobProperties(const uint32 jobID, EvERam::JobProperties &data
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
         "SELECT job.installedItemID, job.ownerID, job.outputFlag, job.runs, job.licensedProductionRuns,"
-        " job.endProductionTime, job.completedStatusID, line.activityID, job.eventID"
+        " job.endProductionTime, job.completedStatusID, line.activityID, job.eventID,"
+        " line.containerID"
         " FROM ramJobs AS job"
         " LEFT JOIN ramAssemblyLines AS line USING (assemblyLineID)"
         " WHERE job.jobID = %u",
@@ -712,6 +714,7 @@ bool FactoryDB::GetJobProperties(const uint32 jobID, EvERam::JobProperties &data
     data.status         = row.GetInt(6);
     data.activity       = row.GetUInt(7);
     data.eventID        = row.GetUInt(8);
+    data.containerID    = row.GetUInt(9);
 
     return true;
 }
@@ -759,6 +762,11 @@ int64 FactoryDB::GetNextFreeTime(const uint32 assemblyLineID) {
 }
 
 bool FactoryDB::GetMultipliers(const uint32 assemblyLineID, const ItemType* pType, Rsp_InstallJob& into) {
+    if (pType == nullptr)
+        return false;
+    // A lab/factory line without a matching category or group is not
+    // licensed to process this blueprint or output.
+    bool supported = false;
     DBQueryResult res;
     // check Category first
     if (!sDatabase.RunQuery(res,
@@ -774,6 +782,7 @@ bool FactoryDB::GetMultipliers(const uint32 assemblyLineID, const ItemType* pTyp
 
     DBResultRow row;
     if (res.GetRow(row)) {
+        supported = true;
         into.materialMultiplier *= row.GetDouble(0);
         into.timeMultiplier *= row.GetDouble(1);
     }
@@ -792,11 +801,12 @@ bool FactoryDB::GetMultipliers(const uint32 assemblyLineID, const ItemType* pTyp
     }
 
     if (res.GetRow(row)) {
+        supported = true;
         into.materialMultiplier *= row.GetDouble(0);
         into.timeMultiplier *= row.GetDouble(1);
     }
 
-    return true;
+    return supported;
 }
 
 bool FactoryDB::IsRefinable(const uint16 typeID) {

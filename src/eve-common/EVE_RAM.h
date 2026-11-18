@@ -99,6 +99,7 @@ namespace EvERam {
         uint32 itemID;
         uint32 ownerID;
         uint32 eventID;
+        uint32 containerID;
         int64 endTime;
         EVEItemFlags outputFlag;
     };

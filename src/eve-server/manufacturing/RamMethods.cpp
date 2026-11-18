@@ -42,6 +42,10 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
     if (bpRef.get() == nullptr)
         throw UserError ("RamInventionNoOutput");
 
+    // 0/negative runs can otherwise create free or unusable industry jobs.
+    if (args.runs <= 0)
+        throw UserError("RamActivityInvalid");
+
     // check validity of activity
     if ((args.activityID < EvERam::Activity::Manufacturing)
     or  (args.activityID > EvERam::Activity::Invention))
@@ -75,6 +79,9 @@ void RamMethods::ActivityCheck(Client* const pClient, const Call_InstallJob& arg
         case EvERam::Activity::Copying: {
             if (bpRef->copy())
                 throw UserError ("RamCannotCopyABlueprintCopy");
+            if (args.copyRuns <= 0
+                || static_cast<uint32>(args.copyRuns) > bpRef->type().maxProductionLimit())
+                throw UserError("RamCannotCopyZeroRuns");
             pType = &bpRef->type();
         } break;
         case EvERam::Activity::Invention: {
@@ -170,6 +177,11 @@ void RamMethods::LinePermissionCheck(Client*const pClient, const Call_InstallJob
     if ((data.activityID < EvERam::Activity::Manufacturing)
     or  (data.activityID > EvERam::Activity::Invention))
         throw UserError ("RamAssemblyLineHasNoActivity");
+
+    // A category match alone is not enough: don't allow an ME job on
+    // a PE/copying line or a manufacturing job on a research facility.
+    if (data.activityID != args.activityID)
+        throw UserError("RamAssemblyLineHasNoActivity");
 
     // verify corp roles
     if (args.isCorpJob) {
@@ -393,12 +405,16 @@ void RamMethods::VerifyCompleteJob(const Call_CompleteJob &args, EvERam::JobProp
         if (pClient->GetChar()->flag() != flagPilot)
             throw UserError ("RamCompletionMustBeInShip");
 
+    if (args.containerID != data.containerID)
+        throw UserError("RamCompletionAccessDenied");
     if (IsCorp(data.ownerID)) {
         if (data.ownerID == pClient->GetCorporationID()) {
             if ((pClient->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager)
                 throw UserError ("RamCompletionAccessDeniedByCorpRole");
         } else  // alliances not implemented
             throw UserError ("RamCompletionAccessDenied");
+    } else if (data.ownerID != pClient->GetCharacterID()) {
+        throw UserError("RamCompletionAccessDenied");
     }
 
     if (data.status != EvERam::Status::InProgress)
@@ -485,14 +501,21 @@ bool RamMethods::Calculate(const Call_InstallJob &args, BlueprintRef bpRef, Char
         } break;
     }
 
-    // calculate cost
+    // Research formulas already cover all ME/PE levels. Copying needs
+    // copies * licensed runs per copy. Use TOTAL time when charging rent.
+    if (args.activityID != EvERam::Activity::ResearchMaterial
+        && args.activityID != EvERam::Activity::ResearchTime) {
+        const uint64 factor = (args.activityID == EvERam::Activity::Copying)
+            ? static_cast<uint64>(args.runs) * static_cast<uint64>(args.copyRuns)
+            : static_cast<uint64>(args.runs);
+        if (factor == 0 || factor > UINT32_MAX
+            || static_cast<uint64>(into.productionTime) * factor > UINT32_MAX)
+            return false;
+        into.productionTime = static_cast<uint32>(
+            static_cast<uint64>(into.productionTime) * factor);
+    }
     into.usageCost *= ceil(into.productionTime / 3600.0f);
     into.cost = into.installCost + into.usageCost;
-    // multiply single run time by run count for total time
-    if (args.activityID != EvERam::Activity::ResearchMaterial && args.activityID != EvERam::Activity::ResearchTime) { // Dont multiply ME/PE activities as the time isnt linear.
-        into.productionTime *= args.runs;
-    }
-    
 
     into.maxJobStartTime = FactoryDB::GetNextFreeTime(args.AssemblyLineID);
 

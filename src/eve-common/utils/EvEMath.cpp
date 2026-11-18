@@ -76,12 +76,12 @@ float EvEMath::RAM::Research_LevelModifier(uint8 BlueprintLevel, int32 Runs)
 
 int32 EvEMath::RAM::ME_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 MetallurgyLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
 {
-    return (BaseTime * (1.0f + (0.05f * MetallurgyLevel)) * SlotModifier * ImplantModifier * Research_LevelModifier(BlueprintLevel, Runs)) / 13.0f; // Technically this 13 doesnt belong here however it makes the values more realistic based on the SDE crucible uses
+    return (BaseTime * (1.0f - (0.05f * MetallurgyLevel)) * SlotModifier * ImplantModifier * Research_LevelModifier(BlueprintLevel, Runs)) / 13.0f; // Technically this 13 doesnt belong here however it makes the values more realistic based on the SDE crucible uses
 }
 
 int32 EvEMath::RAM::PE_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 ResearchLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
 {
-    return (BaseTime * (1.0f + (0.05f * ResearchLevel)) * SlotModifier * ImplantModifier * Research_LevelModifier(BlueprintLevel, Runs)) / 15.0f; // Technically this 15 doesnt belong here however it makes the values more realistic based on the SDE crucible uses
+    return (BaseTime * (1.0f - (0.05f * ResearchLevel)) * SlotModifier * ImplantModifier * Research_LevelModifier(BlueprintLevel, Runs)) / 15.0f; // Technically this 15 doesnt belong here however it makes the values more realistic based on the SDE crucible uses
 }
 
 int32 EvEMath::RAM::RE_ResearchTime(uint32 BaseTime, uint8 ResearchLevel, float SlotModifier, float ImplantModifier)
@@ -90,7 +90,7 @@ int32 EvEMath::RAM::RE_ResearchTime(uint32 BaseTime, uint8 ResearchLevel, float 
     return 60;
 }
 
-int32 EvEMath::RAM::CopyTime(uint16 BaseTime, uint8 ScienceLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
+int32 EvEMath::RAM::CopyTime(uint32 BaseTime, uint8 ScienceLevel, float SlotModifier/*1*/, float ImplantModifier/*1*/ )
 {
     return (BaseTime * (1.0f - (0.05f * ScienceLevel)) * SlotModifier * ImplantModifier);
 }

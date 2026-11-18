@@ -215,6 +215,7 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
     // check permissions
     sRamMthd.LinePermissionCheck(call.client, args);
     sRamMthd.ItemOwnerCheck(call.client, args, bpRef);
+    sRamMthd.ItemLocationCheck(call.client, args, installedItem);
 
     // this is a bit funky, but works quite well....
     // decode path to BP and BOM location
@@ -252,7 +253,7 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         bomLocPath.flagID       = bomPath.pathFlagID;
     } else {
         // get path data for player
-        if (!bomLocPath.Decode(args.bpLocPath->GetItem(0))) {
+        if (!bomLocPath.Decode(args.bomLocPath->GetItem(0))) {
             _log(SERVICE__ERROR, "Failed to decode BOM path.");
             return nullptr;
         }
@@ -317,8 +318,16 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         } break;
     }
 
-    // approved job cost from quote
-    float cost(PyRep::IntegerValue(call.byname["authorizedCost"]));
+    // The client must confirm the SERVER-calculated cost, not choose a
+    // lower or negative amount for its own installation.
+    const double approvedCost = static_cast<double>(
+        PyRep::IntegerValue(call.byname["authorizedCost"]));
+    const double calculatedCost = static_cast<double>(rsp.cost);
+    if (!std::isfinite(approvedCost) || !std::isfinite(calculatedCost)
+        || approvedCost < 0.0 || calculatedCost < 0.0
+        || std::fabs(approvedCost - calculatedCost) > 1.0)
+        throw UserError("RamCannotGuaranteeStartTime");
+    const double cost = calculatedCost;
 
     // pay for assembly lines...take the money, send wallet blink event record the transaction in journal.
     std::string reason = "DESC: Installing ";
