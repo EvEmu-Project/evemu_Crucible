@@ -16,6 +16,7 @@ The client and server use different concepts of distance:
 - For manual stargate and ordinary small-object warps, preserve the target center and request a stop **2,400m from both collision surfaces** for "warp to zero"; longer requested stand-offs (10/30/50/100 km) are retained. Bookmarks with raw coordinates do not have a target ball radius and no longer gain an artificial ship diameter.
 - Autopilot still uses its configured stand-off distance (normally 10 km), now including the gate/station and ship radii in the center stop range. Initial autopilot `Follow()` receives only a *surface* range.
 - Queued and immediate gate approaches now call `Follow(gate, 2400)`; jump is still authorized at `<=2500m` surface separation. Station docking uses the same safe follow range and retains its 2,500m authorization threshold.
+- When following any stargate (including manual Approach 0m), `MoveObject()` caps its final one-second step to the actual remaining surface distance instead of blindly advancing at full speed through the gate. It then halts and sends both a synchronized position and zero-velocity/stop updates. This does not change ship acceleration, turning or movement around other objects.
 - Preserve custom planet, moon, station-dock-elevation and wormhole warp-in handling. Existing stationary warp-stop synchronization (`SetPosition`, `Halt`, zero velocity) is unchanged.
 - Add an informational `DESTINY__WARP_TRACE` entry showing target and ship radii, chosen center range and predicted surface clearance.
 
