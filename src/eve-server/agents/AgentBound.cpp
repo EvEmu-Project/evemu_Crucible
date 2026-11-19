@@ -1256,7 +1256,7 @@ PyResult AgentBound::GotoLocation(PyCallArgs &call, PyString* locationType, PyIn
         return PyStatic.NewNone();
     }
 
-    pShip->DestinyMgr()->WarpTo(pTarget->GetPosition(), 0, false, pTarget);
+    pShip->DestinyMgr()->WarpTo(pTarget->GetPosition());
     return PyStatic.NewNone();
 }
 
@@ -1291,6 +1291,6 @@ PyResult AgentBound::WarpToLocation(PyCallArgs &call, PyString* locationType, Py
 
     const int32 distance = (warpRange != nullptr
         ? static_cast<int32>(warpRange->value()) : 0);
-    pShip->DestinyMgr()->WarpTo(pTarget->GetPosition(), distance, false, pTarget);
+    pShip->DestinyMgr()->WarpTo(pTarget->GetPosition(), distance);
     return PyStatic.NewNone();
 }

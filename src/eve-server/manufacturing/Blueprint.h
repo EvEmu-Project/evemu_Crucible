@@ -137,7 +137,9 @@ public:
     int8                    mLevel()                    { return m_data.mLevel; }
     int8                    pLevel()                    { return m_data.pLevel; }
     int16                   runs()                      { return m_data.runs; }
-    float                   GetPE()                     { return m_data.pLevel / (1 + m_data.pLevel); }
+    float                   GetPE()                     { return (m_data.pLevel >= 0)
+        ? static_cast<float>(m_data.pLevel) / (1.0f + m_data.pLevel)
+        : static_cast<float>(m_data.pLevel - 1); }
     float                   GetME();
 
     // set methods

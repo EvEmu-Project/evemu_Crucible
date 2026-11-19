@@ -20,6 +20,86 @@
 - Preserve the [15 November upstream review dossier](docs/UPSTREAM_PULL_REQUEST_REVIEW_2026-11-15.md) and [original contribution-branch patch note snapshot](docs/UPSTREAM_PATCH_NOTES_HISTORY_2026-11-15.md). PR #335 remains **draft**, with no upstream merge and no SQL execution. Published source contribution included **696 commits and 244 changed paths** at first handoff; later documentation-only commits may increment that count.
 - Pre-merge CI [#575](https://github.com/xrizonx/evemu_Crucible/actions/runs/44142537989): Linux and MariaDB successful before merge; Windows UCRT64, Linux GCC, Docker and MariaDB insertion **all completed successfully** after the fork merge; release publication was skipped. Live confirmation of 500M payout and two consecutive crash-free elite encounters remains open.
 
+## 19 November 2026 — Warp, stargate jumps and docking verified in game
+
+- **Complete.** The operator confirmed in the Crucible client that warp animations play, stargate jumps complete and display correctly, and docking works with the updated build. [PR #43](https://github.com/xrizonx/evemu_Crucible/pull/43)
+- Warp-to-zero targets 2,400 m between the ship and the gate or station collision surfaces, inside the 2,500 m jump and docking limits. The server counts each hull radius once, preserves longer selected ranges and the configured autopilot stand-off, and limits the last approach step along the ship's heading. Gate, station and bookmark coordinates use their corresponding destination geometry. [Landing and approach changes](https://github.com/xrizonx/evemu_Crucible/commit/a916ca02705330670c96773a5cfe1e8eca470c1e)
+- Warp entry uses the ship's actual position after alignment. Heavy hulls can turn from a directly opposite heading, and Dock and Jump requests wait through alignment and active warp. The final tick publishes the landing position, stop, zero velocity and warp effect end together. Idle ships avoid repeated stop packets. [Warp geometry and verification record](docs/WARP_GATE_LANDING_2500M_2026-11-18.md)
+- Stargate transfer sends origin-grid removals before the destination session. The existing movement-service bind can receive the new ship state, and the speed refresh follows the state snapshot. The first positive throttle input from rest supplies a valid course and releases gate cloak. A rejected jump returns without a success acknowledgement. [Gate transfer changes](https://github.com/xrizonx/evemu_Crucible/commit/e6ee9efbbe936b5c190a53ff3b64825d3125de2d)
+- Warp sends full throttle before `WarpTo` and the warp effect, so the client can start alignment and the animation. Clearing invulnerability cancels the old timer, and a new gate arrival restarts the protection and cloak timers. The follow-up also handles duplicate bound-object releases and records inactive ballpark timers as diagnostics. [Warp throttle and timer changes](https://github.com/xrizonx/evemu_Crucible/commit/a0c9c75109beb6b4126f1c4620286280c8e2bdd5)
+- Windows and Linux builds and CTest passed, along with Docker and MariaDB. Local regressions checked gate and station clearances across small and capital hull sizes, AU-scale coordinates, approach and packet ordering, and renewal with 4,525 ms left on the previous protection timer. [Verified gameplay build](https://github.com/xrizonx/evemu_Crucible/actions/runs/44473762678)
+
+## 18 November 2026 — Mining drone flight and ore return
+
+- Mining drones can lock and engage asteroids. They start mining within range, orbit at the configured surface clearance and carry ore back to their controller on cycle completion or recall. The server sends local positions, velocity and waypoints to the client during flight. Missing cruise speed uses the drone's own maximum velocity, and zero-mass mining types use a positive runtime fallback.
+- Regression tests covered all four published movement speeds at AU-scale coordinates, including approach, a sustained orbit and return to a moving ship. Windows, Linux, Docker and MariaDB CI passed. Live client distance display and cargo delivery remain separate validation cases. [Merged PR #42](https://github.com/xrizonx/evemu_Crucible/pull/42) · [CI run](https://github.com/xrizonx/evemu_Crucible/actions/runs/44349122871)
+
+## 18 November 2026 — DED & Officer Expedition target selection
+
+- Excluded the reported untargetable Domination Grigori from the DED & Officer Expedition. The existing True Sansha exclusion and the eight-enemy fleet composition are preserved. These filters apply to this expedition's spawn pool. [Merged PR #41](https://github.com/xrizonx/evemu_Crucible/pull/41)
+
+## 18 November 2026 — POS discovery, ship cargo and Crucible movement data
+
+- Control towers resume an interrupted onlining countdown after restart. IHub ore-site creation reports success after the belt is populated. Online POS laboratories can advertise material/productivity research and copying slots, and assembly arrays can advertise manufacturing slots. Migration `20261118120000` supports stable line numbers, and discovery creates the facility's lines on demand. POS job installation and delivery still require their own implementation. [POS and sovereignty test guide](docs/SOV_INDEX_LEVEL5_GM_TEST_2026-11-18.md)
+- For the reported Machariel cargo problem, ship inventory views refresh before the server lists or moves cargo. Single and bulk inventory transfers accept both Crucible integer ID encodings and refresh the ship's inventory after a transfer. The cargo-window behavior still needs its own live confirmation.
+- Audited published ship, weapon, shield, mining, charge, drone and subsystem attributes against the Crucible 1.6 export. Guarded SQL repairs correct confirmed static data differences. Runtime fixes use fitted turret optimal and falloff, check mining range from live positions at harvest, correct Deep Core target selection and asteroid depletion, and send shield updates to remote-transfer recipients. Fitted effects and full module gameplay need their own live coverage. [Static attribute audit](docs/CRUCIBLE_1_6_STATIC_ATTRIBUTE_AUDIT.md)
+- The capital warp audit confirmed base speeds of 0.75 AU/s for freighters and jump freighters, 1.50 AU/s for combat capitals, 1.20 AU/s for the Rorqual and 2.70 AU/s for the Orca. The guarded migration corrects the four freighter defaults, the Rorqual and the Orca. The server keeps fitted speed at full precision and encodes warp speed in tenths of an AU/s. [Range and warp audit](docs/CRUCIBLE_RANGE_AND_WARP_AUDIT_2026-11-17.md)
+- Tractor movement applies live surface range and beam velocity, stops at the configured clearance, and updates the wreck's client movement state. Wreck and container access also use live ship and target positions. [Merged PR #40](https://github.com/xrizonx/evemu_Crucible/pull/40) · [Range and movement PR #31](https://github.com/xrizonx/evemu_Crucible/pull/31)
+
+## 18 November 2026 — Repair post-build industry CI assertions for capped research skills
+
+- [Run #44384199564](https://github.com/xrizonx/evemu_Crucible/actions/runs/44384199564) successfully compiled Windows/Linux, built Docker and passed MariaDB, but both compiler jobs stopped at `tools/verify_industry_workflows.py:47` before CTest. The obsolete assertion expected `(1.0f - (0.05f * MetallurgyLevel))`, while the actual, safer Crucible research formula caps the skill level with `std::min<uint8>(..., 5)`.
+- Update **both** ME and PE source guards, scoped to their respective research functions. Assert actual 5%-per-level skill reductions (capped at level 5), linear research-level multiplier, and non-finite/overflow protection. Do not undo or weaken the C++ calculations.
+- Reviewed all 28 source invariants against the branch. `IndustryFormulaTest` checks ME/PE level and skill effects on research time. Windows and Linux ran these checks successfully in the corrected run. [Corrected CI run](https://github.com/xrizonx/evemu_Crucible/actions/runs/44387410074)
+
+## 18 November 2026 — Correct NPC orbit geometry and repeated DestinyError spam
+
+- Analyzed repeated `Destiny::Orbit() - Invalid orbit geometry/speed` from Guristas Terrorist NPCs. The inherited high-order orbit calculation sometimes predicts a radius **below ship+target surface clearance** at normal 10–20km ranges (example: 10,143m vs 10,150m safe). Previously the server called `Stop()` and AI retried the same failed order each second.
+- Clamp recoverable orbit radii to the minimum physically safe center distance; if the legacy equation overflows, use that safe clearance rather than feeding invalid geometry to the client. Truly impossible geometry (outside the bubble) still stops safely.
+- Use valid `maxVelocity` when archived NPC static data omit `entityCruiseSpeed`; do not invent a speed for stationary NPCs. Immobile NPCs can still engage from a STOP state without reattempting a zero-speed orbit every tick.
+- Successful repairs no longer emit a DestinyError; optional orbit trace explains clamping. Unrecoverable NPC errors are sampled once every 30 ticks as warnings, while player movement errors remain visible. Add C++ unit cases and source-invariant checks for radius underestimates, overflow, bubble limits and NPC speed fallback.
+- No changes to warp targets, mining-drone movement, industry, market SQL, or server configuration. No SQL migration. Validate with live Guristas spawns on the patched server before declaring the behavior fixed.
+
+## 18 November 2026 — Repair gameplay source-invariant CI failure (PR #43)
+
+- The previous [Actions run #44380229744](https://github.com/xrizonx/evemu_Crucible/actions/runs/44380229744) **compiled Linux and Windows successfully and built Docker**, but Linux/Windows later failed `tools/verify_subsystems_audit.py` at line 67. Its invention-safety regression test asserted an obsolete comment string (`Do not consume datacores, runs or ISK`) instead of verifying code behavior.
+- Replace the fragile text assertion with an explicit `ActivityCheck()` invention-branch guard: invention must throw the nonfunctional-invention error, and `InstallJob()` must call `ActivityCheck()` **before** `AccountService::TransferFunds()` and `FactoryDB::InstallJob()`. This preserves fail-closed invention without silently changing gameplay or charging players.
+- The preceding compiler fix replaced the undefined `uint64` with `std::uint64_t`. The refreshed Windows and Linux CTest runs passed. [Corrected CI run](https://github.com/xrizonx/evemu_Crucible/actions/runs/44387410074)
+
+## 18 November 2026 — Fix Windows/Linux/Docker industry build failure (PR #43)
+
+- CI run [44378451842](https://github.com/xrizonx/evemu_Crucible/actions/runs/44378451842) failed all three C++ builds in `src/eve-server/manufacturing/RamMethods.cpp` because the new industry code used the undefined `uint64` alias; the follow-on `needed`, `available` and `factor` errors are cascading compiler diagnostics.
+- Use portable C++17 `std::uint64_t` and explicit `<cstdint>` in the material stack accumulator and copy-job time arithmetic. Update CI source invariants to require the portable type and reject recurrence. No changes to production logic, SQL, warp, drone, sovereignty or other features; no migration required.
+
+## 18 November 2026 — Restore Crucible-era linear ME/PE research levels
+
+- Remove the post-2014 10-level exponential research-time table from Crucible's ME/PE research formula. Under pre-Crius rules each level used the same base time; the existing code had incorrectly limited both research activities to level 10. Restore linear per-level duration and allow research up to signed-byte level 127, with overflow-safe calculation and the existing 30-day per-job limit. Above 127 requires a future data-model/schema change.
+- Extend industry CTest cases for level 20+, multi-level research and skill modifiers; preserve BPO-only restrictions, invention fail-closed, and copying logic. See [industry audit](docs/INDUSTRY_RESEARCH_COPY_INVENTION_AUDIT_2026-11-18.md).
+
+## 18 November 2026 — Industry ME/PE research, blueprint copying and invention safety audit
+
+- Tighten station industry line activity/category permissions, blueprint owner/location checks, completion owner/station authorization and personal job-list access. Prevent client-supplied negative/stale installation costs.
+- Correct research ME/PE skill time reductions, floating-point blueprint PE and truncated 16-bit blueprint copy time. Copy jobs now account for both number of copies and licensed runs, with positive/max-run validation and 30-day submission checks.
+- Persist the `copy` flag in `invBlueprints` on update, preserve original BPO infinite-run sentinels, and reconcile material quotes, multi-stack inventory verification and actual consumption with shared rounding. Extra material requirements no longer get an ME/Production Efficiency discount.
+- Add `IndustryFormulaTest` CTest and Windows/Linux industry source-regression checks. **Invention remains deliberately disabled**: the previous output generator was an incomplete placeholder with no real T2 BPC or invention result. Do not consume resources for false success.
+- No SQL migrations or live database changes. Full station client UI/job-delivery validation and transactional rollback protection remain necessary; POS/remote jobs are not functional. See [industry audit and test matrix](docs/INDUSTRY_RESEARCH_COPY_INVENTION_AUDIT_2026-11-18.md).
+
+## 18 November 2026 — Movement drift, bump and micro-stutter investigation
+
+- Synchronized `fix/gate-warp-landing-surface-clearance-2026-11-18` with latest fork `master` while preserving mining-drone PR #42's `ApplyMiningDroneStep` API and DED PR #41's NPC exclusions; retained all existing gate-warp source changes, with an ancestry-preserving merge.
+- Removed idle `STOP` mode's repeated one-per-tick `CmdStop` emission; continue real deceleration and issue at most one stale-velocity correction. Guard malformed speed and heading values against propagating NaN positions.
+- Extended final-tick collision-safe approach handling to both stargates and stations, with at least 2,400m surface clearance on manual Approach 0m. Consolidated the last position/stop/zero-velocity updates into one ordered Destiny packet batch, including at warp completion.
+- Corrected movement speed reporting used by target/orbit prediction to measure current velocity rather than acceleration timer progress. Extended C++ and source-invariant regression coverage. See the [review and live-playtest plan](docs/WARP_GATE_LANDING_2500M_2026-11-18.md).
+- `CheckBump()` reports player-to-player contact. The 19 November entry records the confirmed client behavior for warp, gate transit and docking.
+
+## 18 November 2026 — Fix stargate warp landing, radius double counting and gate/station approach
+
+- Manual `WarpToStuff` previously subtracted a gate's full radius, then added an arbitrary `radius / 3` and twice the ship radius. Result: variable landing distance and possible client bounce/overshoot. For gates and ordinary warpable objects, keep the original target-center coordinates and calculate the exact center stop distance by adding the ship and target collision radii **once** to the requested surface stand-off. "Warp to zero" gates now target **2,400m** from the surface (inside the 2,500m jump threshold); longer explicit ranges are retained.
+- Autopilot previously used an unadjusted `apWarptoDistance` against an object's *center*, which could overlap large gates/stations. Add both hull radii to the configured surface gap; correct the autopilot initial `Follow()` command to receive a surface range.
+- Fix `Client::StargateJump`, queued post-warp gate approaches and `DestinyManager::AttemptDockOperation` so `Follow()` receives a 2,400 m surface range. Gate and station interactions keep their 2,500 m limits. Subsequent changes use the station's actual center for warp and docking. The planet, moon and wormhole paths keep their own destination geometry, and raw bookmarks retain their exact coordinates.
+- Clamp the final one-second movement step when a ship follows a stargate: move no farther than the remaining surface gap, send the exact corrected position and a zero-velocity/stop packet. This prevents full-tick overshoot even with fast or large hulls, including manual gate Approach.
+- Added `WarpCenterStopRange` tests for small and capital hulls, selectable ranges, source guards and warp diagnostics. The 19 November follow-up passed CI and the operator verified the reported warp, jump and dock behavior in game. [Verification record](docs/WARP_GATE_LANDING_2500M_2026-11-18.md)
+
 ## 18 November 2026 — Baseline Military/Industrial upgraded IHub combat and ore sites
 
 - On initialized sovereign solar systems, load active upgrades only from the matching TCU/IHub and schedule up to five additional combat anomalies for Military upgrades and five Gravimetric signatures for Industrial upgrades. Actual mineable asteroid objects are created through BeltMgr from existing system ore distribution.
@@ -85,8 +165,8 @@
 
 - Audited upstream issues against the merged fork before patching: `#319` (`bool` MariaDB reconnect) and core `#170` iterator advance are **already implemented**, so no duplicate replacement. `#35` has a 120-minute wreck timer but remains runtime-unverified.
 - New scanner patch on `fix/upstream-issues-scanner-safety-2026-11-17`: **#128** client scan session now rebinds to the current system after jumps and refuses missing managers; **#37** directional cone calculation now normalizes vectors, checks invalid inputs, and supports full-circle scanning; **#170/#262** probe removal clears both live/active scan maps (partial mitigation only). **#269** post-NPC-death scan crash is not proven fixed.
-- Added new pure scanning math unit test and CTest registration; CI and in-game testing are required before calling upstream reports resolved.
-- [Complete upstream issue audit (123 open reports)](docs/UPSTREAM_ISSUE_AUDIT_2026-11-17.md) includes all open titles, exact code paths, triage decisions, reproduction tests and documented limitations. No SQL changes, upstream issue closures or changes to fork `master`.
+- Added a scanning math unit test and CTest registration. The scanner changes are in `master` through PR #37. Live verification of the upstream scanner reports remains separate. [Merged PR #37](https://github.com/xrizonx/evemu_Crucible/pull/37)
+- The audit records issue titles, code paths, reproduction tests and remaining limitations. [Complete upstream issue audit](docs/UPSTREAM_ISSUE_AUDIT_2026-11-17.md)
 
 ## 17 November 2026 — POS requested-position distance validation
 

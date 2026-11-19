@@ -1,6 +1,6 @@
 # EVEmu Crucible — living repair checklist
 
-**Updated:** 17 November 2026 · **Branch:** `master` · **Server:** 0.8.7-Rizonx
+**Updated:** 19 November 2026 · **Server:** 0.8.7-Rizonx
 
 Status entries apply to the **named workstream** only. Source/build CI does not certify every Crucible gameplay path. Operator declarations are documented separately from CI evidence.
 
@@ -17,6 +17,8 @@ Status entries apply to the **named workstream** only. Source/build CI does not 
 - [ ] **A09 — remaining ship warp-speed data verification** — verify migration separately.
 
 ## Independent gameplay regression tracking
+
+- [x] **Warp, stargate transit and docking** — operator verified warp animation, jump completion and display, and docking in the Crucible client on 19 November 2026. [PR #43](https://github.com/xrizonx/evemu_Crucible/pull/43) · [Verification record](WARP_GATE_LANDING_2500M_2026-11-18.md)
 
 [Full Crucible client checklist](CRUCIBLE_CLIENT_GAMEPLAY_VERIFICATION_CHECKLIST_2026-11-16.md) remains valid for tests that are **not part of A01 acceptance**. Do not mark agent, industry, contracts, POS, warp, weapons or mail as fully passed based only on closing A01.
 

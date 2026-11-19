@@ -25,6 +25,12 @@ The operator reported that **True Sansha NPCs were not valid attack targets** in
 
 This filtering is scoped to mission **65534**. It does not alter invTypes, ordinary belts, anomaly rats, the Blockade, mission rewards, or rare-loot tier selection. Existing already accepted mission sites remain unchanged. Run two consecutive newly accepted expeditions and verify there are no True Sansha names, all eight hostiles can be targeted and killed, and the mission reaches 8/8.
 
+## Domination Grigori target exclusion (18 November 2026)
+
+Domination Grigori was reported untargetable when selected for the DED & Officer Expedition. Mission **65534** now excludes the exact NPC type name `Domination Grigori` (case-insensitive) before selecting a ship from each eligible NPC group. Other Angel Cartel officer types remain eligible, and the existing True Sansha exclusion remains active. The mission still requires eight hostile targets selected as two from each category.
+
+This affects only newly created expedition pockets after deploying the updated server binary and restarting the server. Existing spawned pockets are not rewritten. No `invTypes` or spawn-table SQL changes are needed. Verify in a new expedition that Domination Grigori does not appear, all eight NPCs are targetable, and the kill counter reaches 8/8.
+
 ## Loot and rewards
 
 Each destroyed mission NPC spawns a wreck. An extra **one-unit premium module** is added to the wreck based on the NPC group's category: faction commander `invMetaGroups.metaGroupID=4`, pirate officer `5`, DED/deadspace and overseer `6`. Modules are randomly selected **from actual rarity-tagged Module-category types, preferring published market-listed items** loaded into `StaticDataMgr` from the installed SDE; no fake loot is created. This is a mission-only premium drop in addition to any normal group loot triggered by the existing global drop chance. Premium item selection is by rarity tier, not guaranteed faction-matched naming.

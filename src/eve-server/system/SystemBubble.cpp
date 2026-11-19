@@ -346,7 +346,9 @@ void SystemBubble::Add(SystemEntity* pSE) {
 
         Client* pClient(pSE->GetPilot());
 
-        SendAddBalls( pSE );
+        // The gate arrival snapshot installs the ego and nearby balls together.
+        if (!pClient->IsGateJump())
+            SendAddBalls(pSE);
 
         if (!m_players.empty()) {
             AddBallExclusive(pSE);  // adds new player to all players in bubble, if any

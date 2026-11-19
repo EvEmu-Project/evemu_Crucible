@@ -37,6 +37,7 @@
 #include "StatisticMgr.h"
 #include "StaticDataMgr.h"
 #include "account/AccountService.h"
+#include "EVE_IndustryFormulas.h"
 #include "manufacturing/Blueprint.h"
 #include "manufacturing/RamMethods.h"
 #include "manufacturing/RamProxyService.h"
@@ -111,14 +112,16 @@ PyResult RamProxyService::AssemblyLinesSelect(PyCallArgs &call, PyString* filter
 }
 
 PyResult RamProxyService::GetJobs2(PyCallArgs &call, PyInt* ownerID, PyBool* completed) {
-    if (ownerID->value() == call.client->GetCorporationID())
-        if ((call.client->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager) {
-            // what other roles (if any) can view corp factory jobs?
-            call.client->SendInfoModalMsg("You cannot view your corporation's jobs because you are not a Factory Manager.");
-            return nullptr;
-        }
-
-    return FactoryDB::GetJobs2(ownerID->value(), completed->value());
+    const int32 requestedOwner = ownerID->value();
+    if (requestedOwner != call.client->GetCharacterID()
+        && requestedOwner != call.client->GetCorporationID())
+        throw UserError("RamCompletionAccessDenied");
+    if (requestedOwner == call.client->GetCorporationID()
+        && (call.client->GetCorpRole() & Corp::Role::FactoryManager) != Corp::Role::FactoryManager) {
+        call.client->SendInfoModalMsg("You cannot view your corporation's jobs because you are not a Factory Manager.");
+        return nullptr;
+    }
+    return FactoryDB::GetJobs2(requestedOwner, completed->value());
 }
 
 /** @todo update this for corp usage */
@@ -215,6 +218,7 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
     // check permissions
     sRamMthd.LinePermissionCheck(call.client, args);
     sRamMthd.ItemOwnerCheck(call.client, args, bpRef);
+    sRamMthd.ItemLocationCheck(call.client, args, installedItem);
 
     // this is a bit funky, but works quite well....
     // decode path to BP and BOM location
@@ -250,12 +254,22 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         bomLocPath.locationID   = bomPath.officeID;
         bomLocPath.ownerID      = bomPath.officeCorpID;
         bomLocPath.flagID       = bomPath.pathFlagID;
+        if (bomLocPath.ownerID != call.client->GetCorporationID())
+            throw UserError("RamAccessDeniedToBOMHangar");
     } else {
         // get path data for player
-        if (!bomLocPath.Decode(args.bpLocPath->GetItem(0))) {
+        if (!bomLocPath.Decode(args.bomLocPath->GetItem(0))) {
             _log(SERVICE__ERROR, "Failed to decode BOM path.");
             return nullptr;
         }
+        // A personal job must not use arbitrary corporate materials or
+        // a remote/inaccessible inventory path supplied by the client.
+        const bool inShip = args.lineContainerID == call.client->GetShipID();
+        if (bomLocPath.ownerID != call.client->GetCharacterID()
+            || bomLocPath.locationID != args.lineContainerID
+            || bomLocPath.flagID != (inShip ? flagCargoHold : flagHangar)
+            || args.outputFlag != (inShip ? flagCargoHold : flagHangar))
+            throw UserError("RamAccessDeniedToBOMHangar");
     }
 
     // calculate time and cost
@@ -317,8 +331,16 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
         } break;
     }
 
-    // approved job cost from quote
-    float cost(PyRep::IntegerValue(call.byname["authorizedCost"]));
+    // The client must confirm the SERVER-calculated cost, not choose a
+    // lower or negative amount for its own installation.
+    const double approvedCost = static_cast<double>(
+        PyRep::IntegerValue(call.byname["authorizedCost"]));
+    const double calculatedCost = static_cast<double>(rsp.cost);
+    if (!std::isfinite(approvedCost) || !std::isfinite(calculatedCost)
+        || approvedCost < 0.0 || calculatedCost < 0.0
+        || std::fabs(approvedCost - calculatedCost) > 1.0)
+        throw UserError("RamCannotGuaranteeStartTime");
+    const double cost = calculatedCost;
 
     // pay for assembly lines...take the money, send wallet blink event record the transaction in journal.
     std::string reason = "DESC: Installing ";
@@ -383,12 +405,15 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
             continue;       // not interested
 
         // calculate needed quantity
-        uint32 qtyNeeded = (uint32)round(((itemItr->quantity * rsp.materialMultiplier) + (itemItr->quantity * rsp.charMaterialMultiplier - itemItr->quantity)) * args.runs);
+        uint32 qtyNeeded = EVEmuIndustry::RequiredMaterialQuantity(
+            itemItr->quantity, rsp.materialMultiplier, rsp.charMaterialMultiplier,
+            args.runs, itemItr->extra);
 
         // consume required materials
         std::vector<InventoryItemRef>::iterator refItr = items.begin();
         for (; refItr != items.end(); ++refItr)
-            if ((*refItr)->typeID() == itemItr->typeID) {
+            if ((*refItr)->typeID() == itemItr->typeID
+                && (*refItr)->ownerID() == bomLocPath.ownerID) {
                 if (qtyNeeded >= (*refItr)->quantity()) {
                     qtyNeeded -= (*refItr)->quantity();
                     (*refItr)->Delete();
@@ -402,8 +427,11 @@ PyResult RamProxyService::InstallJob(PyCallArgs &call, PyRep* locationData, PyRe
     // update runs and do other shit where applicable
     switch (args.activityID) {
         case EvERam::Activity::Manufacturing: {
-            // we just need to update runs here
-            bpRef->UpdateRuns(-args.runs);
+            // Originals have unlimited production runs. Never decrement the
+            // negative sentinel; repeated BPO jobs could eventually overflow
+            // it and turn the original into a finite-run blueprint.
+            if (!bpRef->infinite())
+                bpRef->UpdateRuns(-args.runs);
         } break;
         case EvERam::Activity::ReverseEngineering: {
             bpRef->UpdateRuns(-args.runs);
