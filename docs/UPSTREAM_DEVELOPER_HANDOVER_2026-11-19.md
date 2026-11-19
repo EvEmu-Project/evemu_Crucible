@@ -36,7 +36,7 @@ The merged tree was checked against both parent Git trees: no path in either par
 - Added registered CTest suites and Windows/Linux Python source-invariant checks. Source guards complement compiled tests, but text/string invariants must be updated when implementation semantics change: older audit scripts once rejected safe code because comments or formulas were rewritten.
 - The EVEDBTool patch is applied to upstream `EvEmu-Project/EVEDBTool` tag `0.0.6` during CI and built for Windows/Linux; **deploy the patched tool with this tree’s SQL and migration definitions**, not an unrelated copy.
 
-**Reproduction:** Fork `master` commit `e2f8e14` passed [GitHub Actions #44479434302](https://github.com/xrizonx/evemu_Crucible/actions/runs/44479434302): Linux GCC/CTest/package, Windows UCRT64 GCC/CTest/ZIP, Docker, and MariaDB integration. A previous branch run [#44473762678](https://github.com/xrizonx/evemu_Crucible/actions/runs/44473762678) also passed. **The combined 19 November upstream contribution merge has not yet been evidenced by a full CI pass**; its new market checks must run together with the master industry checks before accepting upstream.
+**Reproduction:** Fork `master` commit `e2f8e14` passed [GitHub Actions #44479434302](https://github.com/xrizonx/evemu_Crucible/actions/runs/44479434302): Linux GCC/CTest/package, Windows UCRT64 GCC/CTest/ZIP, Docker, and MariaDB integration. A previous branch run [#44473762678](https://github.com/xrizonx/evemu_Crucible/actions/runs/44473762678) also passed. **The combined contribution branch has now passed full CI:** [Actions #44498635401](https://github.com/xrizonx/evemu_Crucible/actions/runs/44498635401) completed successfully, including Linux/Windows CTest, Docker and MariaDB market-index checks. This verifies code/fixture behavior, not real-client performance or gameplay.
 
 ## 3. Core stability, serialization, services and inventory
 
@@ -119,6 +119,14 @@ The merged tree was checked against both parent Git trees: no path in either par
 
 **Operator warning:** no old NPC orders magically update on source deployment. Stop the market bot/server, back up MariaDB, run `evedbtool seed -force -dryrun` first, review selection, and use the exact staged procedure in [100M market runbook](NPC_ORE_MINERAL_100M_ORDERS_2026-11-18.md). `seed -force` replaces seed-managed sell and buy orders; `seed -buy-only -force` intentionally only refreshes identifiable NPC buys. Neither should be used against production before inspecting volume/ISK implications and player order counts.
 
+### 19 November — Docker/MariaDB market performance follow-up
+
+- Added additive composite indexes on `mktOrders`: `(regionID,bid,typeID,price,orderID)`, `(stationID,bid,typeID,price,orderID)`, `(solarSystemID,bid,typeID,price,orderID)`, and `(ownerID,issued)`. These match the exact server orderbook/summary queries and NPC expiration-owner filter; they do not alter order values or quantities.
+- `MarketBotMgr::ExpireOldOrders` now runs once per refresh and uses owner/expiry-guarded batches of 128 IDs, rather than an extra full sweep and one DELETE per expired order. The current owner and 550-unit exclusions remain; players' orders are never intentionally targeted.
+- Docker Compose waits for MariaDB 11.8/InnoDB readiness before starting the server, preserving the named database volume. No speculative buffer-pool size or CPU/memory limits have been imposed.
+- A MariaDB CI fixture applied the migration twice, kept the player order count unchanged, and confirmed that `EXPLAIN` selected the new regional and station composite keys. The real server's slower market still needs **actual before/after measurements** and large-table query plans.
+- The updated branch has source and MariaDB regression checks; [Actions #44498635401](https://github.com/xrizonx/evemu_Crucible/actions/runs/44498635401) **passed all four required build/integration jobs**. See [Docker market performance diagnosis and safe migration](DOCKER_MARKET_PERFORMANCE_2026-11-19.md). Actual latency improvements still require user-hosted query timing.
+
 ## 10. Scanning and other client-facing mechanics
 
 - Improved probe and directional/scanner math, result aggregation and safety guards around ranges, ship/celestial metadata and stale entities. The dedicated scanner audit and math tests are in the repository; live Crucible scan-result ordering, probe skill edge cases and map/client precision still need QA.
@@ -127,7 +135,7 @@ The merged tree was checked against both parent Git trees: no path in either par
 
 ## 11. Schema and static-data migrations — staging operator sequence
 
-**No migration has been run by this handover.** The contribution includes these five 18 November migrations; inspect each `Up` block and the production schema before execution:
+**No migration has been run by this handover.** The contribution includes five 18 November migrations plus one **optional/additive 19 November market index migration**; inspect each `Up` block and the production schema before execution:
 
 | Order | Migration | Purpose and review gate |
 | --- | --- | --- |
@@ -136,6 +144,7 @@ The merged tree was checked against both parent Git trees: no path in either par
 | 3 | `20261118120000-pos-industry-lines.sql` | POS industry line availability/provisioning; **does not** make remote/POS jobs fully functional |
 | 4 | `20261118123000-crucible-static-attribute-corrections.sql` | Guarded static attribute corrections; compare installed SDE and existing custom data first |
 | 5 | `20261118130000-crucible-capital-warp-speeds.sql` | Historical capital ship warp-speed corrections; check installed attributes and hulls |
+| 6 | `20261119113000-market-order-lookup-indexes.sql` | Four additive InnoDB indexes for regional orderbook, station/system best asks and Trader Joe expiry; off-peak optional DDL, no data rewrite |
 
 **Deployment procedure:** (1) take an off-server full MariaDB backup and verify restore on staging; (2) record EVEDBTool build and migration ledger; (3) stop writes from server, Trader Joe and other workers; (4) run reviewed `Up` migrations in timestamp order **exactly once** with the supported migration runner; (5) inspect affected tables, column types, indexes, static attributes, active tower/IHub rows and sampled player assets; (6) deploy server/client-compatible artifacts and run scenario tests; (7) only if explicitly desired, audit/reseed NPC orders via documented dry-run. Migration files are not a substitute for reviewing a production database with custom changes.
 
@@ -149,11 +158,12 @@ The merged tree was checked against both parent Git trees: no path in either par
 | Windows MSYS2 UCRT64 GCC + CTest + ZIP | Portable server/tools, DLL packaging, checksum, source guards | Same `master` run passed |
 | Docker | Reproducible image build | Same `master` run passed |
 | MariaDB integration | Unsigned `orderRange` seed, POS industry migration, static attributes, seeded market checks | Same `master` run passed |
-| Contribution-specific 100M ore/mineral | Source guard on Linux/Windows; extended seeded MariaDB order tests | **Present on combined contribution branch; full combined CI unverified at handover time** |
+| Contribution-specific 100M ore/mineral | Source guard on Linux/Windows; extended seeded MariaDB order tests | Combined CI [#44498635401](https://github.com/xrizonx/evemu_Crucible/actions/runs/44498635401) passed |
 | Gameplay source guards | Mission, Blockade, DED/Officer, drones, movement, industry, POS/IHub, scanner | Catches known regressions; comment-based checks previously yielded false positives |
+| Docker market query indexes | Four additive/idempotent MariaDB keys, EXPLAIN, preserved player rows | Combined CI [#44498635401](https://github.com/xrizonx/evemu_Crucible/actions/runs/44498635401) passed; real market-load timing still needed |
 | Direct Crucible client | Core warp animation, jump and docking reportedly verified | Broad combat, industrial, market, POS, drone, sovereignty and visual tests still outstanding |
 
-**CI workflow location:** `.github/workflows/build-release.yml`. It dispatches on push to `master`, PRs targeting fork `master` and manual workflow dispatch, but **a push to the contribution branch alone does not automatically establish a new fork workflow success**; upstream PR workflow checks depend on the upstream repository. Reviewers should run the **combined contribution head**, not cite older `master` green tests as a substitute.
+**CI workflow location:** `.github/workflows/build-release.yml`. It dispatches on pushes to fork `master` and the long-running `contrib/upstream-crucible-maintenance-2026-11-15` branch, PRs targeting fork `master`, and manual workflow dispatch. The contribution branch now triggers its own exact-head Linux/Windows/Docker/MariaDB tests; review the latest run rather than assuming success from the parent. Reviewers should run the **combined contribution head**, not cite older `master` green tests as a substitute.
 
 **Known CI history:** early industry compile failures from undefined `uint64` were fixed via `std::uint64_t`; source guards were updated to inspect actual fail-closed invention and capped ME/PE formulas rather than obsolete comments. Prior reruns passed. Do not reintroduce fragile comment-string tests.
 

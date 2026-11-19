@@ -58,6 +58,13 @@
 - Updated five generation paths: patched regional EVEDBTool seed, `seed_market.sql`, `seed_station_market.sql`, `MarketBotMgr.cpp` dynamic Trader Joe bids and asks. Updated MariaDB fixture and `verify_ore_mineral_100m.py` to cover prices, amounts, idempotency, player order isolation and risky priced-out ore.
 - **Important deployment effect:** source import does not rewrite previously placed NPC orders. `seed -force` deliberately refreshes seed-managed bids **and** asks, while `seed -buy-only -force` refreshes only identifiable NPC bids. **Never issue force operations without a database backup, dry-run, item-volume review and operator approval.**
 
+## Docker MariaDB market loading optimization (19 November)
+
+- The Crucible market UI's station, system and region best-ask summaries perform nested minimum-price and orderID lookups; order books filter by region/type/bid. The older migration supplied only a solarSystemID index. Added four **additive and reversible** composite indexes for region/station/system market lookup and bot owner/issued expiration.
+- Trader Joe no longer performs duplicate expired-order scans per refresh. Expired orders are deleted in small batches with the original bot owner and volume exclusions plus expiry rechecks, substantially reducing database round trips on busy refresh cycles.
+- Docker Compose waits for a healthy InnoDB database before starting the server, avoiding cold-initialization races without changing database volume storage or making unsupported resource-tuning assumptions.
+- The MariaDB seeded test successfully applied the indexes twice and preserved sample player orders; `EXPLAIN` selected new regional and station composite keys. **No live database timings were available** to quantify client market-load improvement. [Runbook and query plans](DOCKER_MARKET_PERFORMANCE_2026-11-19.md) · [CI #44498635401](https://github.com/xrizonx/evemu_Crucible/actions/runs/44498635401).
+
 ## Industry, blueprint research, copying and manufacturing
 
 - Validate blueprint owner/location, permitted factory or laboratory category/group and selected activity (Manufacturing 1, PE/Time 3, ME 4, Copying 5). Tighten personal/corporation job and output ownership; enforce legitimate BOM inventory location and hangar flag.
@@ -93,15 +100,16 @@
 
 New or updated repository sections include `.github/workflows/build-release.yml`; `src/eve-common`, `src/eve-core`, `src/eve-server`, `src/eve-test`, `tools`, `sql`, `docs`. The complete **303-path pre-handover inventory** is available as an exact per-file appendix. Archive review snapshots for 15, 17 and 18 Nov are preserved, but many of their source SHA/count/status statements are historical.
 
-Five SQL migrations require an explicit staging schema review, backup and application in chronological order when the corresponding features are needed:
+Six SQL migrations (including one optional, additive market index migration) require staging schema review and, when the corresponding features are desired, a backup and controlled application in chronological order:
 
 1. `20261118070000-sov-development-index-overrides.sql`
 2. `20261118093000-sov-development-index-point-width.sql`
 3. `20261118120000-pos-industry-lines.sql`
 4. `20261118123000-crucible-static-attribute-corrections.sql`
 5. `20261118130000-crucible-capital-warp-speeds.sql`
+6. `20261119113000-market-order-lookup-indexes.sql` — optional composite market lookup/expiry indexes; no data changes, but schedule index creation off-peak
 
-**Verified parent evidence:** fork `master` Windows + Linux builds and CTest, Docker and MariaDB integration all passed [#44479434302](https://github.com/xrizonx/evemu_Crucible/actions/runs/44479434302). **Required:** independently test the *merged contribution head* with both the new 100M market checks and the merged industry/movement checks. No database migrations or seed refreshes were executed as part of creating these patch notes.
+**Verified parent evidence:** fork `master` Windows + Linux builds and CTest, Docker and MariaDB integration all passed [#44479434302](https://github.com/xrizonx/evemu_Crucible/actions/runs/44479434302). **Confirmed:** the combined contribution commit was tested in [CI #44498635401](https://github.com/xrizonx/evemu_Crucible/actions/runs/44498635401): all Linux/Windows CTest, Docker and MariaDB jobs passed, including the new market-index fixture. No database migrations or seed refreshes were executed as part of creating these patch notes.
 
 ## Outstanding review / production acceptance
 

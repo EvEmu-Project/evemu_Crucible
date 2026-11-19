@@ -38,9 +38,13 @@ The contribution-only market delta modifies `tools/evedbtool/command_seed.go`, `
 
 **Deployment does not mutate existing orders.** Operators must separately decide whether to refresh: `evedbtool seed -force` refreshes seed-managed buy **and sell** orders; `seed -buy-only -force` refreshes identifiable NPC bids only. Take a full DB backup, inspect `seed -force -dryrun`, and reconcile player orders and balances. [Deployment runbook](https://github.com/xrizonx/evemu_Crucible/blob/contrib/upstream-crucible-maintenance-2026-11-15/docs/NPC_ORE_MINERAL_100M_ORDERS_2026-11-18.md).
 
+## 19 November — Docker market-load performance
+
+The Crucible UI uses nested best-ask queries and separate regional item sell/buy queries on `mktOrders`. Four additive composite indexes now target their region/station/system filters, along with the bot's owner/issued expiry sweep. Trader Joe now performs one expiry pass per refresh and batches guarded DELETEs rather than issuing one per order; Docker Compose waits for healthy MariaDB/InnoDB initialization. The [performance runbook](https://github.com/xrizonx/evemu_Crucible/blob/contrib/upstream-crucible-maintenance-2026-11-15/docs/DOCKER_MARKET_PERFORMANCE_2026-11-19.md) provides read-only EXPLAIN/slow-query diagnostics and rollback steps. MariaDB CI confirms idempotent index DDL, preserved player orders, and actual index selection for representative queries; **real user latency has not been measured**. [Branch CI #44498635401](https://github.com/xrizonx/evemu_Crucible/actions/runs/44498635401).
+
 ## Database changes — review before any execution
 
-Five 18 November migrations are present; **none was applied by updating this PR**:
+Five 18 November migrations and one optional 19 November market-index migration are present; **none was applied to a production database by updating this PR**:
 
 | Sequence | SQL migration | Intent |
 | --- | --- | --- |
@@ -49,6 +53,7 @@ Five 18 November migrations are present; **none was applied by updating this PR*
 | 3 | `20261118120000-pos-industry-lines.sql` | Lab line provisioning, **not** completed remote/POS jobs |
 | 4 | `20261118123000-crucible-static-attribute-corrections.sql` | Guarded historical static-data corrections |
 | 5 | `20261118130000-crucible-capital-warp-speeds.sql` | Capital-hull warp attributes |
+| 6 | `20261119113000-market-order-lookup-indexes.sql` | Four additive market query/Trader Joe expiry indexes; review and apply off-peak |
 
 Use staging + verified MariaDB backup, inspect the actual `Up` SQL and your SDE, migrate in timestamp order once, validate before server rollout, and **never treat automatic `Down` or a Git revert as a DB restoration plan**. `/sovindex5` uses raw test-only points and must be reset after testing. POS orphan records require a separate manual reference audit.
 
@@ -56,7 +61,7 @@ Use staging + verified MariaDB backup, inspect the actual `Up` SQL and your SDE,
 
 - **Confirmed on fork master `e2f8e14`:** [Actions #44479434302](https://github.com/xrizonx/evemu_Crucible/actions/runs/44479434302) succeeded on **Linux GCC + CTest + packaging, Windows UCRT64 GCC + CTest + ZIP, Docker, and MariaDB integration**.
 - **Historical successful fork PR CI:** [#44473762678](https://github.com/xrizonx/evemu_Crucible/actions/runs/44473762678) for the immediate earlier fork head. The final PR #43 source was merged into master with identical code tree.
-- **Not yet verified:** the newly combined contribution branch with the additional 100M market code/tests and newer industry guards **in the same full CI run**. The source branch push does not itself trigger fork `push` workflow (configured for `master`); request/trigger checks on the exact contribution SHA.
+- **Verified:** the combined contribution branch including 100M market changes, new MariaDB market indexes and newer industry guards passed [Actions #44498635401](https://github.com/xrizonx/evemu_Crucible/actions/runs/44498635401) on Linux/Windows with CTest, Docker and MariaDB. The fork's workflow now also triggers on pushes to this long-running contribution branch.
 - **Observed gameplay:** the operator reported warp animation, gate jump/visuals and docking functioning; seller ISK credit for a tested NPC buy-order sale. Other described features remain code-level/CI-backed until individually playtested.
 - **Open blockers:** invention output, fully atomic industry transactions, POS/remote lab work, real sovereignty activity points/decay, full mission room triggers, some specialty weapons, continuous collision physics and frame-time stutters.
 
