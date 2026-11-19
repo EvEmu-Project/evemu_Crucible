@@ -435,8 +435,7 @@ void Client::ProcessClient() {
     if (m_invulTimer.Enabled()/*m_invul*/)
         if (m_invulTimer.Check(false)) {
             _log(CLIENT__TIMER, "ProcessClient():  SetInvul to false for %s(%u)", m_char->name(), m_char->itemID());
-            m_invulTimer.Disable();
-            m_invul = false;
+            SetInvul(false);
             m_undock = false;
         }
 
@@ -929,9 +928,10 @@ void Client::SetBallPark() {
     }
     if (m_setStateSent && m_beyonce) {
         m_ballparkTimer.Disable();
-        if (IsGateJump()) {
+        if (IsGateJump() || IsWormholeJump()) {
             SetInvulTimer(Player::Timer::JumpInvul);
-            // dont use timer method here...(jumping ship will flash at destination)
+            // The ship already has its jump cloak state in the snapshot.
+            m_cloakTimer.Disable();
             m_cloakTimer.Start(Player::Timer::JumpCloak);
             m_clientState = Player::State::Idle;
         }
@@ -940,22 +940,14 @@ void Client::SetBallPark() {
             m_clientState = Player::State::Idle;
             JumpInEffect();
         }
-        if (IsWormholeJump()) {
-            SetInvulTimer(Player::Timer::JumpInvul);
-            m_cloakTimer.Start(Player::Timer::JumpCloak);
-            m_clientState = Player::State::Idle;
-        }
     }
     if (m_undock)
         pShipSE->DestinyMgr()->SetSpeedFraction();
 }
 
 void Client::CheckBallparkTimer() {
-    if (!m_ballparkTimer.Enabled()) {
-        sLog.Error("CheckBallparkTimer()", "BallPark Timer is disabled.");
-    } else {
-        sLog.Warning("CheckBallparkTimer()", "BallPark Time remaining %ums", m_ballparkTimer.GetRemainingTime());
-    }
+    _log(CLIENT__TIMER, "CheckBallparkTimer(): timer %s, remaining %ums.",
+         m_ballparkTimer.Enabled() ? "active" : "inactive", m_ballparkTimer.GetRemainingTime());
 
     _log(CLIENT__TIMER, "CheckBallparkTimer():  State: %s, SetState: %s, Beyonce: %s, Login: %s", \
             GetStateName(m_clientState).c_str(), m_setStateSent?"true":"false", \
@@ -1792,30 +1784,24 @@ void Client::SetUncloakTimer(uint32 time/*Player::Timer::Default*/)
     SetUncloak(true);
 }
 
+void Client::SetInvul(bool invul)
+{
+    m_invul = invul;
+    if (!invul)
+        m_invulTimer.Disable();
+}
+
 void Client::SetInvulTimer(uint32 time/*Player::Timer::Default*/)
 {
     if (time == 0) {
         SetInvul(false);
-        m_invulTimer.Disable();
         _log(CLIENT__TIMER, "%s: Invul Timer Disabled", m_char->name());
         return;
     }
 
-    if (m_invulTimer.Enabled()) {
-        const uint32 remaining = m_invulTimer.GetRemainingTime();
-        if (remaining > 0) {
-            _log(CLIENT__ERROR, "%s: Invul Timer called but timer already enabled with %ums remaining.", m_char->name(), remaining);
-            EvE::traceStack();
-            return;
-        }
-
-        // The timer has elapsed but ProcessClient() has not yet consumed the
-        // expiry. Replace that stale enabled timer rather than dropping a new
-        // warp/jump/undock invulnerability request.
-        _log(CLIENT__TIMER, "%s: Replacing expired invulnerability timer with %ums.", m_char->name(), time);
-        m_invulTimer.Disable();
-    }
-
+    // Starting an enabled Timer keeps the old start time. Every new
+    // protection window begins at the current jump, login or undock.
+    m_invulTimer.Disable();
     _log(CLIENT__TIMER, "%s: Invul Timer set at %ums.   current state time is %ums", m_char->name(), time, m_invulTimer.GetCurrentTime());
     m_invulTimer.Start(time);
     SetInvul(true);
@@ -3129,9 +3115,9 @@ bool Client::Handle_Notify(PyPacket* packet)
                 continue;
             }
 
-            // clear bindID from internal map
-            m_bindSet.erase(bindID);
-            m_services.ClearBoundObject(bindID, this);
+            // The client can send another release after unbinding on a jump.
+            if (m_bindSet.erase(bindID) != 0)
+                m_services.ClearBoundObject(bindID, this);
         }
     } else {
         sLog.Error("Client::Notify","Unhandled notification from %s: unknown method '%s'", m_char->name(), notify.method.c_str());

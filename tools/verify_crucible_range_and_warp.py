@@ -120,6 +120,12 @@ warp_order = destiny.split("void DestinyManager::WarpTo(", 1)[1].split(
     "void DestinyManager::Orbit(SystemEntity", 1)[0]
 assert "GotoPoint(" not in warp_order and "Follow(" not in warp_order
 assert warp_order.index("capNeeded > currentCap") < warp_order.index("BeginMovement();")
+assert "throttle.fraction = m_userSpeedFraction;" in warp_order
+assert "updates{throttle.Encode(), wt.Encode(), EncodeWarpEffect(true)}" in warp_order
+begin_movement = destiny.split("void DestinyManager::BeginMovement()", 1)[1].split(
+    "void DestinyManager::Follow(SystemEntity", 1)[0]
+assert "if (HasWarpOrder() || (m_userSpeedFraction < 0.02f && m_timeFraction < 0.02f))" in begin_movement
+assert "SetSpeedFraction(1.0f, true);" in begin_movement
 assert "wt.dest_x = packetDestination.x;" in warp_order
 assert "wt.distance = std::max(0, m_stopDistance);" in warp_order
 assert "int32 stopDistance = npcWarp ? distance : std::max(0, distance);" in warp_order
@@ -156,6 +162,16 @@ assert "if (pilot->IsGateJump())" in snapshot and "speed.speed = m_maxShipSpeed;
 assert "SendDestinyUpdate(updates, true);" in snapshot
 assert "if (!pClient->IsGateJump())\n            SendAddBalls(pSE);" in source(
     "src/eve-server/system/SystemBubble.cpp")
+assert ballpark.index("m_cloakTimer.Disable();") < ballpark.index("m_cloakTimer.Start(")
+
+# A fresh protection window must reset the underlying timer's start time.
+# Clearing protection through movement must also cancel its pending expiry.
+invul = client.split("void Client::SetInvul(bool", 1)[1].split("void Client::SetStateTimer(", 1)[0]
+assert "if (!invul)\n        m_invulTimer.Disable();" in invul
+arm_invul = invul.split("void Client::SetInvulTimer(", 1)[1]
+assert arm_invul.index("m_invulTimer.Disable();") < arm_invul.index("m_invulTimer.Start(time);")
+assert "already enabled" not in arm_invul
+assert "if (m_bindSet.erase(bindID) != 0)\n                m_services.ClearBoundObject(bindID, this);" in client
 
 # Throttle from STOP must seed a valid course before enabling GOTO and
 # send that course before the client starts accelerating.

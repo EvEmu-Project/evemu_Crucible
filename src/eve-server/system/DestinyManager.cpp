@@ -440,7 +440,7 @@ void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/
     }
 
     if (HasWarpOrder()) {
-        // Alignment can adjust throttle without replacing the client's warp order.
+        // WarpTo sends the client throttle and course together.
         return;
     }
 
@@ -2137,8 +2137,8 @@ void DestinyManager::BeginMovement() {
     if (IsCloaked())
         UnCloak();
 
-    // if ship is not moving, set initial movement variables
-    if ((m_userSpeedFraction < 0.02f) and (m_timeFraction < 0.02f)) {
+    // Align for warp at full throttle, including from an existing crawl.
+    if (HasWarpOrder() || (m_userSpeedFraction < 0.02f && m_timeFraction < 0.02f)) {
         SetSpeedFraction(1.0f, true);
     } else {
         SetSpeedFraction(m_userSpeedFraction, true);
@@ -2292,7 +2292,12 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/) {
     wt.distance = std::max(0, m_stopDistance);
     wt.warpSpeed = GetWarpSpeed(); // warp speed x10
 
-    std::vector<PyTuple*> updates{wt.Encode(), EncodeWarpEffect(true)};
+    // The Crucible client aligns and enters warp locally. From STOP its
+    // commanded throttle is zero, so it needs full throttle before WarpTo.
+    CmdSetSpeedFraction throttle;
+    throttle.entityID = mySE->GetID();
+    throttle.fraction = m_userSpeedFraction;
+    std::vector<PyTuple*> updates{throttle.Encode(), wt.Encode(), EncodeWarpEffect(true)};
     SendDestinyUpdate(updates);
     if (npcWarp)
         return;

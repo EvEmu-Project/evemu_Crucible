@@ -250,7 +250,7 @@ public:
     bool IsLoginWarping();
     uint32 GetSessionChangeTime()                       { return m_sessionTimer.GetRemainingTime() / 1000; }
 
-    void SetInvul(bool invul=false)                     { m_invul = invul; }
+    void SetInvul(bool invul=false);
     void SetUndock(bool undock=false)                   { m_undock = undock; }
     void SetBeyonce(bool beyonce=false)                 { m_beyonce = beyonce; }
     void SetUncloak(bool uncloak=false)                 { m_uncloak = uncloak; }
