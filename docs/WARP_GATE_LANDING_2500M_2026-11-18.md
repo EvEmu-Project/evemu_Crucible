@@ -1,5 +1,11 @@
 # Gate warp landing and surface-range navigation — 18 November 2026
 
+## 19 November 2026 — In-game verification complete
+
+The operator confirmed that warp animations play, stargate jumps complete and display correctly, and docking works in the Crucible client. This closes the reported navigation issue on the build containing `a0c9c75`. [PR #43](https://github.com/xrizonx/evemu_Crucible/pull/43) · [Patch notes](../PATCH_NOTES.md)
+
+The verified build sends full throttle before the warp command, sends the destination ship state before refreshing speed, and restarts arrival protection and cloak timers. The first positive throttle input after a stop establishes a course and releases gate cloak.
+
 ## Investigation
 
 The client and server use different concepts of distance:
@@ -24,9 +30,11 @@ The client and server use different concepts of distance:
 
 - `src/eve-test/utils/MovementFormulaTest.cpp` checks 35m and 2,500m ship radii against a 10km gate radius: surface gap remains 2,400m for both. It also checks autopilot 10km, requested 100km, fractional radii and invalid numeric values.
 - Existing Windows and Linux `tools/verify_crucible_range_and_warp.py` CI guards are extended to prevent reintroducing `gate radius/3`, ship-diameter duplication or `gate radius + 2500` follow ranges.
-- Pure landing math compiled and passed independently with GCC 14.2 `-std=c++17 -Wall -Wextra -Werror`. **The full Windows/Linux builds and live Crucible client warp behavior must be verified by CI and the operator.**
+- Isolated landing math and AU-scale coordinate checks passed. The Windows and Linux builds and CTest, Docker and MariaDB passed against the build the operator tested. [GitHub Actions](https://github.com/xrizonx/evemu_Crucible/actions/runs/44473762678)
 
-## Required live test matrix
+## Extended regression matrix
+
+The operator's in-game sign-off covers warp animation, stargate transit and display, and docking. The matrix below provides coverage for future changes to navigation across specific hulls, range options and destination types.
 
 1. Use a frigate, battleship and a large hull (capital if supported). In the same system, warp **at 0m** to a known stargate. Verify the client completes warp, stops rather than rubber-banding, and reports roughly 2.4 km from the gate's collision surface. Immediately click Jump; it should not require an extended reapproach.
 2. Repeat gate warp with **10km, 30km and 100km** range selections. Verify those requested surface gaps are preserved rather than gaining a radius/3 or double-ship-radius margin.
@@ -51,12 +59,12 @@ Regression checks cover these source invariants plus C++ final-approach math (fu
 
 **Scope and limits:** this is a source-path audit, not a complete per-line manual review of every file in the 1,399-entry repository tree. Key inspected files: `BeyonceService.cpp`, `Client.cpp`, `DestinyManager.cpp/.h`, `SystemBubble.cpp`, `BubbleManager.cpp`, `SystemEntity.cpp`, `DroneAI.cpp`, `EVE_MovementFormulas.h`, `gpoint.h`, Destiny state packets and movement regression tests. `CheckBump()` only notifies on player/player close contact: it **does not implement server-side stargate collision physics**. Therefore genuine client-mesh collision and micro-stutter elimination **cannot be certified** from unit tests or builds. If the client still bounces, collect the installed gate's ball radius/model collision shape, 2012-client Destiny stream and server timestamps before trying type-specific geometry adjustments.
 
-**Required follow-up playtest:** frigate/battleship/capital warp at 0m, 10km and 100km; immediate gate jump from a fresh warp; manual Approach 0m to a stargate and station; autopilot approach/jump; queued docking; repeated idle for at least 60 simulation ticks; check client overview surface range, speed overlay, collision/wobble, frame pacing and network packet rates. Also test mining drone flight/return because `master` PR #42 updated the same Destiny subsystem. No database migration.
+The extended matrix includes manual and autopilot approach. Additional coverage can measure idle packet rates, frame pacing and collision behavior across hulls. Mining-drone flight and ore return are separate from the navigation sign-off. [PR #42](https://github.com/xrizonx/evemu_Crucible/pull/42)
 
 ## Warp entry and arrival follow-up
 
 - A validated warp sends one navigation command. Dock and Jump wait through alignment and active warp. Alignment throttle updates keep the warp order active.
 - Warp entry resolves the landing from the ship's current server position. The deceleration curve reaches the endpoint at the warp exit speed, and the final tick publishes a single stopped position.
 - Invalid coordinates or radii cannot satisfy a jump or dock check. Heavy hulls retain a positive turn rate and directly opposite headings can begin turning.
-- The movement tests cover gate and large station geometry across small and capital hull sizes, off-axis approaches, and short- and long-warp deceleration. Live client movement and distance display still require the playtest above.
+- The movement tests cover gate and large station geometry across small and capital hull sizes, off-axis approaches, and short- and long-warp deceleration. The 19 November sign-off records the operator's client results.
 
