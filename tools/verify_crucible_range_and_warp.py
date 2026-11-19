@@ -54,7 +54,7 @@ assert "Stop();" in follow
 assert "SetPosition(m_position, true);\n            return;" in follow
 assert "EVEmuMovement::TractorTravelStep(" in follow
 
-# Warping to stargates or other spherical targets must use the actual
+# Warping to stargates and stations must use the actual
 # surface separation, not the old gate radius/3 fudge and ship diameter.
 formulas = source("src/eve-common/EVE_MovementFormulas.h")
 beyonce = source("src/eve-server/ship/BeyonceService.cpp")
@@ -68,10 +68,14 @@ assert beyonce.count("EVEmuMovement::WarpCenterStopRange(") == 2
 assert "distance += (radius / 3)" not in beyonce
 assert "hasCenterBasedWarpRange" in beyonce
 assert "if (pSE != nullptr && !hasCenterBasedWarpRange)" in beyonce
-assert "if (autoPilot && pSE != nullptr)" in destiny
-assert "const double surfaceRange = EVEmuMovement::SurfaceSeparation(" in destiny
+assert "if (pSE->IsGateSE() || pSE->IsStationSE()" in beyonce
+assert "GetDockPosY(" not in beyonce and "GetDockPosY(" not in destiny
 assert client.count("EVEmuMovement::GateWarpLandingSurfaceRange") == 2
 assert client.count("EVEmuMovement::GateJumpSurfaceRange") == 2
+assert "EVEmuMovement::DockSurfaceRange" in client and "EVEmuMovement::DockSurfaceRange" in destiny
+assert "if (pDestiny->HasWarpOrder())" in beyonce
+assert client.count("pShipSE->DestinyMgr()->HasWarpOrder()") == 2
+assert "EVEmuMovement::InteractionSurfaceGap(" in destiny
 assert "gate->GetRadius() + 2500.0" not in client
 assert "station->GetRadius() + 2500.0" not in destiny
 assert "Follow(station, approachDistance);" in destiny
@@ -88,10 +92,9 @@ assert "m_targetEntity.second->IsGateSE()" in move
 assert "m_targetEntity.second->IsStationSE()" in move
 assert "const double remaining = std::max(0.0, gap - m_followDistance);" in move
 assert "if (remaining <= static_cast<double>(speed))" in move
-assert "finalPosition += toTarget * remaining;" in move
-assert "SetPosition(finalPosition);\n                Halt();" in move
-assert "position.Encode(), stop.Encode(), velocity.Encode()" in move
-assert "SendDestinyUpdate(updates);" in move
+assert "EVEmuMovement::ApproachTravelStep(" in move
+assert "SetPosition(m_position + m_shipHeading * step);" in move
+assert "HaltForInteraction();" in move
 assert "m_shipHeading.isNaN() || m_shipHeading.isInf()" in move
 
 # Repeated Guristas NPC errors: the original orbit equation can compute a
@@ -113,12 +116,23 @@ assert "zeroNpcCruise == 190.0" in movement_test
 
 # A warp launch uses the requested destination plus a range. The final
 # authoritative stop uses the already range-adjusted endpoint.
-assert "wt.dest_x = m_warpDestination.x;" in destiny
-assert "m_stopDistance = npcWarp ? distance : std::max(0, distance);" in destiny
+warp_order = destiny.split("void DestinyManager::WarpTo(", 1)[1].split(
+    "void DestinyManager::Orbit(SystemEntity", 1)[0]
+assert "GotoPoint(" not in warp_order and "Follow(" not in warp_order
+assert warp_order.index("capNeeded > currentCap") < warp_order.index("BeginMovement();")
+assert "wt.dest_x = packetDestination.x;" in warp_order
+assert "wt.distance = std::max(0, m_stopDistance);" in warp_order
+assert "int32 stopDistance = npcWarp ? distance : std::max(0, distance);" in warp_order
 assert "m_stopDistance < 0 ? m_targetPoint : m_warpDestination" in destiny
 assert "WarpRemainingAfterAcceleration(m_warpState->total_distance, currentDistance)" in destiny
+assert "m_targetPoint = m_warpDestination - route * m_stopDistance;" in destiny
+deceleration = destiny.split("void DestinyManager::WarpDecel(", 1)[1].split(
+    "void DestinyManager::WarpUpdate(", 1)[0]
+assert "WarpDecelerationRemaining(" in deceleration
+assert deceleration.index("WarpStop(currentShipSpeed);") < deceleration.index("WarpUpdate(currentShipSpeed);")
 warp_stop = destiny.split("void DestinyManager::WarpStop(", 1)[1].split("void DestinyManager::EntityRemoved(", 1)[0]
 assert warp_stop.index("SetPosition(m_targetPoint);") < warp_stop.index("Halt();")
+assert warp_stop.index("Halt();") < warp_stop.index("SendStoppedPosition();")
 assert "SetBallVelocity velocity;" in warp_stop
 assert "position.Encode(), stop.Encode(), velocity.Encode()" in warp_stop
 assert "SetPosition(m_position, true);" not in warp_stop

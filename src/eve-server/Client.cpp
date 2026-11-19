@@ -1459,7 +1459,7 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
     // A gate can be selected while the ship is already in warp (for example,
     // after warping to the gate from the overview). Preserve that request and
     // process it once the current warp has completed.
-    if (pShipSE->DestinyMgr()->IsWarping()) {
+    if (pShipSE->DestinyMgr()->HasWarpOrder()) {
         m_pendingGateFrom = fromGate;
         m_pendingGateTo = toGate;
         SetAutoPilot(false);
@@ -1468,9 +1468,9 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         return;
     }
 
-    const double rangeToGatePerimeter = EVEmuMovement::SurfaceSeparation(
-        pShipSE->GetPosition().distance(gate->GetPosition()),
-        pShipSE->GetRadius(), gate->GetRadius());
+    const double rangeToGatePerimeter = pShipSE->DestinyMgr()->InteractionDistanceTo(*gate);
+    if (!std::isfinite(rangeToGatePerimeter))
+        return;
 
     SetAutoPilot(false);
     if (rangeToGatePerimeter > EVEmuMovement::GateJumpSurfaceRange) {
@@ -1498,6 +1498,7 @@ void Client::BeginStargateJump(uint32 fromGate, uint32 toGate) {
     _log(AUTOPILOT__MESSAGE, "%s: StargateJump accepted from gate %u to gate %u.",
             m_char->name(), fromGate, toGate);
 
+    pShipSE->DestinyMgr()->HaltForInteraction();
     MapDB::AddJump(m_systemData.systemID);
     pShipSE->DestinyMgr()->SendJumpOut(fromGate);
     pShipSE->DestinyMgr()->SendGateActivity(fromGate);
@@ -1527,7 +1528,7 @@ void Client::ProcessPendingSpaceActions() {
         || pShipSE == nullptr
         || pShipSE->DestinyMgr() == nullptr
         || m_system == nullptr
-        || pShipSE->DestinyMgr()->IsWarping())
+        || pShipSE->DestinyMgr()->HasWarpOrder())
         return;
 
     if (m_pendingDock) {
@@ -1540,11 +1541,12 @@ void Client::ProcessPendingSpaceActions() {
             return;
         }
 
-        const double rangeToStationPerimeter =
-            pShipSE->GetPosition().distance(station->GetPosition())
-            - pShipSE->GetRadius()
-            - station->GetRadius();
-        if (rangeToStationPerimeter > 2500.0) {
+        const double rangeToStationPerimeter = pShipSE->DestinyMgr()->InteractionDistanceTo(*station);
+        if (!std::isfinite(rangeToStationPerimeter)) {
+            m_pendingDock = false;
+            return;
+        }
+        if (rangeToStationPerimeter > EVEmuMovement::DockSurfaceRange) {
             // Start the approach after warp, but do not reset Follow every tick.
             if (!pShipSE->DestinyMgr()->IsFollowing()
                 || pShipSE->DestinyMgr()->GetTargetID() != m_dockStationID)
@@ -1571,9 +1573,11 @@ void Client::ProcessPendingSpaceActions() {
             return;
         }
 
-        const double rangeToGatePerimeter = EVEmuMovement::SurfaceSeparation(
-            pShipSE->GetPosition().distance(gate->GetPosition()),
-            pShipSE->GetRadius(), gate->GetRadius());
+        const double rangeToGatePerimeter = pShipSE->DestinyMgr()->InteractionDistanceTo(*gate);
+        if (!std::isfinite(rangeToGatePerimeter)) {
+            ClearPendingSpaceActions();
+            return;
+        }
         if (rangeToGatePerimeter > EVEmuMovement::GateJumpSurfaceRange) {
             // A jump queued during warp still needs a normal gate approach.
             if (!pShipSE->DestinyMgr()->IsFollowing()

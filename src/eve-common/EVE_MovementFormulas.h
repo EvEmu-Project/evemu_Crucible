@@ -33,6 +33,51 @@ inline double TractorTravelStep(double separation, double stopRange, double spee
 // approach tick just to cross the exact 2,500m boundary.
 constexpr double GateWarpLandingSurfaceRange = 2400.0;
 constexpr double GateJumpSurfaceRange = 2500.0;
+constexpr double DockSurfaceRange = 2500.0;
+
+// Movement can clamp a malformed separation for its own calculations.
+// A dock or jump range check must fail closed on invalid geometry.
+inline double InteractionSurfaceGap(double centerDistance, double shipRadius, double targetRadius) {
+    if (!std::isfinite(centerDistance) || !std::isfinite(shipRadius) || !std::isfinite(targetRadius)
+        || centerDistance < 0.0 || shipRadius < 0.0 || targetRadius < 0.0)
+        return std::numeric_limits<double>::infinity();
+    return SurfaceSeparation(centerDistance, shipRadius, targetRadius);
+}
+
+// At the configured exit speed the ship has reached the end of the warp
+// path. Remove the exponential tail so there is no final position jump.
+inline double WarpDecelerationRemaining(double initialDistance, double decay,
+                                        double peakSpeed, double exitSpeed) {
+    if (initialDistance <= 0.0 || !(peakSpeed > exitSpeed))
+        return 0.0;
+    const double exitFraction = exitSpeed / peakSpeed;
+    return initialDistance * std::clamp((decay - exitFraction) / (1.0 - exitFraction), 0.0, 1.0);
+}
+
+// Find the first intersection with the approach sphere along the ship's
+// actual heading. If this tick misses, preserve the full movement step.
+inline double ApproachTravelStep(double centerDistance, double remaining,
+                                 double headingCosine, double speed) {
+    if (remaining <= 0.0)
+        return 0.0;
+    if (remaining > speed || headingCosine <= 0.0)
+        return speed;
+    const double cosine = std::min(1.0, headingCosine);
+    const double stopRadius = centerDistance - remaining;
+    const double perpendicularSquared = centerDistance * centerDistance * (1.0 - cosine * cosine);
+    const double discriminant = stopRadius * stopRadius - perpendicularSquared;
+    if (discriminant < 0.0)
+        return speed;
+    const double intersection = remaining * (centerDistance + stopRadius)
+        / (centerDistance * cosine + std::sqrt(discriminant));
+    return std::min(speed, intersection);
+}
+
+inline float DegreesPerMovementTick(float agility) {
+    // The legacy equation reaches zero for freighters and can be negative
+    // for a capital with increased mass. Keep those hulls able to turn.
+    return std::max(1.0f, (60.0f - agility) / 10.0f);
+}
 
 // WarpTo/CmdWarpTo use a destination center and a *center-based* stop range,
 // whereas the client-requested minRange and gate activation distance refer to

@@ -385,7 +385,7 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             fleet = call.byname.find("fleet")->second->AsBool()->value();
 
     // get the warp-to distance specified by the client
-    int32 distance(0); //Was set to 5000; setting to 0 makes warp in to station and gate more realistic.
+    double distance = 0.0;
     if (call.byname.find("minRange") != call.byname.end())
         distance = PyRep::IntegerValueU32(call.byname.find("minRange")->second);
 
@@ -514,6 +514,8 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
          */
     if (pSE != nullptr) {
         radius = pSE->GetRadius();
+        if (!std::isfinite(radius) || radius < 0.0)
+            return PyStatic.NewNone();
         // this will need adjustment for warping to bookmarks
         warpToPoint = pSE->GetPosition();
         if (pSE->IsPlanetSE()) {
@@ -532,15 +534,8 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             warpToPoint.x += (d * std::sin(t));
             warpToPoint.y += (0.5f * radius * std::sin(j));
             warpToPoint.z -= (d * std::cos(t));
-        } else if (pSE->IsStationSE()) {
-            // this makes ship warp to station dock elevation (y), instead of warping to stations "center point" position (where icon is)
-            warpToPoint.y = stDataMgr.GetDockPosY(pSE->GetID());
         } else if (pSE->IsCOSE()) {
             distance += (radius / 2);
-        } else if (pSE->IsGateSE()) {
-            // Gate radius, ship radius and the jump-perimeter range are
-            // combined exactly once below. The historical radius/3 fudge
-            // produced inconsistent landings and occasional hull overlap.
         } else if (pSE->IsMoonSE()) {
             if (pSE->GetMoonSE()->HasTower()) {
                 // if moon has a tower, make warpin point 20km inside edge of tower's bubble.
@@ -557,37 +552,27 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             }
         } else if (pSE->IsWormholeSE()) {
                 distance += 20000;  // add 20k for wh
-        } else if (radius > 90000) {
+        } else if (radius > 90000 && !pSE->IsStationSE() && !pSE->IsGateSE()) {
             // this doesnt work for moons
             warpToPoint.x += ((radius + 500000) * std::cos(radius));
             warpToPoint.y += ((radius * 1.3f) - 7500);
             warpToPoint.z -= ((radius + 500000) * std::sin(radius));
         }
-        if (pSE->IsStationSE()) {
-            // Warp-to-station previously stopped exactly at the station's
-            // collision surface. The ship's own radius was ignored, so large
-            // hulls could overlap the station on arrival and visibly bounce.
-            // Leave a small clearance beyond both collision radii. Docking
-            // still uses the normal 2,500m perimeter and approach handling.
-            GVector vectorFromOrigin(call.client->GetShipSE()->GetPosition(), warpToPoint);
-            vectorFromOrigin.normalize();
-            const double clearance = radius
-                + call.client->GetShipSE()->GetRadius() + 5000.0;
-            warpToPoint -= (vectorFromOrigin * clearance);
-        } else if (pSE->IsGateSE()
+        if (pSE->IsGateSE() || pSE->IsStationSE()
             || (radius < 90000 && !pSE->IsPlanetSE()
                 && !pSE->IsMoonSE() && !pSE->IsWormholeSE())) {
             // WarpTo expects a CENTER destination and a center stop distance.
             // Don't move the destination to the edge and then separately
             // add a radius fudge or ship diameter: that double-counts hulls.
             const double shipRadius = call.client->GetShipSE()->GetRadius();
-            distance = EVEmuMovement::WarpCenterStopRange(
-                static_cast<double>(distance), shipRadius, radius,
+            const int32 centerStopRange = EVEmuMovement::WarpCenterStopRange(
+                distance, shipRadius, radius,
                 EVEmuMovement::GateWarpLandingSurfaceRange);
+            distance = centerStopRange;
             hasCenterBasedWarpRange = true;
             _log(DESTINY__WARP_TRACE,
                 "Warp-to %s(%u): ship radius %.1f, target radius %.1f, center stop %d m, expected surface %.1f m.",
-                pSE->GetName(), pSE->GetID(), shipRadius, radius, distance,
+                pSE->GetName(), pSE->GetID(), shipRadius, radius, centerStopRange,
                 EVEmuMovement::SurfaceSeparation(distance, shipRadius, radius));
         } else if (radius < 90000) {
             // Retain special legacy moon/wormhole landing points; these do
@@ -598,9 +583,9 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             warpToPoint -= stopPoint;
         }
     }
-    if (warpToPoint.isZero()) {
+    if (warpToPoint.isZero() || warpToPoint.isNaN() || warpToPoint.isInf()) {
         // point is zero ....make error and return
-        codelog(CLIENT__ERROR, "%s: warpToPoint.isZero() = true.  Cannot find location %u for '%s'", call.client->GetName(), toID, type->content().c_str());
+        codelog(CLIENT__ERROR, "%s: Invalid warp destination %u for '%s'.", call.client->GetName(), toID, type->content().c_str());
         call.client->SendErrorMsg("WarpTo: Item location not found.");
         return PyStatic.NewNone();
     }
@@ -608,11 +593,12 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    // Preserve the historic extra station/planet/moon clearance, but don't
-    // apply a ship diameter to physical-surface or exact bookmark warps.
+    // Preserve the legacy ship clearance for special entity warp points.
     if (pSE != nullptr && !hasCenterBasedWarpRange)
         distance += (call.client->GetShipSE()->GetRadius() * 2);
-    pDestiny->WarpTo(warpToPoint, distance);
+    if (std::isfinite(distance))
+        pDestiny->WarpTo(warpToPoint, static_cast<int32>(std::clamp(
+            distance, 0.0, static_cast<double>(std::numeric_limits<int32>::max()))));
 
     return PyStatic.NewNone();
 }
@@ -659,7 +645,7 @@ PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) 
     const int32 distance = EVEmuMovement::WarpCenterStopRange(
         sConfig.world.apWarptoDistance, call.client->GetShipSE()->GetRadius(),
         pSE->GetRadius(), EVEmuMovement::GateWarpLandingSurfaceRange);
-    pDestiny->WarpTo(pSE->GetPosition(), distance, true, pSE);
+    pDestiny->WarpTo(pSE->GetPosition(), distance);
 
     return PyStatic.NewNone();
 }
@@ -720,7 +706,7 @@ PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* ship
 
     // This is used by both immediate docking and the post-warp approach.
     call.client->SetDockStationID(celestialID->value());
-    if (pDestiny->IsWarping()) {
+    if (pDestiny->HasWarpOrder()) {
         // Keep the dock request until the current warp has finished. The
         // pending-action processor will approach and dock at the station.
         call.client->SetPendingDock(true);

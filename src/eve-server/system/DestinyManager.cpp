@@ -427,9 +427,8 @@ void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/
         UpdateVelocity(false);
     }
 
-    if (m_ballMode == Destiny::Ball::Mode::WARP) {
-        // set state to Ball::Mode::GOTO after setting warp decel variables, so warp completion will decel properly
-        m_ballMode = Destiny::Ball::Mode::GOTO;
+    if (HasWarpOrder()) {
+        // Alignment can adjust throttle without replacing the client's warp order.
         return;
     }
 
@@ -581,11 +580,11 @@ void DestinyManager::Stop() {
         mySE->GetPilot()->SetAutoPilot(false);
     }
 
-    if (m_userSpeedFraction == 0.0f) {
-        m_stop = true;
-    } else if  ((m_ballMode == Destiny::Ball::Mode::WARP) and (!IsWarping()))  {
+    if (HasWarpOrder() && !IsWarping()) {
         //warp aborted before initialized.  standard Stop() applies.
         m_ballMode = Destiny::Ball::Mode::STOP;
+    } else if (m_userSpeedFraction == 0.0f) {
+        m_stop = true;
     } else if (IsMoving()) {
         //stop called while moving
         m_ballMode = Destiny::Ball::Mode::STOP;
@@ -633,7 +632,7 @@ void DestinyManager::Halt() {
     m_userSpeedFraction = 0.0f;
     m_activeSpeedFraction = 0.0f;
     m_timeFraction = 0.0f;
-    m_maxOrbitSpeedFraction = 1.0f;
+    ClearOrbit();
 
     m_targetEntity.first = 0;
     m_targetEntity.second = nullptr;
@@ -643,6 +642,19 @@ void DestinyManager::Halt() {
     if (is_log_enabled(DESTINY__MOVE_TRACE))
         _log(DESTINY__MOVE_TRACE, "Destiny::Halt() - %s(%u): m_shipHeading: %.3f,%.3f,%.3f", \
                 mySE->GetName(), mySE->GetID(), m_shipHeading.x, m_shipHeading.y, m_shipHeading.z);
+}
+
+void DestinyManager::HaltForInteraction() {
+    if (m_ballMode == Destiny::Ball::Mode::STOP && m_velocity.isZero()
+        && !m_accel && !m_decel && m_activeSpeedFraction == 0.0f)
+        return;
+    Halt();
+    SendStoppedPosition();
+}
+
+double DestinyManager::InteractionDistanceTo(SystemEntity& target) const {
+    return EVEmuMovement::InteractionSurfaceGap(
+        m_position.distance(target.GetPosition()), m_radius, target.GetRadius());
 }
 
 void DestinyManager::Eject()
@@ -1010,36 +1022,23 @@ void DestinyManager::MoveObject() {
     if (m_ballMode == Destiny::Ball::Mode::FOLLOW
         && m_targetEntity.second != nullptr
         && (m_targetEntity.second->IsGateSE() || m_targetEntity.second->IsStationSE())) {
-        const GPoint& targetPosition = m_targetEntity.second->GetPosition();
-        const double centerDistance = m_position.distance(targetPosition);
-        const double targetRadius = m_targetEntity.second->GetRadius();
-        if (std::isfinite(centerDistance) && std::isfinite(targetRadius)
-            && centerDistance >= 0.0 && targetRadius >= 0.0) {
-            const double gap = EVEmuMovement::SurfaceSeparation(
-                centerDistance, m_radius, targetRadius);
-            const double remaining = std::max(0.0, gap - m_followDistance);
-            if (remaining <= static_cast<double>(speed)) {
-                GPoint finalPosition(m_position);
-                if (remaining > 0.0 && centerDistance > 0.0) {
-                    GVector toTarget(m_position, targetPosition);
-                    toTarget.normalize();
-                    finalPosition += toTarget * remaining;
-                }
-                SetPosition(finalPosition);
-                Halt();
-                SetBallPosition position;
-                position.entityID = mySE->GetID();
-                position.x = m_position.x;
-                position.y = m_position.y;
-                position.z = m_position.z;
-                CmdStop stop;
-                stop.entityID = mySE->GetID();
-                SetBallVelocity velocity;
-                velocity.entityID = mySE->GetID();
-                velocity.x = velocity.y = velocity.z = 0.0;
-                std::vector<PyTuple*> updates{
-                    position.Encode(), stop.Encode(), velocity.Encode()};
-                SendDestinyUpdate(updates);
+        const double gap = InteractionDistanceTo(*m_targetEntity.second);
+        if (!std::isfinite(gap)) {
+            HaltForInteraction();
+            return;
+        }
+        const double remaining = std::max(0.0, gap - m_followDistance);
+        if (remaining <= static_cast<double>(speed)) {
+            GVector toTarget(m_position, m_targetEntity.second->GetPosition());
+            const double centerDistance = toTarget.length();
+            if (centerDistance > 0.0)
+                toTarget.normalize();
+            const double step = EVEmuMovement::ApproachTravelStep(
+                centerDistance, remaining, m_shipHeading.dotProduct(toTarget), speed);
+            if (step < speed || remaining == 0.0) {
+                if (step > 0.0)
+                    SetPosition(m_position + m_shipHeading * step);
+                HaltForInteraction();
                 return;
             }
         }
@@ -1076,7 +1075,7 @@ void DestinyManager::MoveObject() {
     }
 
     if (sConfig.cosmic.BumpEnabled)
-        if (mySE->HasPilot() and mySE->SysBubble()->HasPlayers()) // no players in bubble = nothing to check against (for now)
+        if (mySE->HasPilot() && mySE->SysBubble() != nullptr && mySE->SysBubble()->HasPlayers())
             CheckBump();
 }
 
@@ -1252,7 +1251,18 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
         turnPercent = 0.9;
     }
     deltaHeading *= turnPercent;
-    m_shipHeading += deltaHeading;
+    if (degrees >= 179.9f) {
+        // Interpolating component-wise between opposite headings leaves
+        // the original direction unchanged after normalization.
+        const GVector axis = std::abs(m_shipHeading.y) < 0.99
+            ? GVector(0.0, 1.0, 0.0) : GVector(1.0, 0.0, 0.0);
+        GVector tangent = axis.crossProduct(m_shipHeading);
+        tangent.normalize();
+        const double turnAngle = m_radians * turnPercent;
+        m_shipHeading = m_shipHeading * std::cos(turnAngle) + tangent * std::sin(turnAngle);
+    } else {
+        m_shipHeading += deltaHeading;
+    }
     // Linear interpolation shortens the vector between different headings.
     // Renormalize each tic so subsequent alignment calculations remain valid.
     m_shipHeading.normalize();
@@ -1262,7 +1272,6 @@ void DestinyManager::Turn() {   // tracking within 900m for Frigates, 1k4m for B
 }
 
 void DestinyManager::ClearTurn() {
-    SetPosition(m_position, sConfig.debug.PositionHack);   // (PositionHack == true) here will force position update to client
     m_turnTic = 0;
     m_turning = false;
     m_radians = 0.0f;
@@ -1280,6 +1289,12 @@ void DestinyManager::Follow() {
     // approach correction. Include BOTH hull radii and clamp at zero.
     m_targetDistance = EVEmuMovement::SurfaceSeparation(
         centerDistance, m_radius, m_targetEntity.second->GetRadius());
+
+    if ((m_targetEntity.second->IsGateSE() || m_targetEntity.second->IsStationSE())
+        && InteractionDistanceTo(*m_targetEntity.second) <= m_followDistance) {
+        HaltForInteraction();
+        return;
+    }
 
     if (m_tractored) {
         if (!std::isfinite(centerDistance) || m_targetDistance > m_tractorRange) {
@@ -1660,12 +1675,16 @@ void DestinyManager::InitWarp() {
         );
     }
 
-    // The ship moves while aligning. Measure from its actual warp entry.
-    m_targetDistance = m_position.distance(m_targetPoint);
-    if (!std::isfinite(m_targetDistance) || m_targetDistance <= 0.0) {
-        Stop();
+    // Resolve the same center and offset from the actual warp entry.
+    GVector route(m_position, m_warpDestination);
+    const double centerDistance = route.length();
+    if (!std::isfinite(centerDistance) || centerDistance <= 0.0 || centerDistance <= m_stopDistance) {
+        HaltForInteraction();
         return;
     }
+    route.normalize();
+    m_targetPoint = m_warpDestination - route * m_stopDistance;
+    m_targetDistance = centerDistance - m_stopDistance;
 
     double warpSpeedInMeters(m_shipWarpSpeed * ONE_AU_IN_METERS);
 
@@ -1884,16 +1903,20 @@ void DestinyManager::WarpDecel(uint16 sec_into_warp) {
      */
     const int32 decelTime = sec_into_warp - m_warpDecelTime;
     const double decelFactor = std::exp(-static_cast<double>(decelTime));
-    m_targetDistance = std::min(m_targetDistance, m_warpState->decelDist * decelFactor);
     const double currentShipSpeed = m_warpState->warpSpeed * decelFactor;
+    const double exitSpeed = std::max(1.0, static_cast<double>(m_speedToLeaveWarp));
+    m_targetDistance = std::min(m_targetDistance, EVEmuMovement::WarpDecelerationRemaining(
+        m_warpState->decelDist, decelFactor, m_warpState->warpSpeed, exitSpeed));
 
     if (is_log_enabled(DESTINY__WARP_TRACE))
         _log(DESTINY__WARP_TRACE, "Destiny::WarpDecel(): %s(%u) - Warp Decelerating(%us/%us): velocity %.4f m/s with %.2f m left to go.", \
                 mySE->GetName(), mySE->GetID(), decelTime, sec_into_warp, currentShipSpeed, m_targetDistance);
 
-    WarpUpdate(currentShipSpeed);
-    if (currentShipSpeed <= m_speedToLeaveWarp)
+    if (currentShipSpeed <= exitSpeed || m_targetDistance == 0.0) {
         WarpStop(currentShipSpeed);
+        return;
+    }
+    WarpUpdate(currentShipSpeed);
 }
 
 void DestinyManager::WarpUpdate(double currentShipSpeed) {
@@ -1933,7 +1956,13 @@ void DestinyManager::WarpStop(double currentShipSpeed) {
     SetPosition(m_targetPoint);
     Halt();
     sBubbleMgr.Add(mySE);
+    SendStoppedPosition();
 
+    if (mySE->IsNPCSE() && mySE->GetNPCSE()->GetAIMgr() != nullptr)
+        mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
+}
+
+void DestinyManager::SendStoppedPosition() const {
     SetBallPosition position;
     position.entityID = mySE->GetID();
     position.x = m_position.x;
@@ -1947,9 +1976,6 @@ void DestinyManager::WarpStop(double currentShipSpeed) {
     std::vector<PyTuple*> updates{
         position.Encode(), stop.Encode(), velocity.Encode()};
     SendDestinyUpdate(updates);
-
-    if (mySE->IsNPCSE() && mySE->GetNPCSE()->GetAIMgr() != nullptr)
-        mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
 }
 
 //called whenever an entity is going away and can no longer be used as a target
@@ -2111,11 +2137,6 @@ void DestinyManager::Follow(SystemEntity* pSE, uint32 distance) {
     m_ballMode = Destiny::Ball::Mode::FOLLOW;
     m_targetPoint = pSE->GetPosition();
 
-    if (pSE->IsStationSE()) {
-        // this makes ship approach station dock elevation (y), instead of approaching to stations "center point" position (where icon is)
-        m_targetPoint.y = stDataMgr.GetDockPosY(pSE->GetID());
-    }
-
     m_targetEntity.first = pSE->GetID();
     m_targetEntity.second = pSE;
     m_followDistance = distance;
@@ -2171,136 +2192,75 @@ void DestinyManager::GotoPoint(const GPoint& point) {
     SendSingleDestinyUpdate(&up);   // consumed
 }
 
-void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoPilot/*false*/, SystemEntity* pSE/*nullptr*/) {
+void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/) {
     /* warp order..
      * pick destination -> align/accel -> aura "warp drive active" -> cap drain -> accel
      *      -> enter warp -> warp -> decel -> leave warp -> coast -> stop
      */
     if (IsWarping())
         return; // preserve the active warp and its landing point
-    m_capNeeded = 0.0;
-
-    // Autopilot's distance argument is the warp command's center-based
-    // range. Follow() expects a surface-to-surface range; passing the center
-    // value made the client approach stop an entire gate radius too early.
-    if (autoPilot && pSE != nullptr) {
-        const double surfaceRange = EVEmuMovement::SurfaceSeparation(
-            std::max(0, distance), m_radius, pSE->GetRadius());
-        Follow(pSE, static_cast<uint32>(surfaceRange));
-    } else {
-        GotoPoint(where);
-    }
-
-    m_targetEntity.first = 0;
-    m_targetEntity.second = nullptr;
-
     const bool npcWarp = mySE->IsNPCSE() || mySE->IsDroneSE();
-    m_warpDestination = m_targetPoint;
-    m_stopDistance = npcWarp ? distance : std::max(0, distance);
-    GVector warpDirection(m_position, m_warpDestination);
+    int32 stopDistance = npcWarp ? distance : std::max(0, distance);
+    GVector warpDirection(m_position, where);
     const double centerDistance = warpDirection.length();
-    if (!std::isfinite(centerDistance) || centerDistance <= 0.0 || centerDistance <= m_stopDistance) {
-        Stop();
+    if (!std::isfinite(centerDistance) || centerDistance <= 0.0 || centerDistance <= stopDistance)
         return;
-    }
     warpDirection.normalize();
-    m_targetDistance = centerDistance - m_stopDistance;
-    m_targetPoint = m_warpDestination - warpDirection * m_stopDistance;
+    double travelDistance = centerDistance - stopDistance;
+    GPoint destination = where;
+    GPoint landing = destination - warpDirection * stopDistance;
+    double capacitorAfterWarp = 0.0;
 
-    // npcs have no warp restrictions (yet)
-    if (npcWarp) {
-        // do drones warp??
-        m_ballMode = Destiny::Ball::Mode::WARP;
-
-        // Spawns also use signed offsets to scatter beyond the reference
-        // point. Send that resolved endpoint directly for a negative offset.
-        const GPoint& packetDestination = m_stopDistance < 0 ? m_targetPoint : m_warpDestination;
-        std::vector<PyTuple*> updates;
-        CmdWarpTo wt;
-            wt.entityID = mySE->GetID();
-            wt.dest_x = packetDestination.x;
-            wt.dest_y = packetDestination.y;
-            wt.dest_z = packetDestination.z;
-            wt.distance = std::max(0, m_stopDistance);
-            wt.warpSpeed = GetWarpSpeed();
-        updates.push_back(wt.Encode());
-        OnSpecialFX10 sfx;
-            sfx.guid = "effects.Warping";
-            sfx.entityID = mySE->GetID();
-            sfx.isOffensive = false;
-            sfx.start = true;
-            sfx.active = true;
-        updates.push_back(sfx.Encode());
-        SendDestinyUpdate(updates);
-        return;
-    }
-
-    /*supercap warp modifiers
-     * these will go here, and modify distance, target, and range accordingly
-     *
-     * AttrWarpAccuracyMaxRange = 1021,
-     * AttrWarpAccuracyFactor = 1022,
-     * AttrWarpAccuracyFactorMultiplier = 1023,
-     * AttrWarpAccuracyMaxRangeMultiplier = 1024,
-     * AttrWarpAccuracyFactorPercentage = 1025,
-     * AttrWarpAccuracyMaxRangePercentage = 1026,
-     */
-
-    if (mySE->HasPilot()) {
-        if (m_targetDistance < static_cast<double>(minWarpDistance)) {
-            mySE->GetPilot()->SendErrorMsg("That is too close for your Warp Drive.");
-            // warp distance too close.  cancel warp and return
-            // we may need to send pos update
-            if (sConfig.debug.PositionHack)
-                SetPosition(mySE->GetPosition(), true);
-            m_ballMode = Destiny::Ball::Mode::STOP;
-            SafeDelete(m_warpState);
+    if (!npcWarp && mySE->HasPilot()) {
+        Client* pilot = mySE->GetPilot();
+        if (travelDistance < minWarpDistance) {
+            pilot->SendErrorMsg("That is too close for your Warp Drive.");
             return;
         }
-
-        Client *pClient = mySE->GetPilot();
-
-        /*  capacitor for warp formulas from https://oldforums.eveonline.com/?a=topic&threadID=332116
-         *  Energy to warp = warpCapacitorNeed * mass * au * (1 - warp_drive_operation_skill_level * 0.10)
-         */
-        const double currentShipCap = pClient->GetShip()->GetAttribute(AttrCapacitorCharge).get_double();
+        const double currentCap = pilot->GetShip()->GetAttribute(AttrCapacitorCharge).get_double();
         const double costPerAU = m_mass * m_warpCapacitorNeed
-            * (1.0 - 0.1 * pClient->GetChar()->GetSkillLevel(EvESkill::WarpDriveOperation));
-        const double capNeeded = costPerAU * (m_targetDistance / ONE_AU_IN_METERS);
-        if (capNeeded > currentShipCap) {
-            const double affordableDistance = (currentShipCap / costPerAU) * ONE_AU_IN_METERS;
-            if (!std::isfinite(affordableDistance) || affordableDistance < minWarpDistance) {
-                pClient->SendErrorMsg("You don't have enough capacitor charge to warp.");
-                Stop();
+            * (1.0 - 0.1 * pilot->GetChar()->GetSkillLevel(EvESkill::WarpDriveOperation));
+        const double capNeeded = costPerAU * (travelDistance / ONE_AU_IN_METERS);
+        if (!std::isfinite(capNeeded) || capNeeded < 0.0 || !std::isfinite(currentCap) || currentCap < 0.0) {
+            pilot->SendErrorMsg("Warp capacitor data is unavailable.");
+            return;
+        }
+        if (capNeeded > currentCap) {
+            travelDistance = (currentCap / costPerAU) * ONE_AU_IN_METERS;
+            if (!std::isfinite(travelDistance) || travelDistance < minWarpDistance) {
+                pilot->SendErrorMsg("You don't have enough capacitor charge to warp.");
                 return;
             }
-            m_targetDistance = affordableDistance;
-            m_targetPoint = m_position + warpDirection * affordableDistance;
-            m_warpDestination = m_targetPoint;
-            m_stopDistance = 0;
-            m_capNeeded = 0.0;
+            landing = m_position + warpDirection * travelDistance;
+            destination = landing;
+            stopDistance = 0;
         } else {
-            m_capNeeded = currentShipCap - capNeeded;
+            capacitorAfterWarp = currentCap - capNeeded;
         }
     }
 
+    // Prepare server alignment without emitting a second course to the client.
+    ClearOrbit();
+    m_targetEntity = {0, nullptr};
+    m_targetPoint = landing;
+    m_warpDestination = destination;
+    m_stopDistance = stopDistance;
+    m_capNeeded = capacitorAfterWarp;
     m_ballMode = Destiny::Ball::Mode::WARP;
+    BeginMovement();
+    m_targetDistance = travelDistance;
 
-    // send client updates
-    std::vector<PyTuple*> updates;
-
-    // acknowledge client's warpto request
+    // NPC spawns can scatter beyond a reference point using a negative
+    // offset. Encode their resolved point because the wire range is unsigned.
+    const GPoint& packetDestination = m_stopDistance < 0 ? m_targetPoint : m_warpDestination;
     CmdWarpTo wt;
     wt.entityID = mySE->GetID();
-    wt.dest_x = m_warpDestination.x;
-    wt.dest_y = m_warpDestination.y;
-    wt.dest_z = m_warpDestination.z;
-    wt.distance = m_stopDistance;
+    wt.dest_x = packetDestination.x;
+    wt.dest_y = packetDestination.y;
+    wt.dest_z = packetDestination.z;
+    wt.distance = std::max(0, m_stopDistance);
     wt.warpSpeed = GetWarpSpeed(); // warp speed x10
 
-    updates.push_back(wt.Encode());
-
-    // send a warp effect...
     OnSpecialFX10 sfx;
     sfx.guid = "effects.Warping";
     sfx.entityID = mySE->GetID();
@@ -2308,9 +2268,10 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/, bool autoP
     sfx.start = true;
     sfx.active = true;
 
-    updates.push_back(sfx.Encode());
+    std::vector<PyTuple*> updates{wt.Encode(), sfx.Encode()};
     SendDestinyUpdate(updates);
-    updates.clear();
+    if (npcWarp)
+        return;
 
     //set massive for warp, per client, but self-only
     SetBallMassive bm;
@@ -2555,21 +2516,22 @@ PyResult DestinyManager::AttemptDockOperation() {
     uint32 stationID = pClient->GetDockStationID();
     SystemEntity *station = mySE->SystemMgr()->GetSE(stationID);
 
-    if (station == nullptr) {
+    if (station == nullptr || !station->IsStationSE()) {
+        pClient->SetPendingDock(false);
         codelog(CLIENT__ERROR, "%s: Station %u not found.", pClient->GetName(), stationID);
         pClient->SendErrorMsg("Station Not Found, Docking Aborted.");
         return PyStatic.NewNone();
     }
 
-    //get the station Docking Perimiter
-    const GPoint stationPos = station->GetPosition();
-    double rangeToStationPerimiter = m_position.distance(stationPos);
-    rangeToStationPerimiter -= mySE->GetRadius();
-    rangeToStationPerimiter -= station->GetRadius();
+    const double rangeToStationPerimeter = InteractionDistanceTo(*station);
+    if (!std::isfinite(rangeToStationPerimeter)) {
+        pClient->SetPendingDock(false);
+        pClient->SendErrorMsg("Station position unavailable. Docking aborted.");
+        return PyStatic.NewNone();
+    }
 
-    // Verify range to station is within docking perimeter of 2500 meters:
-    _log(DESTINY__TRACE, "Destiny::AttemptDockOperation() rangeToStationPerimiter is %.2fm", rangeToStationPerimiter);
-    if (rangeToStationPerimiter > 2500.0) {
+    _log(DESTINY__TRACE, "Destiny::AttemptDockOperation() range to station perimeter is %.2fm", rangeToStationPerimeter);
+    if (rangeToStationPerimeter > EVEmuMovement::DockSurfaceRange) {
         // Keep the dock request server-side while the ship approaches. The client
         // does not reliably resend CmdDock when AlignTo/Follow reaches the station.
         pClient->SetPendingDock(true);
@@ -2581,11 +2543,12 @@ PyResult DestinyManager::AttemptDockOperation() {
             static_cast<uint32>(EVEmuMovement::GateWarpLandingSurfaceRange);
         Follow(station, approachDistance);
         _log(DESTINY__MESSAGE, "AttemptDockOperation() - %s(%u) approaching station %u; perimeter range %.2fm.",
-                mySE->GetName(), mySE->GetID(), stationID, rangeToStationPerimiter);
+                mySE->GetName(), mySE->GetID(), stationID, rangeToStationPerimeter);
         return new PyLong(GetFileTimeNow());
     }
 
     pClient->SetPendingDock(false);
+    HaltForInteraction();
     pClient->SetStateTimer(Player::State::Dock, sConfig.world.StationDockDelay *1000); // default @ 4sec();
     pClient->SetAutoPilot(false);
 
@@ -2688,6 +2651,10 @@ void DestinyManager::ApplyMiningDroneStep(const GPoint& nextPosition, double spe
 void DestinyManager::SetPosition(const GPoint &pt, bool update /*false*/) {
     _log(DESTINY__TRACE, "Destiny::SetPosition() called by %s(%u)", mySE->GetName(), mySE->GetID());
 
+    if (pt.isNaN() || pt.isInf()) {
+        _log(DESTINY__ERROR, "Ignoring non-finite position for %s(%u).", mySE->GetName(), mySE->GetID());
+        return;
+    }
     if (pt.isZero()) {
         _log(DESTINY__TRACE, "Destiny::SetPosition() - %s(%u) point is zero", mySE->GetName(), mySE->GetID());
         EvE::traceStack();
@@ -2766,7 +2733,7 @@ void DestinyManager::SpeedBoost(bool deactivate/*false*/)
     m_shipAgility = m_massMKg * m_shipInertia;
     m_alignTime = (-log(0.25) * m_shipAgility);
     m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
-    m_degPerTic = (60.0f - m_shipAgility) / 10;  // this isnt right....
+    m_degPerTic = EVEmuMovement::DegreesPerMovementTick(m_shipAgility);
     m_maxShipSpeed = mySE->GetSelf()->GetAttribute(AttrMaxVelocity).get_float();
     // reset ship max speed using updated m_maxShipSpeed
     m_maxSpeed = m_maxShipSpeed * m_userSpeedFraction;
@@ -2901,16 +2868,14 @@ Battleships 0.155
      * Ships will exit warp mode when their warping speed drops below
      * 75% of sub-warp max speed, or 100m/s, whichever is the lower.
      */
-    m_speedToLeaveWarp = m_maxShipSpeed * 0.75f;
-    if ((m_speedToLeaveWarp < 100) and (m_maxShipSpeed > 135))      // 75% of 135 is 101.25
-        m_speedToLeaveWarp = 100;
+    m_speedToLeaveWarp = std::min(100.0f, m_maxShipSpeed * 0.75f);
 
     /* The product of Mass and the Inertia Modifier gives the ship's agility
      * Agility = Mass x Inertia Modifier
      *  agility is an internal-use variable.
      */
     m_shipAgility = m_massMKg * m_shipInertia;
-    m_degPerTic = (60.0f - m_shipAgility) / 10;
+    m_degPerTic = EVEmuMovement::DegreesPerMovementTick(m_shipAgility);
     // set a maximum acceleration time (based on ship variables)
     m_shipMaxAccelTime = (-log(0.0001) * m_shipAgility);
 

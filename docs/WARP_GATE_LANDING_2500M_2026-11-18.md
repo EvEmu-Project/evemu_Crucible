@@ -13,11 +13,11 @@ The client and server use different concepts of distance:
 ## Source changes
 
 - `EVEmuMovement::WarpCenterStopRange()` converts a requested **surface gap** into the center range expected by the Destiny warp protocol, adding target and ship radii exactly once, rounding up to a meter. An invalid value fails conservatively, and the 32-bit packet range is bounded.
-- For manual stargate and ordinary small-object warps, preserve the target center and request a stop **2,400m from both collision surfaces** for "warp to zero"; longer requested stand-offs (10/30/50/100 km) are retained. Bookmarks with raw coordinates do not have a target ball radius and no longer gain an artificial ship diameter.
-- Autopilot still uses its configured stand-off distance (normally 10 km), now including the gate/station and ship radii in the center stop range. Initial autopilot `Follow()` receives only a *surface* range.
+- Manual stargate, station and ordinary small-object warps use the target center and request a stop **2,400m from both collision surfaces** for “warp to zero.” Longer selected ranges are retained. Coordinate bookmarks use their exact point and requested range.
+- Autopilot uses its configured stand-off distance (normally 10 km), including the gate or station radius and ship radius in the center stop range. A subsequent approach uses a surface range.
 - Queued and immediate gate approaches now call `Follow(gate, 2400)`; jump is still authorized at `<=2500m` surface separation. Station docking uses the same safe follow range and retains its 2,500m authorization threshold.
-- When following any stargate (including manual Approach 0m), `MoveObject()` caps its final one-second step to the actual remaining surface distance instead of blindly advancing at full speed through the gate. It then halts and sends both a synchronized position and zero-velocity/stop updates. This does not change ship acceleration, turning or movement around other objects.
-- Preserve custom planet, moon, station-dock-elevation and wormhole warp-in handling. Existing stationary warp-stop synchronization (`SetPosition`, `Halt`, zero velocity) is unchanged.
+- On gate and station approaches, `MoveObject()` limits the final one-second step at the first intersection with the stop sphere along the ship's current heading. It halts with a single position, stop and zero-velocity update.
+- Station warp and approach geometry uses the same entity center as the dock range check. The special planet, moon and wormhole warp-in paths still select their own destination points.
 - Add an informational `DESTINY__WARP_TRACE` entry showing target and ship radii, chosen center range and predicted surface clearance.
 
 ## Verification
@@ -32,7 +32,7 @@ The client and server use different concepts of distance:
 2. Repeat gate warp with **10km, 30km and 100km** range selections. Verify those requested surface gaps are preserved rather than gaining a radius/3 or double-ship-radius margin.
 3. Use **autopilot warp to gate**. It should land about the configured `apWarptoDistance` from the collision surface (normally 10km), then approach smoothly to 2.4km and jump.
 4. Test `Warp to 0` on a wreck/container/other small object and check for surface overlap or an unexpected ship-size-dependent margin. Test a coordinate bookmark separately: it should honor its exact position and requested range.
-5. Warp to a station, queue Dock while warping, and confirm normal post-warp approach reaches the <=2.5km docking perimeter. Verify the existing dock-elevation approach and planet/moon/wormhole warp-in paths still behave correctly.
+5. Warp to a station at 0m and queue Dock during alignment and again during active warp. Confirm each warp lands within 2.5km and docking starts without another approach. Repeat from a longer stand-off to check the approach path. Exercise planet, moon and wormhole warp-ins separately.
 6. Observe server `DESTINY__WARP_TRACE` around the arrival and collect before/after ship ID, target ID, ship radius, gate radius, actual positions, client-overview distance and any destination/velocity corrections.
 
 If bouncing persists, compare the gate's actual rendered collision mesh and ball radius in the installed Crucible SDE, plus the encoded client ball/radius packets. A non-spherical model or mismatched client radius can require an additional **type-specific** clearance; do not blindly increase every target's distance or disable collision globally.
@@ -52,4 +52,11 @@ Regression checks cover these source invariants plus C++ final-approach math (fu
 **Scope and limits:** this is a source-path audit, not a complete per-line manual review of every file in the 1,399-entry repository tree. Key inspected files: `BeyonceService.cpp`, `Client.cpp`, `DestinyManager.cpp/.h`, `SystemBubble.cpp`, `BubbleManager.cpp`, `SystemEntity.cpp`, `DroneAI.cpp`, `EVE_MovementFormulas.h`, `gpoint.h`, Destiny state packets and movement regression tests. `CheckBump()` only notifies on player/player close contact: it **does not implement server-side stargate collision physics**. Therefore genuine client-mesh collision and micro-stutter elimination **cannot be certified** from unit tests or builds. If the client still bounces, collect the installed gate's ball radius/model collision shape, 2012-client Destiny stream and server timestamps before trying type-specific geometry adjustments.
 
 **Required follow-up playtest:** frigate/battleship/capital warp at 0m, 10km and 100km; immediate gate jump from a fresh warp; manual Approach 0m to a stargate and station; autopilot approach/jump; queued docking; repeated idle for at least 60 simulation ticks; check client overview surface range, speed overlay, collision/wobble, frame pacing and network packet rates. Also test mining drone flight/return because `master` PR #42 updated the same Destiny subsystem. No database migration.
+
+## Warp entry and arrival follow-up
+
+- A validated warp sends one navigation command. Dock and Jump wait through alignment and active warp. Alignment throttle updates keep the warp order active.
+- Warp entry resolves the landing from the ship's current server position. The deceleration curve reaches the endpoint at the warp exit speed, and the final tick publishes a single stopped position.
+- Invalid coordinates or radii cannot satisfy a jump or dock check. Heavy hulls retain a positive turn rate and directly opposite headings can begin turning.
+- The movement tests cover gate and large station geometry across small and capital hull sizes, off-axis approaches, and short- and long-warp deceleration. Live client movement and distance display still require the playtest above.
 
