@@ -113,7 +113,7 @@ public:
     const GPoint &GetPosition() const                   { return m_position; }
     const GVector &GetVelocity() const                  { return m_velocity; }
     float GetSpeedFraction()                            { return m_timeFraction; }
-    float GetSpeed()                                    { return (m_maxShipSpeed * m_timeFraction); }
+    float GetSpeed()                                    { return static_cast<float>(m_velocity.length()); }
 
     // this is only used by my bubble debug command
     uint8 GetState()                                    { return m_ballMode; }
@@ -131,6 +131,7 @@ public:
     /* Global Actions */
     void Stop();
     void Halt();     // puts entity at 0 velocity
+    void HaltForInteraction();
     void Eject();   // avoid numerous other redirect calls
     void SetCloak(bool set=false)                       { m_cloaked = set; }
 
@@ -147,7 +148,7 @@ public:
     void SetSpeedFraction(float fraction=1.0f, bool startMovement=false);
 
     /* Larger movement */
-    void WarpTo(const GPoint& where, int32 distance = 0, bool autoPilot = false, SystemEntity* pSE = nullptr);
+    void WarpTo(const GPoint& where, int32 distance = 0);
 
     /* Ship State Query functions */
     bool IsMoving()                                     { return (m_timeFraction > 0); }
@@ -160,6 +161,8 @@ public:
     bool IsFollowing()                                  { return (m_ballMode == Destiny::Ball::Mode::FOLLOW); }
     //bool IsJumping()                                  { return (m_ballMode == Destiny::Ball::Mode::STOP); }
     bool IsWarping()                                    { return (m_warpState ? true : false); }
+    bool HasWarpOrder() const                           { return m_ballMode == Destiny::Ball::Mode::WARP; }
+    double InteractionDistanceTo(SystemEntity& target) const;
     bool IsCloaked()                                    { return m_cloaked; }
     bool IsTurning()                                    { return m_turning; }
     bool IsTractored()                                  { return m_tractored; }
@@ -323,6 +326,8 @@ protected:
     void UpdateVelocity(bool isMoving=false);
 
 private:
+    PyTuple* EncodeWarpEffect(bool active) const;
+    void SendStoppedPosition(bool warpEnded = false) const;
     bool m_frozen;                      // hack to keep ship from moving when using modules that prevent movement
     bool m_changeDelay;                 // this is to try to sync destiny with client, as client has a delay when changing destiny states.
 

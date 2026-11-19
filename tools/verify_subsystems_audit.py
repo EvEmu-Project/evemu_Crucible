@@ -64,8 +64,21 @@ assert "if (quantity == 0)\n            continue;" in ram
 assert "if (!FactoryDB::CompleteJob(args.jobID," in ram
 assert "if (installedItem.get() == nullptr)" in ram
 assert "if (!args.cancel && data.activity == EvERam::Activity::Invention)" in ram
-assert "Do not consume datacores, runs or ISK" in activity
-assert 'throw UserError("RamActivityInvalid");' in activity
+# Verify the invention path rejects the job BEFORE payment or installation.
+# Test the actual exception, not an implementation comment whose wording can change.
+activity_check = activity.split("void RamMethods::ActivityCheck(", 1)[1].split(
+    "void RamMethods::JobsCheck(", 1)[0]
+invention_case = activity_check.split("case EvERam::Activity::Invention:", 1)[1].split(
+    "case EvERam::Activity::ReverseEngineering:", 1)[0]
+assert 'throw CustomError("Blueprint invention is not functional on this server yet;' in invention_case
+assert 'FactoryDB::InstallJob(' not in invention_case
+assert 'AccountService::TransferFunds(' not in invention_case
+install = ram.split("PyResult RamProxyService::InstallJob(", 1)[1].split(
+    "PyResult RamProxyService::", 1)[0]
+assert install.index("sRamMthd.ActivityCheck(call.client, args, bpRef);") < install.index(
+    "AccountService::TransferFunds(")
+assert install.index("sRamMthd.ActivityCheck(call.client, args, bpRef);") < install.index(
+    "FactoryDB::InstallJob(")
 
 drone = source("src/eve-server/npc/DroneAI.cpp")
 assert "if (m_pDrone == nullptr)" in drone

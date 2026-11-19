@@ -40,21 +40,153 @@ assert "m_activeSpeedFraction >= 0.75f" in alignment
 assert "m_timeFraction > 0.749" not in alignment
 assert "warp align/speed is incorrect" not in alignment
 assert "headingReady && speedReady" in alignment
+# STOP must process real deceleration but never emit a CmdStop every idle
+# tick. This prevents repeated network prediction resets and packet spam.
+idle_state = alignment.split("case Ball::Mode::STOP:", 1)[1].split(
+    "case Ball::Mode::GOTO:", 1)[0]
+assert "m_decel || m_accel || m_activeSpeedFraction > 0.0001f" in idle_state
+assert "Stop();" not in idle_state
+assert "SendSingleDestinyUpdate(&update);" in idle_state
+assert "return static_cast<float>(m_velocity.length());" in source("src/eve-server/system/DestinyManager.h")
 # Stop() must not fall through to a stale Follow() movement tick.
 follow = destiny.split("void DestinyManager::Follow()", 1)[1].split("void DestinyManager::Orbit()", 1)[0]
 assert "Stop();" in follow
 assert "SetPosition(m_position, true);\n            return;" in follow
 assert "EVEmuMovement::TractorTravelStep(" in follow
 
+# Warping to stargates and stations must use the actual
+# surface separation, not the old gate radius/3 fudge and ship diameter.
+formulas = source("src/eve-common/EVE_MovementFormulas.h")
+beyonce = source("src/eve-server/ship/BeyonceService.cpp")
+client = source("src/eve-server/Client.cpp")
+movement_test = source("src/eve-test/utils/MovementFormulaTest.cpp")
+assert "WarpCenterStopRange(double requestedSurfaceRange" in formulas
+assert "GateWarpLandingSurfaceRange = 2400.0" in formulas
+assert "GateJumpSurfaceRange = 2500.0" in formulas
+assert "surface + std::max(0.0, shipRadius) + std::max(0.0, targetRadius)" in formulas
+assert beyonce.count("EVEmuMovement::WarpCenterStopRange(") == 2
+assert "distance += (radius / 3)" not in beyonce
+assert "hasCenterBasedWarpRange" in beyonce
+assert "if (pSE != nullptr && !hasCenterBasedWarpRange)" in beyonce
+assert "if (pSE->IsGateSE() || pSE->IsStationSE()" in beyonce
+assert "GetDockPosY(" not in beyonce and "GetDockPosY(" not in destiny
+assert client.count("EVEmuMovement::GateWarpLandingSurfaceRange") == 2
+assert client.count("EVEmuMovement::GateJumpSurfaceRange") == 2
+assert "EVEmuMovement::DockSurfaceRange" in client and "EVEmuMovement::DockSurfaceRange" in destiny
+assert "if (pDestiny->HasWarpOrder())" in beyonce
+assert client.count("pShipSE->DestinyMgr()->HasWarpOrder()") == 2
+assert "EVEmuMovement::InteractionSurfaceGap(" in destiny
+assert "gate->GetRadius() + 2500.0" not in client
+assert "station->GetRadius() + 2500.0" not in destiny
+assert "Follow(station, approachDistance);" in destiny
+assert "if (pSE->IsGateSE() || pSE->IsStationSE())" in destiny
+assert "distance = std::max<uint32>(distance" in destiny
+assert "gateFrigateStop == 12435 && gateCapitalStop == 14900" in movement_test
+assert "requestedTenKm == 20150" in movement_test
+
+# A 1-second movement tick must not carry a ship through the gate after
+# Follow() calculates a safe 2.4km (or manual 0m) surface stand-off.
+move = destiny.split("void DestinyManager::MoveObject()", 1)[1].split(
+    "bool DestinyManager::IsTurn()", 1)[0]
+assert "m_targetEntity.second->IsGateSE()" in move
+assert "m_targetEntity.second->IsStationSE()" in move
+assert "const double remaining = std::max(0.0, gap - m_followDistance);" in move
+assert "if (remaining <= static_cast<double>(speed))" in move
+assert "EVEmuMovement::ApproachTravelStep(" in move
+assert "SetPosition(m_position + m_shipHeading * step);" in move
+assert "HaltForInteraction();" in move
+assert "m_shipHeading.isNaN() || m_shipHeading.isInf()" in move
+
+# Repeated Guristas NPC errors: the original orbit equation can compute a
+# center radius inside the physically safe hull-to-hull clearance. Clamp
+# recoverable geometry and use a static-data speed fallback for movable NPCs.
+npc = source("src/eve-server/npc/NPCAI.cpp")
+assert "ResolvedOrbitRadius(double minimumRadius" in formulas
+assert "NpcCruiseSpeed(double cruiseSpeed" in formulas
+assert "EVEmuMovement::ResolvedOrbitRadius(" in destiny
+assert "orbitRadius < safeOrbitRadius" not in destiny
+assert "EVEmuMovement::NpcCruiseSpeed(" in destiny
+assert "EVEmuMovement::NpcCruiseSpeed(" in npc
+assert "sEntityList.GetStamp() % 30u == 0u" in destiny
+assert "mySE->IsNPCSE() ? DESTINY__WARNING : DESTINY__ERROR" in destiny
+assert "if (m_orbitSpeed == 0)" in npc
+assert "fixedGuristasOrbit == 10150.0" in movement_test
+assert "fixedLargeOrbit == 20150.0" in movement_test
+assert "zeroNpcCruise == 190.0" in movement_test
+
 # A warp launch uses the requested destination plus a range. The final
 # authoritative stop uses the already range-adjusted endpoint.
-assert "wt.dest_x = m_warpDestination.x;" in destiny
-assert "m_stopDistance = npcWarp ? distance : std::max(0, distance);" in destiny
+warp_order = destiny.split("void DestinyManager::WarpTo(", 1)[1].split(
+    "void DestinyManager::Orbit(SystemEntity", 1)[0]
+assert "GotoPoint(" not in warp_order and "Follow(" not in warp_order
+assert warp_order.index("capNeeded > currentCap") < warp_order.index("BeginMovement();")
+assert "throttle.fraction = m_userSpeedFraction;" in warp_order
+assert "updates{throttle.Encode(), wt.Encode(), EncodeWarpEffect(true)}" in warp_order
+begin_movement = destiny.split("void DestinyManager::BeginMovement()", 1)[1].split(
+    "void DestinyManager::Follow(SystemEntity", 1)[0]
+assert "if (HasWarpOrder() || (m_userSpeedFraction < 0.02f && m_timeFraction < 0.02f))" in begin_movement
+assert "SetSpeedFraction(1.0f, true);" in begin_movement
+assert "wt.dest_x = packetDestination.x;" in warp_order
+assert "wt.distance = std::max(0, m_stopDistance);" in warp_order
+assert "int32 stopDistance = npcWarp ? distance : std::max(0, distance);" in warp_order
 assert "m_stopDistance < 0 ? m_targetPoint : m_warpDestination" in destiny
 assert "WarpRemainingAfterAcceleration(m_warpState->total_distance, currentDistance)" in destiny
+assert "m_targetPoint = m_warpDestination - route * m_stopDistance;" in destiny
+deceleration = destiny.split("void DestinyManager::WarpDecel(", 1)[1].split(
+    "void DestinyManager::WarpUpdate(", 1)[0]
+assert "WarpDecelerationRemaining(" in deceleration
+assert deceleration.index("WarpStop(currentShipSpeed);") < deceleration.index("WarpUpdate(currentShipSpeed);")
 warp_stop = destiny.split("void DestinyManager::WarpStop(", 1)[1].split("void DestinyManager::EntityRemoved(", 1)[0]
 assert warp_stop.index("SetPosition(m_targetPoint);") < warp_stop.index("Halt();")
-assert "SetBallVelocity velocity;" in warp_stop and "SetPosition(m_position, true);" in warp_stop
+assert warp_stop.index("Halt();") < warp_stop.index("SendStoppedPosition(true);")
+assert "SetBallVelocity velocity;" in warp_stop
+assert "position.Encode(), stop.Encode(), velocity.Encode()" in warp_stop
+assert "if (warpEnded)\n        updates.push_back(EncodeWarpEffect(false));" in warp_stop
+assert "SetPosition(m_position, true);" not in warp_stop
+
+# The origin grid must be drained before a new session. A successful arrival
+# must publish SetState before completing the jump and resyncing the speed.
+move_location = client.split("void Client::MoveToLocation(", 1)[1].split(
+    "void Client::SetDestiny(", 1)[0]
+assert move_location.index("m_system->RemoveEntity(pShipSE);") < move_location.index("FlushQueue();")
+assert move_location.index("FlushQueue();") < move_location.index("SendSessionChange();")
+assert "if (!IsGateJump())\n            m_beyonce = false;" in move_location
+ballpark = client.split("void Client::SetBallPark()", 1)[1].split("void Client::CheckBallparkTimer()", 1)[0]
+assert ballpark.index("if (IsGateJump() && m_stateTimer.Enabled())") < ballpark.index("SendSetState();")
+assert ballpark.index("SendSetState();") < ballpark.index("if (m_setStateSent && m_beyonce)")
+assert ballpark.index("if (m_setStateSent && m_beyonce)") < ballpark.index("m_cloakTimer.Start(")
+snapshot = destiny.split("void DestinyManager::SendSetState()", 1)[1].split(
+    "void DestinyManager::SendMovementPacket()", 1)[0]
+assert snapshot.index("QueueDestinyUpdate(&tmp, true, true)") < snapshot.index("SetBallSpeed speed;")
+assert "if (pilot->IsGateJump())" in snapshot and "speed.speed = m_maxShipSpeed;" in snapshot
+assert "SendDestinyUpdate(updates, true);" in snapshot
+assert "if (!pClient->IsGateJump())\n            SendAddBalls(pSE);" in source(
+    "src/eve-server/system/SystemBubble.cpp")
+assert ballpark.index("m_cloakTimer.Disable();") < ballpark.index("m_cloakTimer.Start(")
+
+# A fresh protection window must reset the underlying timer's start time.
+# Clearing protection through movement must also cancel its pending expiry.
+invul = client.split("void Client::SetInvul(bool", 1)[1].split("void Client::SetStateTimer(", 1)[0]
+assert "if (!invul)\n        m_invulTimer.Disable();" in invul
+arm_invul = invul.split("void Client::SetInvulTimer(", 1)[1]
+assert arm_invul.index("m_invulTimer.Disable();") < arm_invul.index("m_invulTimer.Start(time);")
+assert "already enabled" not in arm_invul
+assert "if (m_bindSet.erase(bindID) != 0)\n                m_services.ClearBoundObject(bindID, this);" in client
+
+# Throttle from STOP must seed a valid course before enabling GOTO and
+# send that course before the client starts accelerating.
+throttle = destiny.split("void DestinyManager::SetSpeedFraction(", 1)[1].split(
+    "void DestinyManager::UpdateVelocity(", 1)[0]
+assert "const bool startFromStop = startMovement && fraction > 0.0f" in throttle
+assert throttle.index("m_targetPoint = m_position + m_shipHeading * 1.0e16;") < throttle.index(
+    "m_ballMode = Destiny::Ball::Mode::GOTO;")
+assert throttle.index("UnCloak();") < throttle.index("UpdateVelocity(")
+assert throttle.index("direction.Encode()") < throttle.index("du.fraction = fraction;")
+jump_rpc = beyonce.split("PyResult BeyonceBound::CmdStargateJump(", 1)[1].split(
+    "PyResult BeyonceBound::CmdAbandonLoot(", 1)[0]
+assert "if (!call.client->StargateJump(" in jump_rpc
+assert jump_rpc.index("if (!call.client->StargateJump(") < jump_rpc.index("return this->GetOID();")
+
 wreck = source("src/eve-server/system/Container.cpp").split("void WreckSE::EncodeDestiny", 1)[1]
 assert "tractored ? Ball::Mode::FOLLOW : Ball::Mode::TROLL" in wreck
 invbroker = source("src/eve-server/inventory/InvBrokerService.cpp")

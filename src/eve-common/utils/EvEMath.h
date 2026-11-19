@@ -34,7 +34,7 @@ namespace EvEMath {
     }
 
     namespace RAM {
-        int32 CopyTime(uint16 BaseTime, uint8 ScienceLevel, float SlotModifier=1, float ImplantModifier=1);
+        int32 CopyTime(uint32 BaseTime, uint8 ScienceLevel, float SlotModifier=1, float ImplantModifier=1);
         int32 InventionTime(uint32 BaseTime, uint8 AdvLabLevel, float SlotModifier = 1, float ImplantModifier = 1);
         int32 ProductionTime(uint32 BaseTime, float bpProductivityModifier, float ProductionLevel, float TimeModifier=1);
         int32 ME_ResearchTime(uint32 BaseTime, uint8 BlueprintLevel, int32 Runs, uint8 MetallurgyLevel, float SlotModifier=1, float ImplantModifier=1);

@@ -30,6 +30,7 @@ SET( utils_SOURCE
      "utils/WeaponFormulaTest.cpp"
      "utils/MovementFormulaTest.cpp"
      "utils/MiningFormulaTest.cpp"
+     "utils/IndustryFormulaTest.cpp"
      "utils/ScanDirectionTest.cpp"
      "utils/DroneControlRangeTest.cpp"
      "utils/AgentHelpersTest.cpp"
@@ -92,6 +93,8 @@ ADD_TEST( NAME "MovementFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/MovementFormulaTest" )
 ADD_TEST( NAME "MiningFormulaTest"
           COMMAND "${TARGET_NAME}" "utils/MiningFormulaTest" )
+ADD_TEST( NAME "IndustryFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/IndustryFormulaTest" )
 ADD_TEST( NAME "DroneControlRangeTest"
           COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )
 ADD_TEST( NAME "TowerShieldRulesTest"

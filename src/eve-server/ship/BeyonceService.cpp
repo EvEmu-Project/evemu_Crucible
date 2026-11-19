@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include "EVE_MovementFormulas.h"
 
 #include "Client.h"
 #include "StaticDataMgr.h"
@@ -155,7 +156,8 @@ PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* dis
 }
 
 PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFraction) {
-    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    ShipSE* ship = call.client->GetShipSE();
+    DestinyManager* pDestiny = ship != nullptr ? ship->DestinyMgr() : nullptr;
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
@@ -169,18 +171,20 @@ PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFract
         return PyStatic.NewNone();
     }
 
-    /** @todo  rework this...this is to set speed ONLY...NOT to begin moving.  */
-    // client should not legally send anything < 0.1 (except on rare occasion a 0.0 instead of Stop.)
-    if ((speedFraction->value() != 0) && (speedFraction->value() < 0.1))
+    const double fraction = speedFraction->value();
+    if (!std::isfinite(fraction) || fraction < 0.0 || fraction > 1.0
+        || (fraction > 0.0 && fraction < 0.1))
         return PyStatic.NewNone();
 
-    //sLog.Warning( "BeyonceBound", "Handle_CmdSetSpeedFraction %.2f", arg.arg );
-    if (!call.client->IsUndock()){
-        if (pDestiny->IsMoving()) {
-            pDestiny->SetSpeedFraction(speedFraction->value());
-        } else {
-            pDestiny->SetSpeedFraction(speedFraction->value(), true);
-        }
+    if (call.client->IsGateJump()) {
+        call.client->SetBallPark();
+        if (call.client->IsGateJump())
+            return PyStatic.NewNone();
+    }
+    if (!call.client->IsUndock()) {
+        if (fraction > 0.0)
+            call.client->SetInvul(false);
+        pDestiny->SetSpeedFraction(fraction, !pDestiny->IsMoving());
     }
 
     return PyStatic.NewNone();
@@ -384,13 +388,14 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             fleet = call.byname.find("fleet")->second->AsBool()->value();
 
     // get the warp-to distance specified by the client
-    int32 distance(0); //Was set to 5000; setting to 0 makes warp in to station and gate more realistic.
+    double distance = 0.0;
     if (call.byname.find("minRange") != call.byname.end())
         distance = PyRep::IntegerValueU32(call.byname.find("minRange")->second);
 
     GPoint warpToPoint(NULL_ORIGIN);
     SystemEntity* pSE(nullptr);
     double radius(0);
+    bool hasCenterBasedWarpRange = false;
     uint32 toID(0);
     std::string stringArg = "";
 
@@ -512,6 +517,8 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
          */
     if (pSE != nullptr) {
         radius = pSE->GetRadius();
+        if (!std::isfinite(radius) || radius < 0.0)
+            return PyStatic.NewNone();
         // this will need adjustment for warping to bookmarks
         warpToPoint = pSE->GetPosition();
         if (pSE->IsPlanetSE()) {
@@ -530,13 +537,8 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             warpToPoint.x += (d * std::sin(t));
             warpToPoint.y += (0.5f * radius * std::sin(j));
             warpToPoint.z -= (d * std::cos(t));
-        } else if (pSE->IsStationSE()) {
-            // this makes ship warp to station dock elevation (y), instead of warping to stations "center point" position (where icon is)
-            warpToPoint.y = stDataMgr.GetDockPosY(pSE->GetID());
         } else if (pSE->IsCOSE()) {
             distance += (radius / 2);
-        } else if (pSE->IsGateSE()) {
-            distance += (radius / 3);  // fudge the distance a bit for gates... its' a lil close by default
         } else if (pSE->IsMoonSE()) {
             if (pSE->GetMoonSE()->HasTower()) {
                 // if moon has a tower, make warpin point 20km inside edge of tower's bubble.
@@ -553,33 +555,40 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
             }
         } else if (pSE->IsWormholeSE()) {
                 distance += 20000;  // add 20k for wh
-        } else if (radius > 90000) {
+        } else if (radius > 90000 && !pSE->IsStationSE() && !pSE->IsGateSE()) {
             // this doesnt work for moons
             warpToPoint.x += ((radius + 500000) * std::cos(radius));
             warpToPoint.y += ((radius * 1.3f) - 7500);
             warpToPoint.z -= ((radius + 500000) * std::sin(radius));
         }
-        if (pSE->IsStationSE()) {
-            // Warp-to-station previously stopped exactly at the station's
-            // collision surface. The ship's own radius was ignored, so large
-            // hulls could overlap the station on arrival and visibly bounce.
-            // Leave a small clearance beyond both collision radii. Docking
-            // still uses the normal 2,500m perimeter and approach handling.
-            GVector vectorFromOrigin(call.client->GetShipSE()->GetPosition(), warpToPoint);
-            vectorFromOrigin.normalize();
-            const double clearance = radius
-                + call.client->GetShipSE()->GetRadius() + 5000.0;
-            warpToPoint -= (vectorFromOrigin * clearance);
+        if (pSE->IsGateSE() || pSE->IsStationSE()
+            || (radius < 90000 && !pSE->IsPlanetSE()
+                && !pSE->IsMoonSE() && !pSE->IsWormholeSE())) {
+            // WarpTo expects a CENTER destination and a center stop distance.
+            // Don't move the destination to the edge and then separately
+            // add a radius fudge or ship diameter: that double-counts hulls.
+            const double shipRadius = call.client->GetShipSE()->GetRadius();
+            const int32 centerStopRange = EVEmuMovement::WarpCenterStopRange(
+                distance, shipRadius, radius,
+                EVEmuMovement::GateWarpLandingSurfaceRange);
+            distance = centerStopRange;
+            hasCenterBasedWarpRange = true;
+            _log(DESTINY__WARP_TRACE,
+                "Warp-to %s(%u): ship radius %.1f, target radius %.1f, center stop %d m, expected surface %.1f m.",
+                pSE->GetName(), pSE->GetID(), shipRadius, radius, centerStopRange,
+                EVEmuMovement::SurfaceSeparation(distance, shipRadius, radius));
         } else if (radius < 90000) {
+            // Retain special legacy moon/wormhole landing points; these do
+            // not target the object's collision sphere directly.
             GVector vectorFromOrigin(call.client->GetShipSE()->GetPosition(), warpToPoint);
             vectorFromOrigin.normalize();
             GPoint stopPoint = (vectorFromOrigin * radius);
             warpToPoint -= stopPoint;
         }
     }
-    if (warpToPoint.isZero()) {
+    if (warpToPoint.isZero() || warpToPoint.isNaN() || warpToPoint.isInf()) {
         // point is zero ....make error and return
-        codelog(CLIENT__ERROR, "%s: warpToPoint.isZero() = true.  Cannot find location %u for '%s'", call.client->GetName(), toID, type->content().c_str());
+        codelog(CLIENT__ERROR, "%s: Invalid warp destination %u for '%s'.", call.client->GetName(), toID, type->content().c_str());
         call.client->SendErrorMsg("WarpTo: Item location not found.");
         return PyStatic.NewNone();
     }
@@ -587,8 +596,12 @@ PyResult BeyonceBound::CmdWarpToStuff(PyCallArgs &call, PyString* type, PyRep* i
     call.client->SetInvul(false);
     call.client->SetUndock(false);
 
-    distance += (call.client->GetShipSE()->GetRadius() * 2); // add ship diameter to distance
-    pDestiny->WarpTo(warpToPoint, distance);
+    // Preserve the legacy ship clearance for special entity warp points.
+    if (pSE != nullptr && !hasCenterBasedWarpRange)
+        distance += (call.client->GetShipSE()->GetRadius() * 2);
+    if (std::isfinite(distance))
+        pDestiny->WarpTo(warpToPoint, static_cast<int32>(std::clamp(
+            distance, 0.0, static_cast<double>(std::numeric_limits<int32>::max()))));
 
     return PyStatic.NewNone();
 }
@@ -629,10 +642,13 @@ PyResult BeyonceBound::CmdWarpToStuffAutopilot(PyCallArgs &call, PyInt* destID) 
     //call.client->UpdateSession();
     //call.client->SendSessionChange();
 
-    uint16 distance = sConfig.world.apWarptoDistance;    //10km default
-    //Adding in ship and target object radius'
-    //distance += call.client->GetShipSE()->GetRadius() + pSE->GetRadius();
-    pDestiny->WarpTo(pSE->GetPosition(), distance, true, pSE);
+    // Autopilot used to warp to the gate/station CENTER with only a 10km
+    // stop range, often placing the ship inside the object's radius.
+    // Correctly express the configured surface clearance from the center.
+    const int32 distance = EVEmuMovement::WarpCenterStopRange(
+        sConfig.world.apWarptoDistance, call.client->GetShipSE()->GetRadius(),
+        pSE->GetRadius(), EVEmuMovement::GateWarpLandingSurfaceRange);
+    pDestiny->WarpTo(pSE->GetPosition(), distance);
 
     return PyStatic.NewNone();
 }
@@ -693,7 +709,7 @@ PyResult BeyonceBound::CmdDock(PyCallArgs &call, PyInt* celestialID, PyInt* ship
 
     // This is used by both immediate docking and the post-warp approach.
     call.client->SetDockStationID(celestialID->value());
-    if (pDestiny->IsWarping()) {
+    if (pDestiny->HasWarpOrder()) {
         // Keep the dock request until the current warp has finished. The
         // pending-action processor will approach and dock at the station.
         call.client->SetPendingDock(true);
@@ -738,7 +754,8 @@ PyResult BeyonceBound::CmdStargateJump(PyCallArgs &call, PyInt* fromStargateID, 
         call.client->SendNotifyMsg("Session Change currently active.");
         return PyStatic.NewNone();
     }
-    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    ShipSE* ship = call.client->GetShipSE();
+    DestinyManager* pDestiny = ship != nullptr ? ship->DestinyMgr() : nullptr;
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
@@ -749,14 +766,10 @@ PyResult BeyonceBound::CmdStargateJump(PyCallArgs &call, PyInt* fromStargateID, 
         return PyStatic.NewNone();
     }
 
-    // Client::StargateJump queues the request when a normal warp is active.
-    /** @todo  check distance from ship to gate */
-    call.client->StargateJump(fromStargateID->value(), toStargateID->value());
+    if (!call.client->StargateJump(fromStargateID->value(), toStargateID->value()))
+        return PyStatic.NewNone();
 
-    /* return error msg from this call, if applicable, else nodeid and timestamp */
-    // returns nodeID and timestamp
-    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
-    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    // The client can reuse this bound service when the new system loads.
     return this->GetOID();
 }
 
@@ -802,7 +815,8 @@ PyResult BeyonceBound::CmdAbandonLoot(PyCallArgs &call, PyList* wreckIDs) {
 PyResult BeyonceBound::UpdateStateRequest(PyCallArgs &call) {
     codelog(CLIENT__ERROR, "%s: Client sent UpdateStateRequest. Previous call generated a bad return.  Check Logs.", call.client->GetName());
 
-    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    ShipSE* ship = call.client->GetShipSE();
+    DestinyManager* pDestiny = ship != nullptr ? ship->DestinyMgr() : nullptr;
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
@@ -815,7 +829,10 @@ PyResult BeyonceBound::UpdateStateRequest(PyCallArgs &call) {
     }
 
     call.client->SetStateSent(false);
-    pDestiny->SendSetState();
+    if (call.client->IsGateJump())
+        call.client->SetBallPark();
+    else
+        pDestiny->SendSetState();
 
     return PyStatic.NewNone();
 }
