@@ -93,7 +93,7 @@ zlib/
 # evemu output
 build/
 build_iwyu/
-staging/
+/staging/
 out/
 
 # evenmu runtime
@@ -114,6 +114,9 @@ sql/tables_old/
 # misc shit
 sql.tar.gz
 
+# Operator-imported CCP portraits are local runtime cache, not bundled Git IP.
+/image_cache/
+
 # VSCode Config Files
 .vscode/
 .vs/
@@ -122,3 +125,6 @@ sql.tar.gz
 .idea
 CMakeSettings.json
 log.ini
+
+# Local A01 Docker project identity, private snapshots and server logs.
+.a01/

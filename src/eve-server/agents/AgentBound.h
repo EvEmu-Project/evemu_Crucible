@@ -42,8 +42,8 @@ protected:
     PyResult RemoveOfferFromJournal(PyCallArgs& call);
     PyResult GetOfferJournalInfo(PyCallArgs& call);
     PyResult GetEntryPoint(PyCallArgs& call);
-    PyResult GotoLocation(PyCallArgs& call, PyInt* locationType, PyInt* locationNumber, PyInt* referringAgentID);
-    PyResult WarpToLocation(PyCallArgs& call, PyInt* locationType, PyInt* locationNumber, PyFloat* warpRange, PyBool* fleet, PyInt* referringAgentID);
+    PyResult GotoLocation(PyCallArgs& call, PyString* locationType, PyInt* locationNumber, PyRep* referringAgentID);
+    PyResult WarpToLocation(PyCallArgs& call, PyString* locationType, PyInt* locationNumber, PyFloat* warpRange, PyBool* fleet, PyInt* referringAgentID);
 
 private:
     PyTuple* GetMissionObjectives(Client* pClient, MissionOffer& offer);

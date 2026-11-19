@@ -7,6 +7,8 @@
 
 
 #include "eve-server.h"
+#include "EVE_WeaponFormulas.h"
+#include "EVE_MovementFormulas.h"
 
 #include "StatisticMgr.h"
 #include "exploration/Probes.h"
@@ -17,7 +19,12 @@
 #include "ship/modules/ModuleItem.h"
 #include "ship/modules/Prospector.h"
 #include "system/Container.h"
+#include "system/Damage.h"
+#include "ship/Ship.h"
 #include "system/cosmicMgrs/BeltMgr.h"
+
+#include <algorithm>
+#include <cmath>
 
 
 ActiveModule::ActiveModule(ModuleItemRef mRef, ShipItemRef sRef)
@@ -242,9 +249,12 @@ void ActiveModule::Update()
 void ActiveModule::Clear()
 {
     _log(MODULE__TRACE, "%s(%u) calling Clear()", m_modRef->name(), m_modRef->itemID());
-    if (m_targetSE != nullptr)
+    if (m_targetSE != nullptr) {
+        if (groupID() == EVEDB::invGroups::Tractor_Beam && m_targetSE->DestinyMgr() != nullptr)
+            m_targetSE->DestinyMgr()->TractorBeamStop(itemID());
         if (m_targetSE->TargetMgr() != nullptr)
             m_targetSE->TargetMgr()->RemoveTargetModule(this);
+    }
 
     m_targetSE = nullptr;
 
@@ -291,11 +301,10 @@ void ActiveModule::Process()
         return;
     }
 
-    // decrement repeat and check for single activation.
-    if (m_repeat < 999) // do not decrement as default allowing active modules to stay active for extended periods
-        --m_repeat;
-    if (m_repeat < 1)
-        m_Stop = true;
+    // Only advance remaining repeat count when a cycle actually fires.
+    // Decrementing on every Process() tick exhausted weapon repeats long
+    // before a slow (e.g. artillery) module completed its second shot.
+    // The initial DoCycle() in Activate() accounts for the first cycle.
 
     // check for module cycle timer.  if module is stopped, this will process the deactivation and set stop
     if (m_timer.Check()) {
@@ -403,7 +412,6 @@ void ActiveModule::Activate(uint16 effectID, uint32 targetID/*0*/, int16 repeat/
     SetTimer(DoCycle());
 
     if (!m_timer.Enabled()) {
-        // if the timer wasnt set (for whatever reason), kill activation and return
         Clear();
         return;
     }
@@ -564,8 +572,18 @@ uint32 ActiveModule::DoCycle() {
         }
 
         float shipTotalCapacitor = m_shipRef->GetAttribute(AttrCapacitorCapacity).get_float();
-
-        m_shipRef->SetShipCapacitorLevel(newCap / shipTotalCapacitor);
+        if (!std::isfinite(shipTotalCapacitor) || shipTotalCapacitor <= 0.0f) {
+            if (requiredCapacitorCharge > 0.0f) {
+                _log(MODULE__ERROR, "ActiveModule::DoCycle() - %s has invalid capacitor capacity %.3f.",
+                     m_shipRef->name(), shipTotalCapacitor);
+                AbortCycle();
+                return 0;
+            }
+            // A zero-capacitor NPC/special hull must not feed division by
+            // zero/NaN into ship capacitor attributes.
+        } else {
+            m_shipRef->SetShipCapacitorLevel(newCap / shipTotalCapacitor);
+        }
     }
 
     // not sure if this is entirely accurate...wip
@@ -577,7 +595,7 @@ uint32 ActiveModule::DoCycle() {
             ApplyDamage();
         } break;
         case EVEDB::invGroups::Missile_Launcher_Assault:
-        case EVEDB::invGroups::Missile_Launcher_Bomb:   // not sure here
+        case EVEDB::invGroups::Missile_Launcher_Bomb:
         case EVEDB::invGroups::Missile_Launcher_Citadel:
         case EVEDB::invGroups::Missile_Launcher_Cruise:
         case EVEDB::invGroups::Missile_Launcher_Heavy:
@@ -600,11 +618,15 @@ uint32 ActiveModule::DoCycle() {
                 UpdateCharge(AttrCapacitorCharge, AttrCapacitorCapacity, AttrPowerTransferAmount, m_targetSE->GetSelf());
         } break;
         case EVEDB::invGroups::Shield_Transporter: {
-            if (m_targetSE != nullptr)
+            if (m_targetSE != nullptr) {
                 UpdateCharge(AttrShieldCharge, AttrShieldCapacity, AttrShieldBonus, m_targetSE->GetSelf());
+                m_targetSE->SendDamageStateChanged();
+            }
         } break;
         case EVEDB::invGroups::Shield_Booster: {
             UpdateCharge(AttrShieldCharge, AttrShieldCapacity, AttrShieldBonus, m_shipRef);
+            if (ShipSE* ship = m_shipRef->GetPilot()->GetShipSE())
+                ship->SendDamageStateChanged();
         } break;
         case EVEDB::invGroups::Remote_Hull_Repairer: {
             if (m_targetSE != nullptr)
@@ -641,8 +663,11 @@ uint32 ActiveModule::DoCycle() {
         } break;
         case EVEDB::invGroups::Artifacts_and_Prototypes: {
         } break;
+        // Defender launchers automatically engage hostile missiles targeting this ship.
+        case EVEDB::invGroups::Missile_Launcher_Defender: {
+            LaunchDefenderMissile();
+        } break;
         // these passive modules will need specific code
-        case EVEDB::invGroups::Missile_Launcher_Defender:
         case EVEDB::invGroups::Countermeasure_Launcher:
         case EVEDB::invGroups::Passive_Targeting_System: {
         } break;
@@ -651,19 +676,21 @@ uint32 ActiveModule::DoCycle() {
         case EVEDB::invGroups::Covert_Cynosural_Field_Generator:
         case EVEDB::invGroups::Automated_Targeting_System: {
         } break;
-        // these im not sure about yet
+        // these active modules still need dedicated cycle implementations
         case EVEDB::invGroups::ECM:
         case EVEDB::invGroups::ECCM:
         case EVEDB::invGroups::Gang_Coordinator:
         case EVEDB::invGroups::Cloaking_Device:
         case EVEDB::invGroups::Siege_Module:
         case EVEDB::invGroups::Super_Weapon:
-        case EVEDB::invGroups::Interdiction_Sphere_Launcher:    // launch a sphere (like missile and probe)
+        case EVEDB::invGroups::Interdiction_Sphere_Launcher:
         case EVEDB::invGroups::Jump_Portal_Generator:
         case EVEDB::invGroups::Remote_ECM_Burst:
         case EVEDB::invGroups::Warp_Disrupt_Field_Generator:
-        case EVEDB::invGroups::Smart_Bomb:
         case EVEDB::invGroups::ECM_Burst: {
+        } break;
+        case EVEDB::invGroups::Smart_Bomb: {
+            ApplySmartBombDamage();
         } break;
     }
 
@@ -731,10 +758,7 @@ void ActiveModule::DeactivateCycle(bool abort/*false*/)
     } */
 
     switch (groupID()) {
-        case EVEDB::invGroups::Tractor_Beam: {
-            if (m_targetSE != nullptr)
-                m_targetSE->DestinyMgr()->TractorBeamStop();
-        } break;
+
         case EVEDB::invGroups::Afterburner:
         case EVEDB::invGroups::Microwarpdrive: {
             m_destinyMgr->SpeedBoost(true);
@@ -836,6 +860,12 @@ void ActiveModule::ProcessActiveCycle() {
     }
 
     SetTimer(DoCycle());
+    // Consume ONE repeat for the completed activation, not one per tick.
+    // 999 is the existing "continuous repeat" sentinel after Activate()
+    // converts the client-side 1000 into 999.
+    m_repeat = WeaponCyclesRemainingAfterShot(m_repeat);
+    if (m_repeat < 1)
+        m_Stop = true;
 }
 
 void ActiveModule::SetTimer(uint32 time) {
@@ -1015,9 +1045,6 @@ void ActiveModule::UpdateCharge(uint16 attrID, uint16 testAttrID, uint16 srcAttr
             Deactivate();
     }
     iRef->SetAttribute(attrID, newValue);
-
-    if (attrID == AttrShieldCharge)
-        m_shipRef->GetPilot()->GetShipSE()->SendDamageStateChanged();
 }
 
 void ActiveModule::UpdateDamage(uint16 attrID, uint16 srcAttrID, InventoryItemRef iRef)
@@ -1092,6 +1119,7 @@ bool ActiveModule::CanActivate() {
 
         // test for specific targets and distance here
         float range(0.0f);
+        bool startTractor = false;
         using namespace EVEDB::invGroups;
         switch (groupID()) {
             case Tractor_Beam: {
@@ -1119,18 +1147,25 @@ bool ActiveModule::CanActivate() {
                     bool owner(false), fleet(false), corp(false), ally(false), war(false);
                     if (m_targetSE->GetOwnerID() == m_shipRef->ownerID())
                         owner = true;
-                    if (m_targetSE->GetCorporationID() == m_shipRef->GetPilot()->GetCorporationID())
-                        corp = true;
-                    if (m_targetSE->GetAllianceID() == m_shipRef->GetPilot()->GetAllianceID())
-                        ally = true;
-                    if (m_targetSE->GetWarFactionID() == m_shipRef->GetPilot()->GetWarFactionID())
-                        war = true;
-                    if (m_shipRef->GetPilot()->InFleet())
-                        if (m_shipRef->GetPilot()->GetFleetID() == m_targetSE->GetFleetID())
-                            fleet = true;
+                    const uint32 pilotCorp = m_shipRef->GetPilot()->GetCorporationID();
+                    const uint32 pilotAlliance = m_shipRef->GetPilot()->GetAllianceID();
+                    const uint32 pilotFaction = m_shipRef->GetPilot()->GetWarFactionID();
+                    // An ID of 0 denotes "no alliance/faction/fleet", not
+                    // shared membership. Matching two zero IDs gave virtually
+                    // anyone permission to tractor someone else's wreck.
+                    corp = pilotCorp != 0 && m_targetSE->GetCorporationID() == pilotCorp;
+                    ally = pilotAlliance != 0 && m_targetSE->GetAllianceID() == pilotAlliance;
+                    war = pilotFaction != 0 && m_targetSE->GetWarFactionID() == pilotFaction;
+                    if (m_shipRef->GetPilot()->InFleet()) {
+                        const uint32 pilotFleet = m_shipRef->GetPilot()->GetFleetID();
+                        fleet = pilotFleet != 0 && pilotFleet == m_targetSE->GetFleetID();
+                    }
 
-                    if (owner or fleet or corp or ally or war) {
-                        m_targetSE->DestinyMgr()->TractorBeamStart(m_shipRef->GetPilot()->GetShipSE(), GetAttribute(AttrMaxTractorVelocity));
+                    if (owner || fleet || corp || ally || war) {
+                        // Start movement only after the common range check.
+                        // Previously an out-of-range activation started the
+                        // tractor BEFORE rejecting the module activation.
+                        startTractor = true;
                     } else {
                         int id = m_targetSE->GetID ();
 
@@ -1197,16 +1232,32 @@ bool ActiveModule::CanActivate() {
             } break;
         }
 
-        float distance = m_shipRef->position().distance(m_targetSE->GetPosition());
-        distance -= m_targetSE->GetRadius();
+        // Check effective module range against clearance between surfaces,
+        // not just target edge: the old check omitted our hull radius.
+        ShipSE* rangeSource = m_shipRef->GetPilot()->GetShipSE();
+        if (rangeSource == nullptr)
+            return false;
+        const double distance = EVEmuMovement::SurfaceSeparation(
+            rangeSource->GetPosition().distance(m_targetSE->GetPosition()),
+            rangeSource->GetRadius(), m_targetSE->GetRadius());
 
         _log(MODULE__MESSAGE, "Activate::RangeTest - distance between %s and target %s: %.1f.  range of %s is %.1f", \
                     m_shipRef->name(), m_targetSE->GetName(), distance, m_modRef->name(), range);
 
-        if (distance > range) {
+        if (!std::isfinite(range) || range <= 0.0f || distance > range) {
             m_shipRef->GetPilot()->SendNotifyMsg("The %s is %.0f meters from you, outside the effective range of your %s, which is %.0f meters.", \
                     m_targetSE->GetName(), distance, m_modRef->name(), range);
             return false;
+        }
+        if (startTractor) {
+            ShipSE* source = m_shipRef->GetPilot()->GetShipSE();
+            if (source == nullptr || m_targetSE->DestinyMgr() == nullptr)
+                return false;
+            if (!m_targetSE->DestinyMgr()->TractorBeamStart(
+                    source, GetAttribute(AttrMaxTractorVelocity), range, itemID())) {
+                m_shipRef->GetPilot()->SendNotifyMsg("That target cannot be tractored right now.");
+                return false;
+            }
         }
     }
 
@@ -1386,55 +1437,201 @@ void ActiveModule::ShowEffect(bool active/*false*/, bool abort/*false*/)
                           [PyInt 3530]
                           */
 
-void ActiveModule::LaunchMissile()
+void ActiveModule::LaunchMissile(SystemEntity* targetSE)
 {
-    // must not throw here...
-    //throw UserError ("TargetingMissileToSelf");
-    //throw UserError ("NoCharges");
-
-    //{'FullPath': u'UI/Messages', 'messageID': 259200, 'label': u'NoChargesBody'}(u'{launcher} has run out of charges', None, {u'{launcher}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'launcher'}})
-
-    // AttrAimedLaunch ?  what is this used for?
-
-    // Launch a missile, creating a new Destiny object for it
-    Client* pClient = m_shipRef->GetPilot();
-    if (pClient == nullptr)
-        return;
-    ItemData idata(m_chargeRef->typeID(), pClient->GetCharacterID(), pClient->GetLocationID(), flagMissile, m_chargeRef->name(), m_shipRef->position() );
-    InventoryItemRef missileRef = sItemFactory.SpawnItem(idata);
-    if (missileRef.get() == nullptr) {
-        _log(ITEM__ERROR ,"Unable to spawn item #%u:'%s' of type %u.", m_chargeRef->itemID(), m_chargeRef->name(), m_chargeRef->typeID());
-        pClient->SendErrorMsg("Your %s in %s experienced a loading error and was disabled.", m_chargeRef->name(), m_modRef->name());
-        AbortCycle();
+    // A null argument preserves the ordinary launcher behaviour. Defender
+    // launchers pass the hostile missile they are attempting to intercept.
+    // The saved module target pointer can be stale after its ship/NPC dies.
+    // Resolve ordinary launcher targets by ID in the live system registry
+    // before reading *any* member of that pointer. Defender targets are
+    // passed in explicitly from the same-tick live missile scan.
+    Client* pClient = (m_shipRef.get() != nullptr) ? m_shipRef->GetPilot() : nullptr;
+    SystemManager* liveSystem = (pClient != nullptr) ? pClient->SystemMgr() : nullptr;
+    if (targetSE == nullptr)
+        targetSE = (liveSystem != nullptr && m_targetID != 0)
+            ? liveSystem->GetSE(m_targetID) : nullptr;
+    if (pClient == nullptr || targetSE == nullptr || m_chargeRef.get() == nullptr) {
+        _log(MODULE__WARNING, "ActiveModule::LaunchMissile - missing pilot, target, or loaded charge for %s.",
+             (m_modRef.get() != nullptr) ? m_modRef->name() : "(unknown module)");
         return;
     }
 
     SystemManager* pSystem = pClient->SystemMgr();
-    Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(), pSystem, m_modRef, m_targetSE, m_shipRef->GetPilot()->GetShipSE(), this);
-    if (pMissile == nullptr) {
-        _log(ITEM__ERROR ,"Unable to create SE #%u:'%s' of type %u.", m_chargeRef->itemID(), m_chargeRef->name(), m_chargeRef->typeID());
-        pClient->SendErrorMsg("Your %s in %s experienced a launching error and was disabled.", m_chargeRef->name(), m_modRef->name());
+    ShipSE* sourceShip = pClient->GetShipSE();
+    if (pSystem == nullptr || sourceShip == nullptr
+        || pSystem->GetSE(targetSE->GetID()) != targetSE || targetSE->IsDead()) {
+        _log(MODULE__WARNING, "ActiveModule::LaunchMissile - source or target is no longer in the system.");
+        return;
+    }
+
+    ItemData idata(m_chargeRef->typeID(), pClient->GetCharacterID(), pClient->GetLocationID(),
+                   flagMissile, m_chargeRef->name(), m_shipRef->position());
+    InventoryItemRef missileRef = sItemFactory.SpawnItem(idata);
+    if (missileRef.get() == nullptr) {
+        _log(ITEM__ERROR, "Unable to spawn missile item from charge %u.", m_chargeRef->itemID());
+        pClient->SendErrorMsg("Your %s in %s experienced a loading error and was disabled.",
+                              m_chargeRef->name(), m_modRef->name());
         AbortCycle();
         return;
     }
 
-    float distance = pMissile->GetSelf()->position().distance(m_targetSE->GetPosition());
-    float missileSpeed = pMissile->GetSelf()->GetAttribute(AttrMaxVelocity).get_float();
-    float travelTime = (distance/missileSpeed);
-    if (travelTime < 1)
-        travelTime = 1;
+    Missile* pMissile = new Missile(missileRef, pSystem->GetServiceMgr(), pSystem,
+                                    m_modRef, targetSE, sourceShip, this);
+    if (pMissile == nullptr) {
+        missileRef->Delete();
+        pClient->SendErrorMsg("Your %s in %s experienced a launching error and was disabled.",
+                              m_chargeRef->name(), m_modRef->name());
+        AbortCycle();
+        return;
+    }
+
+    const double distance = pMissile->GetSelf()->position().distance(targetSE->GetPosition());
+    const double missileSpeed = pMissile->GetSelf()->GetAttribute(AttrMaxVelocity).get_float();
+    if (missileSpeed <= 0.0 || !std::isfinite(missileSpeed)) {
+        _log(MODULE__ERROR, "ActiveModule::LaunchMissile - invalid missile velocity %.3f for charge %u.",
+             missileSpeed, m_chargeRef->itemID());
+        SafeDelete(pMissile);
+        missileRef->Delete();
+        AbortCycle();
+        return;
+    }
+
+    double travelTime = distance / missileSpeed;
+    if (travelTime < 1.0)
+        travelTime = 1.0;
+
     pMissile->SetSpeed(missileSpeed);
-    pMissile->SetHitTimer(travelTime *1000);
+    pMissile->SetHitTimer(static_cast<uint32>(travelTime * 1000.0));
+    if (pMissile->DestinyMgr() == nullptr) {
+        SafeDelete(pMissile);
+        missileRef->Delete();
+        AbortCycle();
+        return;
+    }
     pMissile->DestinyMgr()->MakeMissile(pMissile);
 
-    // Reduce ammo charge by 1 unit:
     ConsumeCharge();
-
-    // tell target a missile has been launched at them.. (defender missile trigger for ship, tower, pos, npc, others?)
-    m_targetSE->MissileLaunched(pMissile);
-
-    // add data to StatisticMgr
+    targetSE->MissileLaunched(pMissile);
     sStatMgr.Increment(Stat::pcMissiles);
+}
+
+void ActiveModule::ApplySmartBombDamage()
+{
+    if (m_bubble == nullptr || m_sysMgr == nullptr || m_shipRef.get() == nullptr
+        || m_shipRef->GetPilot() == nullptr) {
+        _log(MODULE__WARNING, "Smartbomb cycle aborted: ship, pilot, or system bubble is unavailable.");
+        return;
+    }
+
+    ShipSE* source = m_shipRef->GetPilot()->GetShipSE();
+    if (source == nullptr || m_sysMgr->GetSE(source->GetID()) != source)
+        return;
+
+    const double radius = GetAttribute(AttrAoeCloudSize).get_float();
+    if (!std::isfinite(radius) || radius <= 0.0) {
+        _log(MODULE__ERROR, "Smartbomb %s(%u) has invalid AoE radius %.3f.",
+             m_modRef->name(), m_modRef->itemID(), radius);
+        return;
+    }
+
+    // Copy IDs/pointers first, then resolve each entity again immediately
+    // before damage. ApplyDamage can destroy entities and mutate the bubble.
+    std::map<uint32, SystemEntity*> entities;
+    m_bubble->GetAllEntities(entities);
+    for (const auto& entry : entities) {
+        if (entry.first == source->GetID())
+            continue;
+
+        SystemEntity* target = m_sysMgr->GetSE(entry.first);
+        if (target == nullptr || target != entry.second || target->IsDead())
+            continue;
+        if (!(target->IsShipSE() || target->IsNPCSE() || target->IsDroneSE()
+              || target->IsMissileSE() || target->IsPOSSE() || target->IsDeployableSE() || target->IsSentrySE()
+              || target->IsWeaponSE() || target->IsBatterySE() || target->IsTowerSE()))
+            continue;
+
+        InventoryItemRef targetItem = target->GetSelf();
+        if (targetItem.get() == nullptr)
+            continue;
+        if (source->GetPosition().distance(target->GetPosition()) > radius)
+            continue;
+
+        Damage damage(source, m_modRef,
+                      GetAttribute(AttrKineticDamage).get_float(),
+                      GetAttribute(AttrThermalDamage).get_float(),
+                      GetAttribute(AttrEmDamage).get_float(),
+                      GetAttribute(AttrExplosiveDamage).get_float(),
+                      1.0f, EVEEffectID::targetAttack);
+        // Smartbombs also destroy incoming missiles. Do not route the
+        // projectile through ship shield/armor damage logic; missile HP is
+        // stored as a separate destructible target attribute.
+        if (target->IsMissileSE()) {
+            Missile* incoming = target->GetMissileSE();
+            // Defender impacts modify the missile's live HP, not its
+            // static item attributes. Honor partially intercepted missiles.
+            const double missileHP = (incoming != nullptr)
+                ? incoming->GetRemainingHullHP() : 0.0;
+            if (incoming != nullptr && incoming->IsAlive() && missileHP > 0.0
+                && damage.GetTotal() * sConfig.rates.damageRate >= missileHP)
+                incoming->Intercept();
+            continue;
+        }
+        target->ApplyDamage(damage);
+    }
+}
+
+void ActiveModule::LaunchDefenderMissile()
+{
+    if (m_bubble == nullptr || m_sysMgr == nullptr || m_shipRef.get() == nullptr
+        || m_shipRef->GetPilot() == nullptr || m_chargeRef.get() == nullptr)
+        return;
+
+    ShipSE* defendingShip = m_shipRef->GetPilot()->GetShipSE();
+    if (defendingShip == nullptr || m_sysMgr->GetSE(defendingShip->GetID()) != defendingShip)
+        return;
+
+    double defenderRange = GetAttribute(AttrMaxRange).get_float();
+    // ExplosionDelay is in milliseconds, but MaxVelocity is metres/sec.
+    // Old code multiplied them directly, overestimating defender reach x1000.
+    const double missileRange = CalculateMissileMaximumRange(
+        m_chargeRef->GetAttribute(AttrMaxVelocity).get_double(),
+        m_chargeRef->GetAttribute(AttrExplosionDelay).get_double());
+    if (missileRange > 0.0)
+        defenderRange = (defenderRange > 0.0) ? std::min(defenderRange, missileRange) : missileRange;
+    if (!std::isfinite(defenderRange) || defenderRange <= 0.0)
+        return;
+
+    std::map<uint32, SystemEntity*> entities;
+    m_bubble->GetAllEntities(entities);
+
+    Missile* bestTarget = nullptr;
+    uint32 bestTargetID = 0;
+    double bestDistance = defenderRange;
+    for (const auto& entry : entities) {
+        SystemEntity* entity = m_sysMgr->GetSE(entry.first);
+        if (entity == nullptr || entity != entry.second || !entity->IsMissileSE())
+            continue;
+
+        Missile* incoming = entity->GetMissileSE();
+        if (incoming == nullptr || !incoming->IsAlive()
+            || incoming->GetTargetID() != defendingShip->GetID()
+            || incoming->GetLauncherID() == defendingShip->GetID())
+            continue;
+
+        SystemEntity* launcher = m_sysMgr->GetSE(incoming->GetLauncherID());
+        if (launcher == nullptr || launcher->IsDead())
+            continue;
+
+        const double distance = defendingShip->GetPosition().distance(incoming->GetPosition());
+        if (distance <= bestDistance) {
+            bestDistance = distance;
+            bestTarget = incoming;
+            bestTargetID = entry.first;
+        }
+    }
+
+    if (bestTarget != nullptr && m_sysMgr->GetSE(bestTargetID) == bestTarget)
+        LaunchMissile(bestTarget);
 }
 
 void ActiveModule::LaunchProbe()

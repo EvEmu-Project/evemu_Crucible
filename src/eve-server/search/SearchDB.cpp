@@ -55,7 +55,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
             case 1: //searchResultAgent = 1
                 sDatabase.RunQuery(res,
                     "SELECT"
-                    "   characterID AS agentID"
+                    "   characterID AS agentID, NULL AS value"
                     " FROM chrNPCCharacters"
                     " WHERE characterName LIKE '%s' "
                     " LIMIT 0, 10", string.c_str() );
@@ -64,7 +64,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
             case 2: //searchResultCharacter = 2
                 sDatabase.RunQuery(res,
                     "SELECT"
-                    "   characterID AS ownerID"
+                    "   characterID AS ownerID, NULL AS value"
                     " FROM chrCharacters"
                     " WHERE characterName LIKE '%s' ", string.c_str() );
                 id = "ownerID";
@@ -72,7 +72,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
             case 3: //searchResultCorporation = 3
                 sDatabase.RunQuery(res,
                     "SELECT"
-                    "   corporationID AS ownerID"
+                    "   corporationID AS ownerID, NULL AS value"
                     " FROM crpCorporation"
                     " WHERE corporationName LIKE '%s' "
                     " LIMIT 0, 10", string.c_str() );
@@ -80,7 +80,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
                 break;
             case 4: //searchResultAlliance = 4
                 sDatabase.RunQuery(res,
-                    "SELECT allianceID AS ownerID"
+                    "SELECT allianceID AS ownerID, NULL AS value"
                     " FROM alnAlliance"
                     " WHERE shortName LIKE '%s' "
                     " LIMIT 0, 10", string.c_str() );
@@ -88,7 +88,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
                 break;
             case 5: //searchResultFaction = 5
                 sDatabase.RunQuery(res,
-                    "SELECT factionID AS ownerID"
+                    "SELECT factionID AS ownerID, NULL AS value"
                     " FROM facFactions"
                     " WHERE factionName LIKE '%s' "
                     " LIMIT 0, 10", string.c_str() );
@@ -97,7 +97,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
             case 6: //searchResultConstellation = 6
                 sDatabase.RunQuery(res,
                     "SELECT"
-                    "   constellationID AS itemID"
+                    "   constellationID AS itemID, NULL AS value"
                     " FROM mapConstellations"
                     " WHERE constellationName LIKE '%s' "
                     " LIMIT 0, 10", string.c_str() );
@@ -106,7 +106,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
             case 7: //searchResultSolarSystem = 7
                 sDatabase.RunQuery(res,
                     "SELECT "
-                    "   solarSystemID AS itemID"
+                    "   solarSystemID AS itemID, NULL AS value"
                     " FROM mapSolarSystems "
                     " WHERE solarSystemName LIKE '%s' "
                     " LIMIT 0, 10", string.c_str() );
@@ -115,7 +115,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
             case 8: //searchResultRegion = 8
                 sDatabase.RunQuery(res,
                     "SELECT "
-                    "   regionID AS itemID"
+                    "   regionID AS itemID, NULL AS value"
                     " FROM mapRegions"
                     " WHERE regionName LIKE '%s' "
                     " LIMIT 0, 10", string.c_str() );
@@ -124,7 +124,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
             case 9: //searchResultStation = 9
                 sDatabase.RunQuery(res,
                     "SELECT "
-                    "   stationID AS itemID"
+                    "   stationID AS itemID, NULL AS value"
                     " FROM staStations "
                     " WHERE stationName LIKE '%s' "
                     " LIMIT 0, 10", string.c_str() );
@@ -133,7 +133,7 @@ PyRep *SearchDB::Query(std::string string, std::vector<int> *searchID, uint32 ch
             case 10:    //searchResultInventoryType = 10
                 sDatabase.RunQuery(res,
                     "SELECT"
-                    "   typeID"
+                    "   typeID, NULL AS value"
                     " FROM entity"
                     " WHERE itemName LIKE '%s'"
                     " AND ownerID = %u", string.c_str(), charID );

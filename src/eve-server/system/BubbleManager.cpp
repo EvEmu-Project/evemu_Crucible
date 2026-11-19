@@ -121,6 +121,10 @@ void BubbleManager::Process() {
 }
 
 void BubbleManager::CheckBubble(SystemEntity *pSE) {
+    // An active warp joins its destination grid from the warp state machine.
+    if (pSE->DestinyMgr() != nullptr && pSE->DestinyMgr()->IsWarping())
+        return;
+
     SystemBubble *pBubble = pSE->SysBubble();
     if (pBubble != nullptr) {
         if (pBubble->InBubble(pSE->GetPosition())) {
@@ -196,40 +200,20 @@ void BubbleManager::NewBubbleCenter(GVector shipVelocity, GPoint &newCenter) {
 }
 
 void BubbleManager::Remove(SystemEntity *ent) {
-    // suns, planets and moons arent in bubbles
-    // if (ent->IsStaticEntity())
-    //    return;
-    if (ent->SysBubble() != nullptr) {
-        _log(
-            DESTINY__BUBBLE_DEBUG,
-            "BubbleManager::Remove(): Entity %s(%u) being removed from Bubble %u",
-            ent->GetName(),
-            ent->GetID(),
-            ent->SysBubble()->GetID()
-        );
+    if (ent == nullptr)
+        return;
+    SystemBubble* owningBubble = ent->SysBubble();
+    if (owningBubble == nullptr)
+        return;
 
-        // iterate through all other bubbles and determine if the entity is
-        // in them.
-        std::list<SystemBubble *>::iterator itr = m_bubbles.begin();
-        while (itr != m_bubbles.end()) {
-            if (*itr == nullptr) {
-                continue;
-            }
-
-            _log(
-                DESTINY__BUBBLE_DEBUG,
-                "BubbleManager::Remove(): Entity %s(%u) being untracked from Bubble %u",
-                ent->GetName(),
-                ent->GetID(),
-                ent->SysBubble()->GetID()
-            );
-
-            (*itr)->Untrack(ent);
-            ++itr;
-        }
-
-        ent->SysBubble()->Remove(ent);
-    }
+    // Entities belong to ONE bubble. The previous implementation attempted to
+    // untrack each entity from every bubble in the system, repeatedly sending
+    // remove-ball updates to unrelated pilots. It also looped forever when
+    // the bubble list contained a null entry (continue without ++itr).
+    _log(DESTINY__BUBBLE_DEBUG,
+         "BubbleManager::Remove(): Removing entity %s(%u) from its bubble %u",
+         ent->GetName(), ent->GetID(), owningBubble->GetID());
+    owningBubble->Remove(ent);
 }
 
 /** UPDATE  large items, (sun, planet, moons) are no longer in bubbles.
@@ -312,15 +296,23 @@ void BubbleManager::ClearSystemBubbles(uint32 systemID)
 
 void BubbleManager::RemoveBubble(uint32 systemID, SystemBubble* pSB)
 {
+    if (pSB == nullptr)
+        return;
+
+    // Remove both lookup indexes; the old early return left retired
+    // bubble IDs reachable after the periodic empty-bubble sweep.
+    const auto idItr = m_bubbleIDMap.find(pSB->GetID());
+    if (idItr != m_bubbleIDMap.end() && idItr->second == pSB)
+        m_bubbleIDMap.erase(idItr);
+
     auto range = m_sysBubbleMap.equal_range(systemID);
-    for (auto itr = range.first; itr != range.second; ++itr)
+    for (auto itr = range.first; itr != range.second; ++itr) {
         if (itr->second == pSB) {
             m_sysBubbleMap.erase(itr);
-            return;
+            break;
         }
-    std::map<uint32, SystemBubble*>::iterator itr = m_bubbleIDMap.find(pSB->GetID());
-    if (itr != m_bubbleIDMap.end())
-        m_bubbleIDMap.erase(itr);
+    }
+    m_spawnIDs.erase(pSB->GetID());
 }
 
 /* for beltmgr */

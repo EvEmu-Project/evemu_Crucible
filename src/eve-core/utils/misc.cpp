@@ -176,9 +176,13 @@ void EvE::traceStack(void)
     std::vector<debug::CallStack::CallInfo> callStack;
     debug::CallStack::GetCalls(callStack);
 
-    for (int i = 0; i < callStack.size(); ++i)
+    for (size_t i = 0; i < callStack.size(); ++i)
     {
-        printf("[%3d] %15p: %s in %s\n", callStack.size() - i, callStack[i].offset, callStack[i].function.c_str(), callStack[i].module.c_str());
+        printf("[%3zu] 0x%llx: %s in %s\n",
+               callStack.size() - i,
+               static_cast<unsigned long long>(callStack[i].offset),
+               callStack[i].function.c_str(),
+               callStack[i].module.c_str());
     }
 }
 

@@ -38,16 +38,12 @@ boolean can use either 0/1 OR true/false.
     </account>
 
     <server>
-        <UseBeanCount>true</UseBeanCount>  <!-- bool  -client python error reporting -->
-        <UseStackTrace>false</UseStackTrace><!-- bool -log client python error reports to evemu_client_stack_trace.txt-->
         <NoobShipCheck>true</NoobShipCheck><!-- bool  -check for ship in hangar when docking in a pod -->
         <ServerSleepTime>10</ServerSleepTime><!-- ms -->
-        <StackTrace>false</StackTrace><!-- bool  -(en/dis)ables sending StackTrace on client errors -->
         <maxPlayers>250</maxPlayers>
         <idleSleepTime>1000</idleSleepTime><!-- in ms (1 sec default) -->
         <processTic>1.0</processTic><!-- used to slow down server process tics.  <1.0 is faster, >1.0 slower -->
         <MaxThreadReport>10</MaxThreadReport>
-        <UseMarketBot>false</UseMarketBot><!-- this is coded in eve gate.  not needed here -->
         <DisableIGB>false</DisableIGB>
         <BulkDataOD>true</BulkDataOD>  <!-- bool  -OD = OnDemand.  false loads data on server startup.  true loads data on first call -->
         <ModuleAutoOff>true</ModuleAutoOff><!-- bool  - automatically deactivate rr-type module when target is full -->
@@ -110,11 +106,11 @@ boolean can use either 0/1 OR true/false.
         <!-- min amount to be taxed.  received amounts less than this will not be taxed. -->
         <TaxedAmount>200000</TaxedAmount><!-- live uses 100000.  default is 175000 -->
         <!-- critical hit chances -->
-        <NpcCritChance>0.015</NpcCritChance><!-- default: 1.5% -->
-        <PlayerCritChance>0.02</PlayerCritChance><!-- default: 2% -->
-        <SentryCritChance>0.02</SentryCritChance><!-- default: 2% -->
-        <DroneCritChance>0.03</DroneCritChance><!-- default: 3% -->
-        <ConcordCritChance>0.05</ConcordCritChance><!-- default: 5% -->
+        <NpcCritChance>0.01</NpcCritChance><!-- Crucible 1% wrecking hits; configurable -->
+        <PlayerCritChance>0.01</PlayerCritChance><!-- Crucible 1% wrecking hits; configurable -->
+        <SentryCritChance>0.01</SentryCritChance><!-- Crucible 1% wrecking hits; configurable -->
+        <DroneCritChance>0.01</DroneCritChance><!-- Crucible 1% wrecking hits; configurable -->
+        <ConcordCritChance>0.01</ConcordCritChance><!-- Crucible 1% wrecking hits; configurable -->
         <!-- don't modify either of the next 2 settings - they are not fully debugged -->
         <ShipRepairModifier>0.000275</ShipRepairModifier><!-- (basePrice)*7.5e-10 on live.  needs to be less here. -->
         <ModuleRepairModifier>0.0022</ModuleRepairModifier><!-- (basePrice)*1.25e-6 -->
@@ -130,18 +126,6 @@ boolean can use either 0/1 OR true/false.
         <DeleteOldTransactions>false</DeleteOldTransactions><!-- bool  - delete transactions from db older than 3 days  default: false  -->
         <SalesTax>1.0</SalesTax><!-- float - the sales tax percentage -->
     </market>
-
-    <!-- don't modify any of the following bpTimes settings - they are not fully debugged -->
-    <bpTimes> <!-- these are multiplied to db values to get a modified result - < 1.0 = faster -->
-        <ResPE>0.5</ResPE>
-        <ResME>0.4</ResME>
-        <ResRE>0.5</ResRE>
-        <MatMod>1.0</MatMod>
-        <ProdMod>1.0</ProdMod>
-        <ResCopy>0.3</ResCopy>
-        <ProdTime>0.3</ProdTime>
-        <WasteMod>1.1</WasteMod>
-    </bpTimes>
 
     <character>
         <startBalance>5000.0</startBalance>
@@ -276,7 +260,6 @@ boolean can use either 0/1 OR true/false.
         <logSettings>../etc/log.ini</logSettings>
         <cacheDir>../server_cache/</cacheDir>
         <imageDir>../image_cache/</imageDir>
-        <marketBotSettings>../etc/MarketBot.xml</marketBotSettings>
     </files>
 
     <net>

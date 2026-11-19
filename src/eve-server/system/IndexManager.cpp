@@ -24,6 +24,7 @@
 */
 
 #include "eve-server.h"
+#include <algorithm>
 
 
 #include "system/IndexManager.h"
@@ -46,13 +47,13 @@ PyResult IndexManager::GetAllDevelopmentIndices(PyCallArgs& call) {
              const.attributeDevIndexIndustrial: indexInfo.industrialPoints,
              const.attributeDevIndexSovereignty: indexInfo.claimedFor * CLAIM_DAYS_TO_SECONDS}
   */
-    return nullptr;
+    return svDataMgr.GetAllDevelopmentIndicesForClients();
 }
 
 PyResult IndexManager::GetDevelopmentIndicesForSystem(PyCallArgs& call, PyInt* solarSystemID) {
     DBRowDescriptor *header = new DBRowDescriptor();
     header->AddColumn("attributeID", DBTYPE_I4);
-    header->AddColumn("points", DBTYPE_I2);
+    header->AddColumn("points", DBTYPE_I4);
     header->AddColumn("increasing", DBTYPE_BOOL);
     //CRowSet *rowset = new CRowSet(&header);
 
@@ -63,18 +64,21 @@ PyResult IndexManager::GetDevelopmentIndicesForSystem(PyCallArgs& call, PyInt* s
     
     // Strategic
     row1->SetField("attributeID", new PyInt(EveAttrEnum::AttrdevIndexSovereignty));
-    double daysSinceClaim = (GetFileTimeNow() - sovData.claimTime) / Win32Time_Day;
-    row1->SetField("points", new PyInt(uint32(daysSinceClaim)));
+    // Unclaimed empire/low-sec systems have claimTime == 0. Reporting days
+    // since the Windows epoch would give a bogus strategic index.
+    const uint32 strategicDays = std::min(
+        svDataMgr.GetEffectiveStrategicDays(sovData), uint32(65535));
+    row1->SetField("points", new PyInt(strategicDays));
     row1->SetField("increasing", new PyBool(false));
 
     // Military
     row2->SetField("attributeID", new PyInt(EveAttrEnum::AttrdevIndexMilitary));
-    row2->SetField("points", new PyInt(sovData.militaryPoints));
+    row2->SetField("points", new PyInt(svDataMgr.GetEffectiveMilitaryPoints(sovData)));
     row2->SetField("increasing", new PyBool(false));
 
     // Industrial
     row3->SetField("attributeID", new PyInt(EveAttrEnum::AttrdevIndexIndustrial));
-    row3->SetField("points", new PyInt(sovData.industrialPoints));
+    row3->SetField("points", new PyInt(svDataMgr.GetEffectiveIndustrialPoints(sovData)));
     row3->SetField("increasing", new PyBool(false));
 
     PyDict* dict = new PyDict();

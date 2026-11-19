@@ -47,7 +47,8 @@ CargoContainer::CargoContainer(uint32 _containerID, const ItemType &_containerTy
 mySE(nullptr),
 m_isAnchored(false)
 {
-    pInventory = new Inventory(InventoryItemRef(this));
+    // StructureItem already creates pInventory. Allocating it again here
+    // leaked the first Inventory and its owning item reference.
     _log(ITEM__TRACE, "Created CargoContainer object for item %s (%u).", name(), m_itemID);
 }
 
@@ -56,6 +57,17 @@ CargoContainer::~CargoContainer()
     if (pInventory != nullptr)
         pInventory->Unload();
     SafeDelete(pInventory);
+}
+
+void CargoContainer::Rename(std::string name)
+{
+    // The POS StructureItem::Rename implementation dereferences a system
+    // entity. Assembled cargo containers in a station have no such entity.
+    // Only an unanchored container directly in space is restricted.
+    if (sDataMgr.IsSolarSystem(locationID()) && !m_isAnchored)
+        throw UserError("SetNameObjectMustBeAnchoredInSpace");
+
+    InventoryItem::Rename(name);
 }
 
 CargoContainerRef CargoContainer::Load( uint32 containerID)
@@ -175,6 +187,11 @@ void CargoContainer::RemoveItem(InventoryItemRef iRef)
     InventoryItem::RemoveItem(iRef);
 
     if (m_isAnchored)
+        return;
+
+    // Never automatically delete an assembled station/ship-hangar container
+    // when the last item is taken out; empty jetcans may be removed in space.
+    if (!sDataMgr.IsSolarSystem(locationID()))
         return;
 
     if (pInventory->IsEmpty()) {
@@ -511,17 +528,18 @@ void WreckSE::Abandon()
 void WreckSE::EncodeDestiny( Buffer& into )
 {
     using namespace Destiny;
+    const bool tractored = m_destiny->IsTractored();
     BallHeader head = BallHeader();
         head.entityID = GetID();
         head.radius = GetRadius();
         head.posX = x();
         head.posY = y();
         head.posZ = z();
-        head.mode = Ball::Mode::TROLL;
+        head.mode = tractored ? Ball::Mode::FOLLOW : Ball::Mode::TROLL;
         head.flags = Ball::Flag::IsFree | Ball::Flag::IsInteractive;
     into.Append( head );
     MassSector mass = MassSector();
-        mass.mass = m_self->type().mass();
+        mass.mass = tractored ? 10000 : m_self->type().mass();
         mass.cloak = 0;
         mass.harmonic = m_harmonic;
         mass.corporationID = m_corpID;
@@ -529,16 +547,24 @@ void WreckSE::EncodeDestiny( Buffer& into )
     into.Append( mass );
     DataSector data = DataSector();
         data.inertia = 1;
-        data.maxSpeed = 1;
-        data.velX = 0;
-        data.velY = 0;
-        data.velZ = 0;
-        data.speedfraction = 1;
-    into.Append( data );
-    TROLL_Struct troll;
+        data.maxSpeed = tractored ? m_destiny->GetMaxVelocity() : 1;
+        data.velX = tractored ? m_destiny->GetVelocity().x : 0;
+        data.velY = tractored ? m_destiny->GetVelocity().y : 0;
+        data.velZ = tractored ? m_destiny->GetVelocity().z : 0;
+        data.speedfraction = tractored ? m_destiny->GetSpeedFraction() : 1;
+    into.Append(data);
+    if (tractored) {
+        FOLLOW_Struct follow = {};
+        follow.formationID = 0xFF;
+        follow.followID = m_destiny->GetTargetID();
+        follow.followRange = m_destiny->GetTractorStopRange();
+        into.Append(follow);
+    } else {
+        TROLL_Struct troll = {};
         troll.formationID = 0xFF;
         troll.effectStamp = sEntityList.GetStamp();
-    into.Append( troll );
+        into.Append(troll);
+    }
     _log(SE__DESTINY, "WreckSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 

@@ -59,6 +59,26 @@ void DungeonDB::GetArchetypes(DBQueryResult& res)
     _log(DATABASE__ERROR, "Error in GetFactions query: %s", res.error.c_str());
 }
 
+// Mission encounter templates use the static dungeon layout tables:
+// dunTemplates selects the room, dunRoomData places group templates in that
+// room, and dunGroupData expands each group into concrete inventory types.
+// dunRoomObjects is the legacy dungeon-editor table and contains only the
+// entry/container objects for these templates in this data set.
+void DungeonDB::GetMissionTemplateData(DBQueryResult& res)
+{
+    // The dungeonEditor migration (20211118111620) deliberately flattens
+    // dunRoomData + dunGroupData into dunRoomObjects, then drops the source
+    // tables. Read the flattened table used by the live database schema.
+    if (!sDatabase.RunQuery(res,
+        "SELECT t.dunTemplateID, t.dunTemplateName, 0, t.dunTemplateFactionID, 20, "
+        "t.dunRoomID, t.dunTemplateName, o.objectID, o.typeID, o.groupID, "
+        "o.x, o.y, o.z, o.yaw, o.pitch, o.roll, o.radius "
+        "FROM dunTemplates t "
+        "INNER JOIN dunRoomObjects o ON o.roomID = t.dunRoomID "
+        "ORDER BY t.dunTemplateID, o.objectID"))
+        _log(DATABASE__ERROR, "Error in GetMissionTemplateData query: %s", res.error.c_str());
+}
+
 void DungeonDB::GetAllDungeonData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res, "SELECT dunDungeons.dungeonID, "
@@ -176,12 +196,12 @@ void DungeonDB::GetRoomObjects(uint32 roomID, std::vector< Dungeon::RoomObject >
             entry.roomID = row.GetInt(1);
             entry.typeID = row.GetInt(2);
             entry.groupID = row.GetInt(3);
-            entry.x = row.GetInt(4);
-            entry.y = row.GetInt(5);
-            entry.z = row.GetInt(6);
-            entry.pitch = row.GetDouble(7);
-            entry.roll = row.GetDouble(8);
-            entry.yaw = row.GetDouble(9);
+            entry.x = row.GetDouble(4);
+            entry.y = row.GetDouble(5);
+            entry.z = row.GetDouble(6);
+            entry.yaw = row.GetDouble(7);
+            entry.pitch = row.GetDouble(8);
+            entry.roll = row.GetDouble(9);
             entry.radius = row.GetDouble(10);
         into.push_back(entry);
     }
@@ -205,12 +225,12 @@ void DungeonDB::GetTemplateObjects(uint32 templateID, std::vector< Dungeon::Room
             entry.roomID = row.GetInt(1);
             entry.typeID = row.GetInt(2);
             entry.groupID = row.GetInt(3);
-            entry.x = row.GetInt(4);
-            entry.y = row.GetInt(5);
-            entry.z = row.GetInt(6);
-            entry.pitch = row.GetDouble(7);
-            entry.roll = row.GetDouble(8);
-            entry.yaw = row.GetDouble(9);
+            entry.x = row.GetDouble(4);
+            entry.y = row.GetDouble(5);
+            entry.z = row.GetDouble(6);
+            entry.yaw = row.GetDouble(7);
+            entry.pitch = row.GetDouble(8);
+            entry.roll = row.GetDouble(9);
             entry.radius = row.GetDouble(10);
         into.push_back(entry);
     }

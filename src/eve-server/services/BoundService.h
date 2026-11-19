@@ -301,7 +301,7 @@ public:
     /** @returns The service manager this service is registered in */
     EVEServiceManager& GetServiceManager() const { return this->mManager; }
     /** @returns The list of clients that requested access to this service */
-    std::map <Client*, bool>& GetBoundClients () const { return this->m_clients; }
+    const std::map <Client*, bool>& GetBoundClients () const { return this->mClients; }
 private:
     /** @var The service manager this bound service is registered in */
     EVEServiceManager& mManager;

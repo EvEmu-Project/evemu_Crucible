@@ -27,6 +27,8 @@
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/BeltMgr.h"
 #include "admin/CommandHelper.h"
+#include "StaticDataMgr.h"
+#include "system/sov/SovereigntyDataMgr.h"
 #include "tables/invGroups.h"
 #include "tables/invCategories.h"
 
@@ -138,7 +140,7 @@ PyResult Command_tr(Client* pClient, CommandDB* db, EVEServiceManager &services,
             str << "<br>As there are too many options to explain in this msg, a full usage list can be found on our forums.<br>";  //105
             int size = 500;
             char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-            snprintf(reply, size, str.str().c_str());
+            snprintf(reply, size, "%s", str.str().c_str());
             pClient->SendInfoModalMsg(reply);
             return nullptr;
         } else {
@@ -1060,4 +1062,46 @@ PyResult Command_pos(Client* pClient, CommandDB* db, EVEServiceManager &services
      * 16:39:26 [CmdDump]         [ 0] String: '/pos offline 140035963'
      */
     return nullptr;
+}
+
+
+// Explicit DEV or ADMIN test-only command. Never changes TCU ownership,
+// claimTime, structures, player inventory, or regular corp permissions.
+PyResult Command_sovindex5(Client* pClient, CommandDB* db,
+                           EVEServiceManager &services, const Seperator& args)
+{
+    if (pClient == nullptr || args.argCount() < 1 || args.argCount() > 2
+        || (args.argCount() == 2 && args.arg(1) != "reset"))
+        throw CustomError("Usage: /sovindex5 [reset]");
+
+    const uint32 systemID = pClient->GetSystemID();
+    SystemData sysData = SystemData();
+    if (!sDataMgr.GetSystemData(systemID, sysData) || sysData.factionID)
+        throw CustomError("/sovindex5 only supports valid player-claimable null-sec systems.");
+
+    const SovereigntyData claim = svDataMgr.GetSovereigntyData(systemID);
+    if (!claim.solarSystemID || !claim.claimStructureID || !claim.allianceID)
+        throw CustomError("/sovindex5 requires a valid current alliance TCU sovereignty claim.");
+
+    const bool reset = args.argCount() == 2;
+    if (!reset && !claim.hubID)
+        throw CustomError("/sovindex5 requires an online, registered Infrastructure Hub.");
+
+    const bool ok = reset
+        ? svDataMgr.ResetIndexOverrides(systemID)
+        : svDataMgr.ForceLevelFiveIndices(systemID);
+    if (!ok)
+        throw CustomError(
+            "/sovindex5 database update failed; check the server log and "
+            "apply migration 20261118070000-sov-development-index-overrides.sql.");
+
+    if (reset)
+        return new PyString(
+            "SOV development index test override removed for this system. "
+            "Reopen the Sovereignty / Infrastructure Hub view.");
+
+    return new PyString(
+        "SOV test indices set to Military 5 / Industry 5 / Strategic 5 "
+        "(effective 100 days). Reopen the Sovereignty / Infrastructure Hub view. "
+        "Use /sovindex5 reset to restore normal values.");
 }

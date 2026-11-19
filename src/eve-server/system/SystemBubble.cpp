@@ -70,6 +70,13 @@ m_spawnTimer(0)
 
     m_systemID = pSystem->GetID();
     m_bubbleID = sBubbleMgr.GetBubbleID();
+    m_missionCharacterID = 0;
+    m_missionAgentID = 0;
+    m_missionOfferID = 0;
+    m_missionTypeID = 0;
+    m_missionBeaconID = 0;
+    m_missionKills = 0;
+    m_missionKillsRequired = 0;
 
     _log(DESTINY__BUBBLE_TRACE, "SystemBubble::Constructor - Created new bubble %u(%p) at (%.2f,%.2f,%.2f)[%.1f].",\
 	     m_bubbleID, this, m_center.x, m_center.y, m_center.z, m_radius);
@@ -235,6 +242,16 @@ void SystemBubble::ProcessWander(std::vector<SystemEntity *> &wanderers) {
 }
 
 void SystemBubble::Add(SystemEntity* pSE) {
+    if (pSE == nullptr)
+        return;
+    // Do not overwrite the entity's owning-bubble pointer on a duplicate add.
+    // Old code checked dynamic membership only AFTER setting m_bubble = this.
+    if (m_dynamicEntities.find(pSE->GetID()) != m_dynamicEntities.end()) {
+        _log(DESTINY__BUBBLE_TRACE,
+             "SystemBubble::Add() - Entity %u is already a dynamic member of bubble %u.",
+             pSE->GetID(), m_bubbleID);
+        return;
+    }
     //if they are already in this bubble, do not continue.
     if (m_entities.find(pSE->GetID()) != m_entities.end()) {
         _log(
@@ -329,7 +346,9 @@ void SystemBubble::Add(SystemEntity* pSE) {
 
         Client* pClient(pSE->GetPilot());
 
-        SendAddBalls( pSE );
+        // The gate arrival snapshot installs the ego and nearby balls together.
+        if (!pClient->IsGateJump())
+            SendAddBalls(pSE);
 
         if (!m_players.empty()) {
             AddBallExclusive(pSE);  // adds new player to all players in bubble, if any
@@ -347,8 +366,8 @@ void SystemBubble::Add(SystemEntity* pSE) {
     _log(
         DESTINY__BUBBLE_DEBUG,
         "SystemBubble::Add() - Added pSE %p (%s) to bubble %u",
+        static_cast<void*>(pSE),
         pSE->GetName(),
-        pSE,
         m_bubbleID
     );
 
@@ -369,14 +388,29 @@ void SystemBubble::Untrack(SystemEntity *pSE) {
 
     uint32 pseId(pSE->GetID());
 
-    // assume that the entity is properly registered for its ID
-    if (pSE->m_bubble == nullptr) {
-        _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::Remove() - Entity %u bubble pointer is null for bubble %u", pseId, m_bubbleID);
+    // Ignore harmless duplicate untrack calls. Previously a null bubble
+    // pointer emitted a full unsymbolized stack trace on every call without
+    // checking whether this bubble even contained the entity.
+    const bool tracked = m_entities.find(pseId) != m_entities.end()
+        || m_dynamicEntities.find(pseId) != m_dynamicEntities.end()
+        || m_drones.find(pseId) != m_drones.end();
+    // ProcessWander() may already have erased the entity from the dynamic
+    // map while it is still owned by this bubble. We must still send the
+    // removal notification and clear its pilot/drone bookkeeping in that case.
+    // Only suppress untracking when this bubble neither owns NOR tracks it.
+    if (!tracked && pSE->m_bubble != this)
+        return;
 
-        if (sConfig.debug.StackTrace) {
-            EvE::traceStack();
-        }
-
+    if (pSE->m_bubble != this) {
+        // A stale registration must be removed, but must not trigger client
+        // remove-ball notifications for an entity owned by another bubble.
+        sLog.Warning("SystemBubble::Untrack()",
+                     "Entity %u has stale membership in bubble %u (owner bubble: %u).",
+                     pseId, m_bubbleID,
+                     pSE->m_bubble != nullptr ? pSE->m_bubble->GetID() : 0);
+        m_entities.erase(pseId);
+        m_dynamicEntities.erase(pseId);
+        m_drones.erase(pseId);
         return;
     }
 
@@ -445,6 +479,13 @@ void SystemBubble::Untrack(SystemEntity *pSE) {
  * `Untrack` instead if you don't want to do this.
  */
 void SystemBubble::Remove(SystemEntity *pSE) {
+    if (pSE == nullptr)
+        return;
+    if (pSE->m_bubble != this) {
+        // Do not clear another bubble's ownership during a stale removal.
+        Untrack(pSE);
+        return;
+    }
     Untrack(pSE);
 
     if (is_log_enabled(DESTINY__BUBBLE_DEBUG)) {
@@ -593,20 +634,13 @@ uint32 SystemBubble::CountNPCs() {
     return count;
 }
 
-bool SystemBubble::InBubble(const GPoint& pt, bool inWarp/*false*/) const
+bool SystemBubble::InBubble(const GPoint& pt, bool /*inWarp*/) const
 {
-    if (is_log_enabled(DESTINY__BUBBLE_DEBUG)) {
-        float distance = m_center.distance(pt);
-        bool check = false;
-        if (distance < m_radius + 5000)  // 5k is the grey area between bubbles
-            check = true;
-
-        _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::InBubble(%u) - center: %.1f,%.1f,%.1f - distance: %.1f, check: %s", \
-                m_bubbleID, m_center.x, m_center.y, m_center.z, distance, check?"true":"false");
-        return check;
-    }
-
-    return (m_center.distance(pt) < m_radius);
+    const double distance = m_center.distance(pt);
+    const bool inside = distance < m_radius;
+    _log(DESTINY__BUBBLE_DEBUG, "SystemBubble::InBubble(%u) - center: %.1f,%.1f,%.1f - distance: %.1f, check: %s",
+         m_bubbleID, m_center.x, m_center.y, m_center.z, distance, inside ? "true" : "false");
+    return inside;
 }
 
 bool SystemBubble::IsOverlap( const GPoint& pt ) const
@@ -721,7 +755,7 @@ void SystemBubble::SendAddBalls(SystemEntity* to_who) {
         if (cur.second->DestinyMgr() != nullptr)
             if (cur.second->DestinyMgr()->IsCloaked())
                 continue;
-        if (!cur.second->IsMissileSE() or !cur.second->IsFieldSE())
+        if (!cur.second->IsMissileSE() && !cur.second->IsFieldSE())
             addballs.damageDict[cur.first] = cur.second->MakeDamageState();
         addballs.slims->AddItem( new PyObject( "foo.SlimItem", cur.second->MakeSlimItem() ) );
         cur.second->EncodeDestiny( *destinyBuffer );
@@ -769,7 +803,7 @@ void SystemBubble::SendAddBalls2( SystemEntity* to_who ) {
     addballs2.extraBallData = new PyList();
 
     for (auto cur : m_dynamicEntities) {
-        if (cur.second->IsMissileSE() or cur.second->IsContainerSE()) {
+        if (cur.second->IsMissileSE() || cur.second->IsContainerSE() || cur.second->IsFieldSE()) {
             addballs2.extraBallData->AddItem(cur.second->MakeSlimItem());
         } else {
             PyTuple* balls = new PyTuple(2);
@@ -824,7 +858,8 @@ void SystemBubble::AddBallExclusive( SystemEntity* pSE ) {
     pSE->EncodeDestiny( *destinyBuffer );
     addballs.state = new PyBuffer( &destinyBuffer );
 	//encode damage state
-    addballs.damageDict[ pSE->GetID() ] = pSE->MakeDamageState();
+    if (!pSE->IsMissileSE() && !pSE->IsFieldSE())
+        addballs.damageDict[pSE->GetID()] = pSE->MakeDamageState();
 	//encode SlimItem
     addballs.slims = new PyList();
     addballs.slims->AddItem( new PyObject( "foo.SlimItem", pSE->MakeSlimItem() ) );

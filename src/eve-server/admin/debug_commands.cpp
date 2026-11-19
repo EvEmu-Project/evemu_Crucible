@@ -29,6 +29,7 @@
 #include "testing/test.h"
 #include "admin/CommandDispatcher.h" // ---commandlist update
 #include "EVE_Roles.h" // ---commandlist update
+#include "EVE_CommandPermissions.h"
 #include "market/MarketBotMgr.h" // ---marketbot update
 
 // ---comandlist update; helper function to convert role strings into names
@@ -46,6 +47,7 @@ static const std::vector<RoleDisplayInfo> roleDisplayOrder = {
     {Acct::Role::GML,         "GML",         "#cc6600"},
     {Acct::Role::GMH,         "GMH",         "#cc0000"},
     {Acct::Role::PROGRAMMER,  "PROGRAMMER",  "#9933cc"},
+    {Acct::Role::CONTENT,     "CONTENT",     "#8866cc"},
     {Acct::Role::ADMIN,       "ADMIN",       "#990000"},
     {Acct::Role::DEV,         "DEV",         "#6600cc"},
     {Acct::Role::BOSS,        "BOSS",        "#000000"}
@@ -318,7 +320,8 @@ PyResult Command_commandlist(Client* pClient, CommandDB* db, EVEServiceManager& 
     // Group commands by required role
     std::map<int64_t, std::vector<std::pair<std::string, std::string>>> groupedCommands;
     for (const auto& [name, record] : commands) {
-        if (pClient->GetAccountRole() < record->required_role)
+        if (!EvECommand::HasAnyRequiredRole(pClient->GetAccountRole(),
+                record->required_role, record->alternative_role))
             continue;
 
         groupedCommands[record->required_role].emplace_back(name, record->description);
@@ -425,7 +428,7 @@ PyResult Command_shipvars(Client* pClient, CommandDB* db, EVEServiceManager &ser
              "Inertia: %.3f<br>" //27
              "Heading: %.3f,%.3f,%.3f<br>", //21
                 pClient->GetShipSE()->GetName(), pClient->GetShipID(), dm->GetMass(), dm->GetAlignTime(),
-             dm->GetAccelTime(), dm->GetMaxVelocity(), (float)(dm->GetWarpSpeed() /10), dm->GetWarpTime(),
+             dm->GetAccelTime(), dm->GetMaxVelocity(), dm->GetWarpSpeedAU(), dm->GetWarpTime(),
              dm->GetWarpDropSpeed(), dm->GetRadius(), dm->GetCapNeed(), dm->GetAgility(), dm->GetInertia(),
              heading.x, heading.y, heading.z
             );
@@ -810,7 +813,7 @@ PyResult Command_bubbletrack(Client* pClient, CommandDB* db, EVEServiceManager &
             str << "'system' and 'universe' are used to show bubbles using solarsystem map from scan window (using '.showall').<br>";  //110
             int size = 520;
             char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-            snprintf(reply, size, str.str().c_str());
+            snprintf(reply, size, "%s", str.str().c_str());
             pClient->SendInfoModalMsg(reply);
             return nullptr;
         } else if (strcmp(args.arg(1).c_str(), "bubble") == 0) {
@@ -957,7 +960,7 @@ PyResult Command_getposition(Client* pClient, CommandDB* db, EVEServiceManager &
     str << "Az: " << azimuth << " Ele: " << elevation;
     int size = 70;
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-    snprintf(reply, size, str.str().c_str());
+    snprintf(reply, size, "%s", str.str().c_str());
 
     pClient->SendInfoModalMsg(reply);
     return new PyString(reply);
@@ -983,7 +986,7 @@ PyResult Command_players(Client* pClient, CommandDB* db, EVEServiceManager &serv
     int size = cVec.size() * 100;
     size += 80;
     char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-    snprintf(reply, size, str.str().c_str());
+    snprintf(reply, size, "%s", str.str().c_str());
 
     pClient->SendInfoModalMsg(reply);
     return new PyString(reply);
@@ -1028,8 +1031,7 @@ PyResult Command_cargo(Client* pClient, CommandDB* db, EVEServiceManager &servic
 
     // check for pod...no cargo
     if (pClient->GetShip()->typeID() == itemTypeCapsule) {
-        char reply[21];
-        snprintf(reply, 21, "Your Pod's current cargo is you.<br>There is no room for anything else.");
+        const char* reply = "Your Pod's current cargo is you.<br>There is no room for anything else.";
         pClient->SendInfoModalMsg(reply);
         return nullptr;
     }

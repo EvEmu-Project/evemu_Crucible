@@ -146,11 +146,12 @@ PyObjectEx* ManagerDB::GetAgents() {
         "    agt.level,"
         "    agt.quality,"
         "    agt.corporationID,"
-        "    chr.stationID,"
-        "    chr.gender,"
-        "    bl.bloodlineID"
+        "    COALESCE(NULLIF(chr.stationID, 0), st.stationID, 0) AS stationID,"
+        "    COALESCE(chr.gender, 0) AS gender,"
+        "    COALESCE(bl.bloodlineID, 0) AS bloodlineID"
         " FROM agtAgents AS agt"
         " LEFT JOIN chrNPCCharacters AS chr ON chr.characterID = agt.agentID"
+        " LEFT JOIN staStations AS st ON st.stationID = agt.locationID"
         " LEFT JOIN bloodlineTypes AS bl ON bl.typeID = chr.typeID"
     ))
     {
@@ -304,7 +305,12 @@ void ManagerDB::GetOreBySSC(DBQueryResult& res)
 void ManagerDB::GetSystemData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
-        "SELECT mss.solarSystemID, mss.solarSystemName, mss.constellationID, mss.regionID, mss.securityClass, md.security, mss.factionID"
+        // mapSolarSystems is the authoritative static solar-system table.
+        // mapDenormalize may lack a row/security value for some systems;
+        // preserve its existing trueSec where available and fall back to
+        // mapSolarSystems.security instead of silently treating the system as 0.0.
+        "SELECT mss.solarSystemID, mss.solarSystemName, mss.constellationID, mss.regionID, mss.securityClass,"
+        " COALESCE(md.security, mss.security) AS security, mss.factionID"
         " FROM mapSolarSystems AS mss"
         " LEFT JOIN mapDenormalize AS md ON (md.itemID = mss.solarSystemID)"
     ))

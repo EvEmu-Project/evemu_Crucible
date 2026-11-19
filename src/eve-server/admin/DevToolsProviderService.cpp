@@ -25,6 +25,7 @@
 
 #include "eve-server.h"
 
+#include <vector>
 
 #include "admin/DevToolsProviderService.h"
 
@@ -37,20 +38,30 @@ DevToolsProviderService::DevToolsProviderService() :
 
 PyResult DevToolsProviderService::GetLoader(PyCallArgs& call)
 {
-    FILE *pFile;
+    FILE* pFile = fopen(EVEMU_ROOT"/etc/devtools.raw", "rb");
+    if (pFile == nullptr)
+        return PyStatic.NewNone();
 
-    if (pFile = fopen(EVEMU_ROOT"/etc/devtools.raw", "rb"))
-    {
-        fseek(pFile, 0, SEEK_END);
-	    int size = ftell(pFile);
-	    char * buf = new char[size];
-	    fseek(pFile, 0, SEEK_SET);
-	    fread(buf, 1, size, pFile);
-	    fclose(pFile);
-	    return new PyString(buf, size);
+    if (fseek(pFile, 0, SEEK_END) != 0) {
+        fclose(pFile);
+        return PyStatic.NewNone();
     }
 
-    return PyStatic.NewNone();
+    const long fileSize = ftell(pFile);
+    if (fileSize < 0 || fseek(pFile, 0, SEEK_SET) != 0) {
+        fclose(pFile);
+        return PyStatic.NewNone();
+    }
+
+    const size_t size = static_cast<size_t>(fileSize);
+    std::vector<char> buffer(size);
+    const size_t bytesRead = (size > 0) ? fread(buffer.data(), 1, size, pFile) : 0;
+    fclose(pFile);
+
+    if (bytesRead != size)
+        return PyStatic.NewNone();
+
+    return new PyString(buffer.data(), bytesRead);
 }
 
 PyResult DevToolsProviderService::ExceptionFluentExample (PyCallArgs& call, PyInt* value)

@@ -53,7 +53,7 @@ PyResult Command_savedungeon(Client* pClient, CommandDB* db, EVEServiceManager& 
         str << ".savedungeon [groupID] [group name/description]<br>"; //55
         int size = 55;
         char* reply = Memory::Allocator::NewArray<char>(&sAllocators.tickAllocator, size);
-        snprintf(reply, size, str.str().c_str());
+        snprintf(reply, size, "%s", str.str().c_str());
         pClient->SendInfoModalMsg(reply);
         return nullptr;
     } else if (args.isNumber(1)) {

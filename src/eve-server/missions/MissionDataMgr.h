@@ -35,9 +35,11 @@ public:
     void                AddMissionOffer(uint32 charID, MissionOffer& data);
     void                UpdateMissionData(uint32 charID, MissionOffer& data);
     void                RemoveMissionOffer(uint32 charID, MissionOffer& data);
+    void                ArchiveMissionOffer(uint32 charID, MissionOffer& data);
     void                LoadMissionOffers(uint32 charID, std::vector<MissionOffer>& data);
     void                LoadAgentOffers(const uint32 agentID, std::map<uint32, MissionOffer>& data);
-    void                CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data);
+    void                CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data, uint32 characterID=0, bool securityAgent=false);
+    bool                GetMissionData(uint16 missionID, MissionData& data) const;
 
     std::string         GetTypeName(uint8 typeID);
     std::string         GetTypeLabel(uint8 typeID);

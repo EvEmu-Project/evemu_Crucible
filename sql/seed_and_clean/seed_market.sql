@@ -9,17 +9,67 @@ set @saturation=0.8; -- fuzzy logic.  % of stations to fill with orders (random 
 -- select stations to fill
 create temporary table if not exists tStations (stationId int, solarSystemID int, regionID int, corporationID int, security float);
 truncate table tStations;
-select round(count(stationID)*@saturation) into @lim from staStations where regionID=@regionid ;
-set @i=0;
 insert into tStations
-  select stationID,solarSystemID,regionID, corporationID, security from staStations where (@i:=@i+1)<=@lim AND regionID=@regionid  order by rand();
+  select stationID,solarSystemID,regionID, corporationID, security
+  from staStations
+  where regionID=@regionid and rand() < @saturation;
 
 -- actual seeding
 INSERT INTO mktOrders (typeID, ownerID, regionID, stationID, price, volEntered, volRemaining, issued,
 minVolume, duration, solarSystemID, jumps)
-  SELECT typeID, corporationID, regionID, stationID, basePrice / security, 550, 550, 132478179209572976, 1, 250, solarSystemID, 1
+  SELECT typeID, corporationID, regionID, stationID,
+         CASE WHEN basePrice IS NULL OR basePrice <= 0 THEN 100 ELSE GREATEST(0.01, ROUND(basePrice, 2)) END,
+         CASE WHEN (invGroups.groupID = 18 OR invGroups.groupID BETWEEN 450 AND 462 OR invGroups.groupID IN (465, 467, 468, 469)) THEN 100000000
+               WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
+         CASE WHEN (invGroups.groupID = 18 OR invGroups.groupID BETWEEN 450 AND 462 OR invGroups.groupID IN (465, 467, 468, 469)) THEN 100000000
+               WHEN invGroups.categoryID = 8 THEN 550000 ELSE 550 END,
+         132478179209572976, 1, 250, solarSystemID, 1
   FROM tStations, invTypes inner join invGroups USING (groupID)
   WHERE invTypes.published = 1
-  AND invGroups.categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46);
-UPDATE mktOrders SET price = 100 WHERE price = 0;
+  AND (
+      invGroups.categoryID IN (4, 5, 6, 7, 8, 9, 16, 17, 18, 22, 23, 24, 25, 32, 34, 35, 39, 40, 41, 42, 43, 46)
+      -- Published, market-listed Celestial cargo/secure/audit/freight containers.
+      OR (invGroups.groupID IN (12, 340, 448, 649)
+          AND invTypes.marketGroupID IS NOT NULL)
+  );
+
+-- Officer, Deadspace, Faction and Storyline equipment. Do not restrict this
+-- to category 7: special meta-group equipment can exist in other categories.
+INSERT INTO mktOrders
+    (typeID, ownerID, regionID, stationID, price, volEntered, volRemaining,
+     issued, minVolume, duration, solarSystemID, jumps)
+SELECT
+    it.typeID,
+    stations.corporationID,
+    stations.regionID,
+    stations.stationId,
+    CASE
+        WHEN it.basePrice IS NULL OR it.basePrice <= 0 THEN 100
+        ELSE GREATEST(0.01, ROUND(it.basePrice, 2))
+    END,
+    10,
+    10,
+    132478179209572976,
+    1,
+    250,
+    stations.solarSystemID,
+    1
+FROM tStations AS stations
+CROSS JOIN invTypes AS it
+INNER JOIN invMetaTypes AS imt ON imt.typeID = it.typeID
+INNER JOIN invMetaGroups AS mg ON mg.metaGroupID = imt.metaGroupID
+WHERE LOWER(COALESCE(mg.metaGroupName, '')) IN
+    ('officer', 'deadspace', 'faction', 'storyline')
+  AND NOT EXISTS (
+      SELECT 1
+      FROM mktOrders AS existing
+      WHERE existing.stationID = stations.stationId
+        AND existing.typeID = it.typeID
+        AND existing.bid = 0
+  );
+
+-- Do not update unrelated/player-created orders. Only this script's new
+-- rows use the 100 ISK fallback for items without a positive reference value.
+-- Existing market prices should be normalized with the separate, scoped SQL
+-- repair in sql/diagnostics rather than a blanket UPDATE.
 

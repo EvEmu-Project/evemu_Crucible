@@ -29,7 +29,7 @@ public:
     static PyRep* AssemblyLinesSelectPrivate(const uint32 charID);
     static PyRep* AssemblyLinesSelectCorporation(const uint32 corporationID);
     static PyRep* AssemblyLinesSelectAlliance(const int32 allianceID);
-    static PyRep* AssemblyLinesGet(const uint32 containerID);
+    static PyRep* AssemblyLinesGet(const uint32 containerID, const uint32 corpID, const uint32 shipID);
     static PyRep* GetMaterialCompositionOfItemType(const uint32 typeID);
     static void GetOutpostMaterialCompositionOfItemType(const uint32 typeID, DBQueryResult& res);
 

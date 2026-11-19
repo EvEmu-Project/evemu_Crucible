@@ -29,9 +29,56 @@
 #include "pos/Battery.h"
 #include "pos/Structure.h"
 #include "pos/Tower.h"
+#include "EVE_SovPosIntegrity.h"
+#include <cmath>
 #include "pos/Weapon.h"
 #include "system/SystemManager.h"
 #include "services/ServiceManager.h"
+
+// POS service calls often arrive while a structure is unloading. Never
+// dereference the SystemManager lookup without checking its result.
+static TowerSE* GetCheckedTowerSE(SystemManager* system, uint32 itemID)
+{
+    if (system == nullptr)
+        return nullptr;
+    SystemEntity* entity = system->GetSE(itemID);
+    return entity != nullptr ? entity->GetTowerSE() : nullptr;
+}
+
+static StructureSE* GetCheckedStructureSE(SystemManager* system, uint32 itemID)
+{
+    if (system == nullptr)
+        return nullptr;
+    SystemEntity* entity = system->GetSE(itemID);
+    return entity != nullptr ? entity->GetPOSSE() : nullptr;
+}
+
+// Server-side owner and corporation-role validation for POS mutations.
+static bool CanMutatePOS(Client* client, SystemManager* system,
+                         StructureSE* structure, uint32 boundSystemID)
+{
+    if (client == nullptr || system == nullptr || structure == nullptr
+        || client->GetSystemID() != boundSystemID
+        || system->GetID() != boundSystemID)
+        return false;
+    return EvESovPos::CanConfigureStructure(
+        client->GetCorporationID(), structure->GetCorporationID(),
+        client->GetCorpRole() | client->GetRolesAtAll(),
+        (client->GetAccountRole() & Acct::Role::ADMIN) == Acct::Role::ADMIN);
+}
+
+static TowerSE* GetAuthorizedTowerSE(Client* client, SystemManager* system,
+                                     uint32 itemID, uint32 boundSystemID)
+{
+    TowerSE* tower = GetCheckedTowerSE(system, itemID);
+    if (!CanMutatePOS(client, system, tower, boundSystemID)) {
+        _log(POS__WARNING, "Denied POS tower %u mutation in system %u: "
+             "owner, corporation role, or bound system mismatch.",
+             itemID, boundSystemID);
+        return nullptr;
+    }
+    return tower;
+}
 
 PosMgr::PosMgr(EVEServiceManager &mgr) :
     BindableService("posMgr", mgr)
@@ -213,9 +260,31 @@ PyResult PosMgrBound::InstallJumpBridgeLink(PyCallArgs &call, PyInt* localItemID
     _log(POS__TRACE,  "PosMgrBound::Handle_InstallJumpBridgeLink()");
     call.Dump(POS__DUMP);
 
-    // Install jump bridge link both ways
-    m_db.InstallBridgeLink(localItemID->value(), remoteSolarSystemID->value(), remoteItemID->value());
-    m_db.InstallBridgeLink(remoteItemID->value(), call.client->GetSystemID(), localItemID->value());
+    // Validate BOTH endpoints before updating either row.
+    if (localItemID == nullptr || remoteSolarSystemID == nullptr
+        || remoteItemID == nullptr || call.client == nullptr
+        || call.client->GetSystemID() != m_systemID)
+        return PyStatic.NewNone();
+    EVEPOS::JumpBridgeData local = EVEPOS::JumpBridgeData();
+    EVEPOS::JumpBridgeData remote = EVEPOS::JumpBridgeData();
+    local.itemID = localItemID->value();
+    remote.itemID = remoteItemID->value();
+    if (!m_db.GetBridgeData(local) || !m_db.GetBridgeData(remote)
+        || local.itemID == remote.itemID
+        || local.systemID != static_cast<int32>(m_systemID)
+        || remote.systemID != remoteSolarSystemID->value()
+        || local.allyID == 0 || local.allyID != remote.allyID
+        || local.toItemID != 0 || remote.toItemID != 0
+        || !EvESovPos::CanConfigureStructure(
+              call.client->GetCorporationID(), local.corpID,
+              call.client->GetCorpRole() | call.client->GetRolesAtAll(),
+              (call.client->GetAccountRole() & Acct::Role::ADMIN) == Acct::Role::ADMIN)) {
+        _log(POS__WARNING, "Invalid/unauthorized jump bridge link %u -> %u.",
+             localItemID->value(), remoteItemID->value());
+        return PyStatic.NewNone();
+    }
+    m_db.InstallBridgeLink(local.itemID, remote.systemID, remote.itemID);
+    m_db.InstallBridgeLink(remote.itemID, local.systemID, local.itemID);
 
     return PyStatic.NewNone();
 }
@@ -230,6 +299,20 @@ PyResult PosMgrBound::UninstallJumpBridgeLink(PyCallArgs &call, PyInt* itemID) {
     _log(POS__TRACE,  "PosMgrBound::Handle_UninstallJumpBridgeLink()");
     call.Dump(POS__DUMP);
 
+    if (itemID == nullptr || call.client == nullptr
+        || call.client->GetSystemID() != m_systemID)
+        return PyStatic.NewNone();
+    EVEPOS::JumpBridgeData local = EVEPOS::JumpBridgeData();
+    local.itemID = itemID->value();
+    if (!m_db.GetBridgeData(local)
+        || local.systemID != static_cast<int32>(m_systemID)
+        || !EvESovPos::CanConfigureStructure(
+              call.client->GetCorporationID(), local.corpID,
+              call.client->GetCorpRole() | call.client->GetRolesAtAll(),
+              (call.client->GetAccountRole() & Acct::Role::ADMIN) == Acct::Role::ADMIN)) {
+        _log(POS__WARNING, "Unauthorized jump bridge unlink %u.", itemID->value());
+        return PyStatic.NewNone();
+    }
     m_db.UninstallRemoteBridgeLink(itemID->value());
     m_db.UninstallBridgeLink(itemID->value());
 
@@ -240,10 +323,18 @@ PyResult PosMgrBound::GetSiloCapacityByItemID(PyCallArgs &call, PyInt* itemID) {
     _log(POS__TRACE,  "PosMgrBound::Handle_GetSiloCapacityByItemID()");
     call.Dump(POS__DUMP);
 
-    uint16 typeID = 0;
-    /** @todo  put this in static data */
-
-    return m_db.GetSiloCapacityForType(typeID);
+    // Use the requested deployed structure's actual invType, not typeID 0.
+    if (itemID == nullptr || call.client == nullptr
+        || call.client->GetSystemID() != m_systemID
+        || call.client->SystemMgr() == nullptr)
+        return PyStatic.NewNone();
+    SystemEntity* silo = call.client->SystemMgr()->GetSE(itemID->value());
+    if (silo == nullptr || !silo->IsPOSSE()) {
+        _log(POS__WARNING, "GetSiloCapacityByItemID() - unknown structure %u.",
+             itemID->value());
+        return PyStatic.NewNone();
+    }
+    return m_db.GetSiloCapacityForType(static_cast<uint16>(silo->GetTypeID()));
 }
 
 PyResult PosMgrBound::GetTowerNotificationSettings(PyCallArgs &call, PyInt* itemID) {
@@ -267,7 +358,7 @@ PyResult PosMgrBound::GetTowerNotificationSettings(PyCallArgs &call, PyInt* item
         return new PyObject("util.Row", dict);
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return new PyObject("util.Row", dict);
 
@@ -288,7 +379,7 @@ PyResult PosMgrBound::SetTowerNotifications(PyCallArgs &call, PyInt* itemID, PyB
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetAuthorizedTowerSE(call.client, pSystem, itemID->value(), m_systemID);
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -315,7 +406,7 @@ PyResult PosMgrBound::GetTowerSentrySettings(PyCallArgs &call, PyInt* itemID) {
         return new PyObject("util.Row", data);
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return new PyObject("util.Row", data);
 
@@ -338,7 +429,7 @@ PyResult PosMgrBound::SetTowerSentrySettings(PyCallArgs &call, PyInt* itemID, Py
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetAuthorizedTowerSE(call.client, pSystem, itemID->value(), m_systemID);
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -360,7 +451,7 @@ PyResult PosMgrBound::GetStarbasePermissions(PyCallArgs &call, PyInt* itemID) {
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
@@ -388,43 +479,65 @@ PyResult PosMgrBound::SetStarbasePermissions(PyCallArgs &call, PyInt* itemID, Py
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetAuthorizedTowerSE(call.client, pSystem, itemID->value(), m_systemID);
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
-    // decode deployFlags object
-    PyRep* rep = deployFlags->arguments()->AsDict()->GetItemString("line");
-    if (!rep->IsList()) {
-        codelog(POS__ERROR, "deployFlags 'line' item is not PyList: %s", rep->TypeString());
-        return nullptr;
+    // Validate both payloads completely before applying any tower changes.
+    // A malformed client row used to dereference missing fields or apply
+    // deploy flags before rejecting the usage list, leaving partial state.
+    PyRep* deployArgs = deployFlags != nullptr ? deployFlags->arguments() : nullptr;
+    PyRep* usageArgs = usageFlagsList != nullptr ? usageFlagsList->arguments() : nullptr;
+    if (deployArgs == nullptr || !deployArgs->IsDict()
+        || usageArgs == nullptr || !usageArgs->IsDict()) {
+        _log(POS__WARNING, "SetStarbasePermissions() - invalid flag containers.");
+        return PyStatic.NewNone();
     }
 
-    PyList* list = rep->AsList();
-    //list->Dump(POS__RSP_DUMP, "    ");
-    pTSE->SetDeployFlags(list->GetItem(0)->AsInt()->value(),
-                         list->GetItem(1)->AsInt()->value(),
-                         list->GetItem(2)->AsInt()->value(),
-                         list->GetItem(3)->AsInt()->value() );
-
-
-    // decode usageFlagsList object
-    PyRep* rep2 = usageFlagsList->arguments()->AsDict()->GetItemString("lines");
-    if (!rep2->IsList()) {
-        codelog(POS__ERROR, "usageFlagsList 'lines' item is not PyList: %s", rep2->TypeString());
-        return nullptr;
+    PyRep* deployLine = deployArgs->AsDict()->GetItemString("line");
+    PyRep* usageLines = usageArgs->AsDict()->GetItemString("lines");
+    if (deployLine == nullptr || !deployLine->IsList()
+        || usageLines == nullptr || !usageLines->IsList()) {
+        _log(POS__WARNING, "SetStarbasePermissions() - missing list fields.");
+        return PyStatic.NewNone();
     }
 
-    PyList* list2 = rep2->AsList();
-    //list2->Dump(POS__RSP_DUMP, "    ");
-    for (PyList::const_iterator itr = list2->begin(); itr != list2->end(); ++itr) {
-        if (!(*itr)->IsList()) {
-            codelog(POS__ERROR, "usageFlagsList - itr item is not PyList: %s", (*itr)->TypeString());
-            continue;
+    PyList* deploy = deployLine->AsList();
+    PyList* usage = usageLines->AsList();
+    if (deploy->size() < 4) {
+        _log(POS__WARNING, "SetStarbasePermissions() - truncated deploy flags.");
+        return PyStatic.NewNone();
+    }
+    for (size_t i = 0; i < 4; ++i) {
+        if (deploy->GetItem(i) == nullptr || !deploy->GetItem(i)->IsInt()) {
+            _log(POS__WARNING, "SetStarbasePermissions() - invalid deploy flag.");
+            return PyStatic.NewNone();
         }
-        pTSE->SetUseFlags((*itr)->AsList()->GetItem(0)->AsInt()->value(),
-                          (*itr)->AsList()->GetItem(1)->AsInt()->value(),
-                          (*itr)->AsList()->GetItem(2)->AsInt()->value(),
-                          (*itr)->AsList()->GetItem(3)->AsInt()->value());
+    }
+    for (PyList::const_iterator itr = usage->begin(); itr != usage->end(); ++itr) {
+        if (*itr == nullptr || !(*itr)->IsList() || (*itr)->AsList()->size() < 4) {
+            _log(POS__WARNING, "SetStarbasePermissions() - invalid usage row.");
+            return PyStatic.NewNone();
+        }
+        PyList* row = (*itr)->AsList();
+        for (size_t i = 0; i < 4; ++i) {
+            if (row->GetItem(i) == nullptr || !row->GetItem(i)->IsInt()) {
+                _log(POS__WARNING, "SetStarbasePermissions() - invalid usage field.");
+                return PyStatic.NewNone();
+            }
+        }
+    }
+
+    pTSE->SetDeployFlags(deploy->GetItem(0)->AsInt()->value(),
+                         deploy->GetItem(1)->AsInt()->value(),
+                         deploy->GetItem(2)->AsInt()->value(),
+                         deploy->GetItem(3)->AsInt()->value());
+    for (PyList::const_iterator itr = usage->begin(); itr != usage->end(); ++itr) {
+        PyList* row = (*itr)->AsList();
+        pTSE->SetUseFlags(row->GetItem(0)->AsInt()->value(),
+                          row->GetItem(1)->AsInt()->value(),
+                          row->GetItem(2)->AsInt()->value(),
+                          row->GetItem(3)->AsInt()->value());
     }
 
     return PyStatic.NewNone();
@@ -458,7 +571,7 @@ if self.moon[1] is not None:
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
     MoonSE* pMSE = pTSE->GetMoonSE();
@@ -493,6 +606,8 @@ PyResult PosMgrBound::SetShipPassword(PyCallArgs &call, PyWString* password) {
     if (call.client->IsDocked())
         throw UserError("CannotSetShieldHarmonicPassword");
 
+    if (call.client->GetShipSE() == nullptr || password == nullptr)
+        return PyStatic.NewNone();
     call.client->GetShipSE()->SetPassword(PyRep::StringContent(password));
 
     return PyStatic.NewNone();
@@ -505,12 +620,13 @@ PyResult PosMgrBound::SetTowerPassword(PyCallArgs& call, PyInt* itemID, PyRep* p
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetAuthorizedTowerSE(call.client, pSystem, itemID->value(), m_systemID);
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
-    if (password->IsString() or password->IsWString())
-        pTSE->SetPassword(PyRep::StringContent(password));
+    if (password == nullptr || !(password->IsString() || password->IsWString()))
+        return PyStatic.NewNone();
+    pTSE->SetPassword(PyRep::StringContent(password));
     pTSE->UpdatePassword();
 
     return PyStatic.NewNone();
@@ -523,21 +639,24 @@ PyResult PosMgrBound::SetTowerPassword(PyCallArgs &call, PyInt* itemID, PyRep* p
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetAuthorizedTowerSE(call.client, pSystem, itemID->value(), m_systemID);
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 
-    if (password->IsString() or password->IsWString()) {
+    if (password != nullptr && (password->IsString() || password->IsWString())) {
         pTSE->SetPassword(PyRep::StringContent(password));
         pTSE->UpdatePassword();
     }
 
+    if (allowCorp == nullptr || allowAlliance == nullptr)
+        return PyStatic.NewNone();
     pTSE->SetCorpAccess(allowCorp->value());
     pTSE->SetAllyAccess(allowAlliance->value());
     pTSE->UpdateAccess();
 
     // set harmonic for ship to 'offline' (0)   -according to packet data
-    call.client->GetShipSE()->SetHarmonic(EVEPOS::Harmonic::Offline);
+    if (call.client->GetShipSE() != nullptr)
+        call.client->GetShipSE()->SetHarmonic(EVEPOS::Harmonic::Offline);
 
     // at this point, if ship password isnt updated, it should be kicked out of tower's ff.
     //  not sure how we're gonna do this yet.  will have to wait till system matures
@@ -565,19 +684,32 @@ PyResult PosMgrBound::AnchorStructure(PyCallArgs &call, PyInt* structureID, PyTu
         return PyStatic.NewNone();
     }
 
+    if (position == nullptr || position->size() != 3) {
+        _log(POS__WARNING, "POS::AnchorStructure - invalid position tuple for %u.", structureID->value());
+        return PyStatic.NewNone();
+    }
+
     double posX = PyRep::IntegerValue(position->GetItem(0));
     double posY = PyRep::IntegerValue(position->GetItem(1));
     double posZ = PyRep::IntegerValue(position->GetItem(2));
 
-    StructureSE* pTSE = pSystem->GetSE(structureID->value())->GetPOSSE();
-    if (pTSE == nullptr)
+    StructureSE* pTSE = GetCheckedStructureSE(pSystem, structureID->value());
+    if (pTSE == nullptr || call.client->GetSystemID() != m_systemID
+        || (!CanMutatePOS(call.client, pSystem, pTSE, m_systemID)
+            && pTSE->GetOwnerID() != call.client->GetCharID())) {
+        _log(POS__WARNING, "Unauthorized anchor request for structure %u.",
+             structureID->value());
+        return PyStatic.NewNone();
+    }
+    if (!std::isfinite(posX) || !std::isfinite(posY) || !std::isfinite(posZ))
         return PyStatic.NewNone();
 
     GPoint pos(posX, posY, posZ);
     pTSE->SetAnchor(call.client, pos);
 
     // auto warp to new POS position?  config option?
-    if (pTSE->IsTowerSE()) {
+    if (pTSE->IsTowerSE() && call.client->GetShip().get() != nullptr
+            && call.client->GetShipSE() != nullptr) {
         uint32 dist = pTSE->GetSelf()->radius() + call.client->GetShip()->radius();
         call.client->GetShipSE()->DestinyMgr()->WarpTo(pos, dist);
         /** @todo add tower anchor position to bookmark */
@@ -593,7 +725,7 @@ PyResult PosMgrBound::GetMoonProcessInfoForTower(PyCallArgs &call, PyInt* itemID
         return PyStatic.NewNone();
     }
 
-    TowerSE* pTSE = pSystem->GetSE(itemID->value())->GetTowerSE();
+    TowerSE* pTSE = GetCheckedTowerSE(pSystem, itemID->value());
     if (pTSE == nullptr)
         return PyStatic.NewNone();
 

@@ -23,6 +23,10 @@
 #include "system/cosmicMgrs/DungeonMgr.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "system/cosmicMgrs/WormholeMgr.h"
+#include "system/sov/SovereigntyDataMgr.h"
+#include "inventory/Inventory.h"
+#include "inventory/ItemFactory.h"
+#include "EVE_IHubUpgradeRules.h"
 
 #include "../../../eve-common/EVE_Scanning.h"
 
@@ -118,6 +122,32 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     // Load saved anomalies from db upon system init
     LoadAnomalies();
 
+    // Count active upgrade types of this system's registered sovereign IHub.
+    // Sites are capped at five per family to avoid unbounded test spawns.
+    uint8 sovMilitarySites = 0, sovIndustrialSites = 0;
+    const SovereigntyData sov = svDataMgr.GetSovereigntyData(m_system->GetID());
+    if (sov.claimStructureID && sov.hubID && sov.allianceID) {
+        InventoryItemRef hub = sItemFactory.GetItemRef(sov.hubID);
+        if (hub.get() != nullptr
+            && hub->typeID() == EVEDB::invTypes::InfrastructureHub
+            && hub->GetMyInventory() != nullptr
+            && hub->GetMyInventory()->LoadContents()) {
+            std::map<uint32, InventoryItemRef> installed;
+            hub->GetMyInventory()->GetInventoryMap(installed);
+            for (const auto& item : installed) {
+                if (item.second.get() == nullptr
+                    || item.second->categoryID() != EVEDB::invCategories::StructureUpgrade
+                    || item.second->flag() != flagStructureActive)
+                    continue;
+                const auto kind = EVESovIHub::KindForGroup(item.second->groupID());
+                if (kind == EVESovIHub::UpgradeKind::Military && sovMilitarySites < 5)
+                    ++sovMilitarySites;
+                else if (kind == EVESovIHub::UpgradeKind::Industrial && sovIndustrialSites < 5)
+                    ++sovIndustrialSites;
+            }
+        }
+    }
+
     // set internal check data
     // range is 0.1 for 1.0 system to 2.0 for -0.9 system
     float security = m_system->GetSecValue();
@@ -146,6 +176,14 @@ bool AnomalyMgr::Init(BeltMgr* beltMgr, DungeonMgr* dungMgr, SpawnMgr* spawnMgr)
     for (int i = 0; i < (m_maxSigs / 2); i++) {
         m_typeList.push_back(Dungeon::Type::Anomaly);
     }
+    for (uint8 i = 0; i < sovMilitarySites; ++i)
+        m_typeList.push_back(Dungeon::Type::Anomaly);
+    for (uint8 i = 0; i < sovIndustrialSites; ++i)
+        m_typeList.push_back(Dungeon::Type::Gravimetric);
+    m_maxSigs = static_cast<uint8>(m_maxSigs + sovMilitarySites + sovIndustrialSites);
+    if (sovMilitarySites || sovIndustrialSites)
+        _log(SOV__INFO, "IHub %u scheduled %u combat and %u mining sites.",
+             sov.hubID, sovMilitarySites, sovIndustrialSites);
 
     // these use config option to (en/dis)able individual types
     m_Grav = sConfig.exploring.Gravametric;
@@ -503,8 +541,20 @@ GPoint AnomalyMgr::GetAnomalyPos(std::string& sigID)
 
 void AnomalyMgr::AddSignal(SystemEntity* pSE, uint32 id/*0*/)
 {
-    if (!m_initalized)
+    if (!m_initalized || pSE == nullptr)
         return;
+
+    // A failed beacon/bubble placement must not terminate the whole server.
+    // SystemManager::AddEntity may call us even if BubbleManager::Add could
+    // not attach the new mission beacon to a valid bubble.
+    SystemBubble* signalBubble = pSE->SysBubble();
+    if (signalBubble == nullptr) {
+        _log(COSMIC_MGR__ERROR,
+            "AnomalyMgr::AddSignal() - entity %u has no assigned bubble in system %u; "
+            "skipping signal registration.",
+            pSE->GetID(), m_system->GetID());
+        return;
+    }
 
     //  shouldnt need this while `check(IsTestServer)` is disabled
     //if (!m_procTimer.Enabled())
@@ -532,8 +582,13 @@ void AnomalyMgr::AddSignal(SystemEntity* pSE, uint32 id/*0*/)
         sig.position = iRef->position();
         // this will be wrong for capital ships and larger (maybe bs also)
         sig.sigStrength = iRef->GetAttribute(AttrSignatureRadius).get_float() /1000;
+        // Mission beacons are inventory-backed Cosmic Anomalies. Their type
+        // does not carry a useful signature-radius attribute, but they are
+        // already fully resolved anomaly sites and must not appear at 0%.
+        if (iRef->groupID() == EVEDB::invGroups::Cosmic_Anomaly)
+            sig.sigStrength = 1.0f;
         // get bubbleID, which is only used for .siglist command
-        sig.bubbleID = pSE->SysBubble()->GetID();
+        sig.bubbleID = signalBubble->GetID();
 
 /* Signal Strength Base Data
  * Band        1/5     1/10    1/15    1/20    1/25    1/40    1/45    1/60    1/80

@@ -33,6 +33,8 @@ public:
 
     void GetRandomDungeon(Dungeon::Dungeon& dungeon, uint8 archetype);
     void GetDungeon(Dungeon::Dungeon& dungeon, uint32 dungeonID);
+    bool GetRandomMissionDungeon(Dungeon::Dungeon& dungeon, uint32 factionID);
+    bool GetRandomMissionDungeonForGroup(Dungeon::Dungeon& dungeon, const char* groupPrefix);
     void UpdateDungeon(uint32 dungeonID);
     void GetDungeons(std::vector<Dungeon::Dungeon>& dunList);
     uint32 GetDungeonID()                               { return ++m_dungeonID; }

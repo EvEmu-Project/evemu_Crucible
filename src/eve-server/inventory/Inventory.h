@@ -56,6 +56,8 @@ public:
     bool LoadContents();
     // this checks for available space for iRef by flag
     bool ValidateAddItem(EVEItemFlags flag, InventoryItemRef iRef) const;// this will throw if it fails.
+    // Protect inventory graphs from direct/nested self-containment.
+    bool WouldCreateContainmentCycle(InventoryItemRef item) const;
     bool ValidateIHubUpgrade(InventoryItemRef iRef) const;
     // this checks for available space for iRef by flag
     bool HasAvailableSpace(EVEItemFlags flag, InventoryItemRef iRef) const;   //  this will not throw

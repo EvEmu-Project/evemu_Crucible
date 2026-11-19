@@ -1,10 +1,26 @@
-*
-!.git
-.git/objects/*
-!src
-!utils
-!sql
+# Keep the Docker build context explicit and independent of local Git metadata.
+.git
+.gitignore
+build/
+cmake-build-*/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/*.o
+**/*.a
+**/*.so
+**/*.dll
+**/*.exe
+
+# Source and build inputs
 !CMakeLists.txt
-!cmake
-!dep
 !config.h.in
+!cmake/
+!cmake/**
+!dep/
+!dep/**
+!src/
+!src/**
+!utils/
+!utils/**
+!sql/
+!sql/**

@@ -25,6 +25,7 @@
 */
 
 #include "EVE_Consts.h"
+#include "EVE_MovementFormulas.h"
 #include "EVE_Player.h"
 #include "eve-server.h"
 #include "../eve-common/EVEVersion.h"
@@ -32,6 +33,7 @@
 //#include "../../eve-common/EVE_Skills.h"
 
 #include "Client.h"
+#include "agents/Agent.h"
 #include "ConsoleCommands.h"
 #include "EVEServerConfig.h"
 #include "LiveUpdateDB.h"
@@ -54,7 +56,10 @@
 #include "system/DestinyManager.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
+#include "system/BubbleManager.h"
+#include "system/Celestial.h"
 #include "system/cosmicMgrs/AnomalyMgr.h"
+#include "system/cosmicMgrs/SpawnMgr.h"
 #include "exploration/Scan.h"
 #include "station/Station.h"
 #include "station/TradeService.h"
@@ -113,6 +118,7 @@ Client::Client(EVEServiceManager& services, EVETCPConnection** con)
     m_portrait = false;
     m_autoPilot = false;
     m_bubbleWait = false;     // allow client processing of subsquent destiny msgs
+    m_pendingDock = false;
     m_charCreation = false;
     m_setStateSent = false;
     m_validSession = false;
@@ -123,6 +129,8 @@ Client::Client(EVEServiceManager& services, EVETCPConnection** con)
     m_moveSystemID = 0;
     m_skillTimer = 0;
     m_dockStationID = 0;
+    m_pendingGateFrom = 0;
+    m_pendingGateTo = 0;
 
     m_lpMap.clear();
     m_channels.clear();
@@ -170,8 +178,16 @@ Client::~Client() {
                     this->services().Lookup <TradeService>("trademgr")->CancelTrade(this);
                 }
                 CharNoLongerInStation();
-                // remove char from station
-                sEntityList.GetStationByID(m_locationID)->RemoveItem(m_char);
+                // A partial station boot may leave no station cache entry.
+                // Never dereference a missing station during client logout.
+                StationItemRef stationRef = sEntityList.GetStationByID(m_locationID);
+                if (stationRef.get() != nullptr) {
+                    stationRef->RemoveItem(m_char);
+                } else {
+                    sLog.Warning("Client::Logout",
+                                 "Station %u missing during logout for character %u.",
+                                 m_locationID, m_char->itemID());
+                }
             }
         }
         // remove fleet data, remove char from ItemFactory cache, save SP and set logout time
@@ -414,11 +430,12 @@ void Client::ProcessClient() {
         return;
     }
 
+    ProcessPendingSpaceActions();
+
     if (m_invulTimer.Enabled()/*m_invul*/)
         if (m_invulTimer.Check(false)) {
             _log(CLIENT__TIMER, "ProcessClient():  SetInvul to false for %s(%u)", m_char->name(), m_char->itemID());
-            m_invulTimer.Disable();
-            m_invul = false;
+            SetInvul(false);
             m_undock = false;
         }
 
@@ -705,6 +722,9 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
 
         // remove from current system before resetting system vars
         m_system->RemoveEntity(pShipSE);
+        // Deliver the origin grid removals before the destination session.
+        if (IsGateJump())
+            FlushQueue();
 
         m_system->RemoveClient(this, (count = true), IsJump());
 
@@ -723,7 +743,10 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
             return;
         }
 
-        m_beyonce = false;
+        // CmdStargateJump returns the existing Beyonce bound object. A
+        // client that reuses it can receive the arrival state without rebinding.
+        if (!IsGateJump())
+            m_beyonce = false;
         m_setStateSent = false;
 
         // register ourselves with new system manager (this wont hit on login)
@@ -819,7 +842,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
 
         SetDestiny(pt);
 
-        if (IsJump() and !m_autoPilot)
+        if (IsJump() && !IsGateJump() && !m_autoPilot)
             pShipSE->DestinyMgr()->Stop();
     }
 
@@ -837,7 +860,7 @@ void Client::SetDestiny(const GPoint& pt, bool update/*false*/) {
         _log(CLIENT__ERROR, "%s(%u) - Calling SetDestiny() when not in space.", GetName(), m_char->itemID());
         return;
     }
-    m_bubbleWait = false;        // allow client processing of subsquent destiny msgs
+    m_bubbleWait = IsGateJump();   // wait for the destination snapshot
     m_setStateSent = false;
 
     bool updateShip = false;
@@ -875,21 +898,40 @@ void Client::SetDestiny(const GPoint& pt, bool update/*false*/) {
 void Client::SetBallPark() {
     _log(PLAYER__AP_TRACE, "Client::SetBallPark():  State: %s, SetState: %s, Beyonce: %s", \
                 GetStateName(m_clientState).c_str(), m_setStateSent?"true":"false", m_beyonce?"true":"false");
+    if (pShipSE == nullptr || pShipSE->DestinyMgr() == nullptr || m_system == nullptr)
+        return;
+    // A state request can arrive during the jump-out animation. Keep the
+    // transition pending until ExecuteJump has installed the new system.
+    if (IsGateJump() && m_stateTimer.Enabled())
+        return;
+
     m_bubbleWait = false;   // allow client processing of subsequent destiny msgs
-    if (pShipSE->SysBubble() == nullptr)
-        m_system->AddEntity(pShipSE);
+    if (pShipSE->SysBubble() == nullptr) {
+        if (m_system->GetSE(pShipSE->GetID()) == pShipSE)
+            sBubbleMgr.Add(pShipSE);
+        else
+            m_system->AddEntity(pShipSE);
+    }
     if (!m_beyonce and !m_login and !m_undock) {
         m_bubbleWait = true;    // wait on proc destiny msgs
-        CheckBallparkTimer();
-        SetBallParkTimer(Player::Timer::Default);    // set timer 1s to wait for beyonce
+        if (!m_ballparkTimer.Enabled())
+            SetBallParkTimer(Player::Timer::Default);
         return;
     }
-    if (!m_setStateSent and m_beyonce) {  // MUST have beyonce before sending state data.
+    if (!m_setStateSent && m_beyonce)
         pShipSE->DestinyMgr()->SendSetState();
+    if (!m_setStateSent && IsGateJump()) {
+        m_bubbleWait = true;
+        if (!m_ballparkTimer.Enabled())
+            SetBallParkTimer(Player::Timer::Default);
+        return;
+    }
+    if (m_setStateSent && m_beyonce) {
         m_ballparkTimer.Disable();
-        if (IsGateJump()) {
+        if (IsGateJump() || IsWormholeJump()) {
             SetInvulTimer(Player::Timer::JumpInvul);
-            // dont use timer method here...(jumping ship will flash at destination)
+            // The ship already has its jump cloak state in the snapshot.
+            m_cloakTimer.Disable();
             m_cloakTimer.Start(Player::Timer::JumpCloak);
             m_clientState = Player::State::Idle;
         }
@@ -898,22 +940,14 @@ void Client::SetBallPark() {
             m_clientState = Player::State::Idle;
             JumpInEffect();
         }
-        if (IsWormholeJump()) {
-            SetInvulTimer(Player::Timer::JumpInvul);
-            m_cloakTimer.Start(Player::Timer::JumpCloak);
-            m_clientState = Player::State::Idle;
-        }
     }
     if (m_undock)
         pShipSE->DestinyMgr()->SetSpeedFraction();
 }
 
 void Client::CheckBallparkTimer() {
-    if (!m_ballparkTimer.Enabled()) {
-        sLog.Error("CheckBallparkTimer()", "BallPark Timer is disabled.");
-    } else {
-        sLog.Warning("CheckBallparkTimer()", "BallPark Time remaining %ums", m_ballparkTimer.GetRemainingTime());
-    }
+    _log(CLIENT__TIMER, "CheckBallparkTimer(): timer %s, remaining %ums.",
+         m_ballparkTimer.Enabled() ? "active" : "inactive", m_ballparkTimer.GetRemainingTime());
 
     _log(CLIENT__TIMER, "CheckBallparkTimer():  State: %s, SetState: %s, Beyonce: %s, Login: %s", \
             GetStateName(m_clientState).c_str(), m_setStateSent?"true":"false", \
@@ -1407,48 +1441,178 @@ PyRep *Client::GetAggressors() const {
     return dict;
 }
 
-void Client::StargateJump(uint32 fromGate, uint32 toGate) {
+bool Client::StargateJump(uint32 fromGate, uint32 toGate) {
+    ClearPendingSpaceActions();
+
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
-        sLog.Error("Client","%s: StargateJump called when a move is already pending. Ignoring.", m_char->name());
-        /** @todo  send error to client here */
-        return;
+        _log(CLIENT__WARNING, "%s: StargateJump rejected; client state is %s and state timer is %s.",
+                m_char->name(), GetStateName(m_clientState).c_str(),
+                (m_stateTimer.Enabled() ? "active" : "inactive"));
+        SendNotifyMsg("Your stargate jump is waiting for another movement or session change to finish. Please wait and try again.");
+        return false;
     }
 
-    // add jump to mapDynamicData for showing in StarMap (F10)    -allan 06Mar14
-    MapDB::AddJump(m_systemData.systemID);
+    if (pShipSE == nullptr || pShipSE->DestinyMgr() == nullptr || m_system == nullptr) {
+        SendErrorMsg("Unable to initiate stargate jump: ship or solar system is unavailable.");
+        return false;
+    }
 
-    // call Stop() per packet sniff - shuts off AP.  Halt() does also.  try not calling any movement updates
-    //pShipSE->DestinyMgr()->Halt();  // Stop() disables ap.  try Halt() to reset ship movement to null
-    pShipSE->DestinyMgr()->SendJumpOut(fromGate);
-    //  show gate animation in from gate.   -working -allan 15Nov15
-    pShipSE->DestinyMgr()->SendGateActivity(fromGate);
+    SystemEntity* gate = m_system->GetSE(fromGate);
+    if (gate == nullptr || !gate->IsGateSE()) {
+        SendErrorMsg("The stargate you selected is not available in this solar system.");
+        _log(CLIENT__WARNING, "%s: StargateJump rejected; source gate %u is not present in system %u.",
+                m_char->name(), fromGate, m_locationID);
+        return false;
+    }
 
-    //m_toGate = toGate;
+    StaticData toData = StaticData();
+    if (!sDataMgr.GetStaticInfo(toGate, toData)) {
+        _log(DATA__ERROR, "Failed to retrieve destination data for stargate %u", toGate);
+        SendErrorMsg("The destination stargate is unavailable.");
+        return false;
+    }
+
+    // A gate can be selected while the ship is already in warp (for example,
+    // after warping to the gate from the overview). Preserve that request and
+    // process it once the current warp has completed.
+    if (pShipSE->DestinyMgr()->HasWarpOrder()) {
+        m_pendingGateFrom = fromGate;
+        m_pendingGateTo = toGate;
+        SetAutoPilot(false);
+        _log(AUTOPILOT__MESSAGE, "%s: Queued stargate jump %u -> %u until current warp completes.",
+                m_char->name(), fromGate, toGate);
+        return true;
+    }
+
+    const double rangeToGatePerimeter = pShipSE->DestinyMgr()->InteractionDistanceTo(*gate);
+    if (!std::isfinite(rangeToGatePerimeter))
+        return false;
+
+    SetAutoPilot(false);
+    if (rangeToGatePerimeter > EVEmuMovement::GateJumpSurfaceRange) {
+        m_pendingGateFrom = fromGate;
+        m_pendingGateTo = toGate;
+        const uint32 followDistance = static_cast<uint32>(EVEmuMovement::GateWarpLandingSurfaceRange);
+        pShipSE->DestinyMgr()->Follow(gate, followDistance);
+        _log(AUTOPILOT__MESSAGE, "%s: Approaching stargate %u before jumping; perimeter range %.2fm.",
+                m_char->name(), fromGate, rangeToGatePerimeter);
+        return true;
+    }
+
+    return BeginStargateJump(fromGate, toGate);
+}
+
+bool Client::BeginStargateJump(uint32 fromGate, uint32 toGate) {
+    if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
+        _log(CLIENT__WARNING, "%s: Stargate jump could not start; client state is %s and state timer is %s.",
+                m_char->name(), GetStateName(m_clientState).c_str(),
+                (m_stateTimer.Enabled() ? "active" : "inactive"));
+        SendNotifyMsg("Your stargate jump is waiting for another movement or session change to finish. Please wait and try again.");
+        return false;
+    }
+
     StaticData toData = StaticData();
     if (!sDataMgr.GetStaticInfo(toGate, toData)) {
         _log(DATA__ERROR, "Failed to retrieve data for stargate %u", toGate);
-        /** @todo  send error to client here */
-        return;
+        SendErrorMsg("The destination stargate is unavailable.");
+        return false;
     }
 
-    // this is where we can put the msgs about system closed or w/e
+    _log(AUTOPILOT__MESSAGE, "%s: StargateJump accepted from gate %u to gate %u.",
+            m_char->name(), fromGate, toGate);
 
-    // add jump to mapDynamicData for showing in StarMap (F10)    -allan 06Mar14
+    pShipSE->DestinyMgr()->HaltForInteraction();
+    MapDB::AddJump(m_systemData.systemID);
+    pShipSE->DestinyMgr()->SendJumpOut(fromGate);
+    pShipSE->DestinyMgr()->SendGateActivity(fromGate);
+
     MapDB::AddJump(toData.systemID);
-    // used for showing Visited Systems in StarMap(F10)  -allan 30Jan14
     m_char->VisitSystem(toData.systemID);
 
     m_movePoint = toData.position;
-    // Make Jump-In point a random spot on ~10km radius sphere about the stargate radius
     m_movePoint.MakeRandomPointOnSphereLayer(toData.radius + 6500, toData.radius + 9500);
     m_moveSystemID = toData.systemID;
-/*
-    char ci[25];
-    snprintf(ci, sizeof(ci), "Jumping:%u", toGate);
-    m_ship->SetCustomInfo(ci);
-*/
-    //delay the move 4sec so they can see the JumpOut animation
+
     SetStateTimer(Player::State::Jump, Player::Timer::Jumping);
+    return true;
+}
+
+void Client::ProcessPendingSpaceActions() {
+    if ((!m_pendingDock && m_pendingGateFrom == 0)
+        || m_clientState != Player::State::Idle
+        || m_stateTimer.Enabled()
+        || m_sessionChangeActive
+        || pShipSE == nullptr
+        || pShipSE->DestinyMgr() == nullptr
+        || m_system == nullptr
+        || pShipSE->DestinyMgr()->HasWarpOrder())
+        return;
+
+    if (m_pendingDock) {
+        SystemEntity* station = m_system->GetSE(m_dockStationID);
+        if (station == nullptr || !station->IsStationSE()) {
+            _log(CLIENT__WARNING, "%s: Cancelling auto-dock; station %u is no longer present.",
+                    m_char->name(), m_dockStationID);
+            m_pendingDock = false;
+            SendNotifyMsg("Docking cancelled because the station is no longer available.");
+            return;
+        }
+
+        const double rangeToStationPerimeter = pShipSE->DestinyMgr()->InteractionDistanceTo(*station);
+        if (!std::isfinite(rangeToStationPerimeter)) {
+            m_pendingDock = false;
+            return;
+        }
+        if (rangeToStationPerimeter > EVEmuMovement::DockSurfaceRange) {
+            // Start the approach after warp, but do not reset Follow every tick.
+            if (!pShipSE->DestinyMgr()->IsFollowing()
+                || pShipSE->DestinyMgr()->GetTargetID() != m_dockStationID)
+                pShipSE->DestinyMgr()->AttemptDockOperation();
+            return;
+        }
+
+        m_pendingDock = false;
+        _log(AUTOPILOT__MESSAGE, "%s: Auto-dock approach reached station %u perimeter (%.2fm).",
+                m_char->name(), m_dockStationID, rangeToStationPerimeter);
+        pShipSE->DestinyMgr()->AttemptDockOperation();
+        return;
+    }
+
+    if (m_pendingGateFrom != 0) {
+        const uint32 fromGate = m_pendingGateFrom;
+        const uint32 toGate = m_pendingGateTo;
+        SystemEntity* gate = m_system->GetSE(fromGate);
+        if (gate == nullptr || !gate->IsGateSE()) {
+            ClearPendingSpaceActions();
+            _log(CLIENT__WARNING, "%s: Cancelling auto-jump; source gate %u is no longer present.",
+                    m_char->name(), fromGate);
+            SendNotifyMsg("Stargate approach cancelled because the gate is no longer available.");
+            return;
+        }
+
+        const double rangeToGatePerimeter = pShipSE->DestinyMgr()->InteractionDistanceTo(*gate);
+        if (!std::isfinite(rangeToGatePerimeter)) {
+            ClearPendingSpaceActions();
+            return;
+        }
+        if (rangeToGatePerimeter > EVEmuMovement::GateJumpSurfaceRange) {
+            // A jump queued during warp still needs a normal gate approach.
+            if (!pShipSE->DestinyMgr()->IsFollowing()
+                || pShipSE->DestinyMgr()->GetTargetID() != fromGate) {
+                const uint32 followDistance = static_cast<uint32>(EVEmuMovement::GateWarpLandingSurfaceRange);
+                pShipSE->DestinyMgr()->Follow(gate, followDistance);
+                _log(AUTOPILOT__MESSAGE, "%s: Approaching stargate %u after warp before jumping.",
+                        m_char->name(), fromGate);
+            }
+            return;
+        }
+
+        m_pendingGateFrom = 0;
+        m_pendingGateTo = 0;
+        _log(AUTOPILOT__MESSAGE, "%s: Auto-jump approach reached stargate %u perimeter (%.2fm).",
+                m_char->name(), fromGate, rangeToGatePerimeter);
+        BeginStargateJump(fromGate, toGate);
+    }
 }
 
 void Client::CynoJump(InventoryItemRef beacon) {
@@ -1620,21 +1784,24 @@ void Client::SetUncloakTimer(uint32 time/*Player::Timer::Default*/)
     SetUncloak(true);
 }
 
+void Client::SetInvul(bool invul)
+{
+    m_invul = invul;
+    if (!invul)
+        m_invulTimer.Disable();
+}
+
 void Client::SetInvulTimer(uint32 time/*Player::Timer::Default*/)
 {
     if (time == 0) {
         SetInvul(false);
-        m_invulTimer.Disable();
         _log(CLIENT__TIMER, "%s: Invul Timer Disabled", m_char->name());
         return;
     }
 
-    if (m_invulTimer.Enabled()) {
-        _log(CLIENT__ERROR, "%s: Invul Timer called but timer already enabled with %ums remaining.", m_char->name(), m_invulTimer.GetRemainingTime());
-        EvE::traceStack();
-        return;
-    }
-
+    // Starting an enabled Timer keeps the old start time. Every new
+    // protection window begins at the current jump, login or undock.
+    m_invulTimer.Disable();
     _log(CLIENT__TIMER, "%s: Invul Timer set at %ums.   current state time is %ums", m_char->name(), time, m_invulTimer.GetCurrentTime());
     m_invulTimer.Start(time);
     SetInvul(true);
@@ -1713,7 +1880,30 @@ bool Client::IsHangarLoaded(uint32 hangarID) {
 void Client::LoadStationHangar(uint32 stationID) {
     _log(PLAYER__INFO, "Client::LoadStationHangar() is loading personal hangar for %s(%u) in stationID %u",  m_char->name(), m_char->itemID(), stationID);
     sItemFactory.SetUsingClient(this);
-    m_system->GetStationFromInventory(stationID)->GetMyInventory()->LoadContents();
+
+    if (m_system == nullptr) {
+        _log(CLIENT__ERROR, "Client::LoadStationHangar() - no active system while loading station %u for %s(%u).", stationID, m_char->name(), m_char->itemID());
+        sItemFactory.UnsetUsingClient();
+        SendErrorMsg("Unable to load station hangar %u. Please relog and report this error.", stationID);
+        return;
+    }
+
+    StationItemRef stationRef = m_system->GetStationFromInventory(stationID);
+    if (stationRef.get() == nullptr) {
+        _log(CLIENT__ERROR, "Client::LoadStationHangar() - station %u is missing from system %u inventory for %s(%u).", stationID, m_system->GetID(), m_char->name(), m_char->itemID());
+        sItemFactory.UnsetUsingClient();
+        SendErrorMsg("Unable to load station hangar %u. Please relog and report this error.", stationID);
+        return;
+    }
+
+    Inventory* inventory = stationRef->GetMyInventory();
+    if (inventory == nullptr || !inventory->LoadContents()) {
+        _log(CLIENT__ERROR, "Client::LoadStationHangar() - station %u has no loadable inventory for %s(%u).", stationID, m_char->name(), m_char->itemID());
+        sItemFactory.UnsetUsingClient();
+        SendErrorMsg("Unable to load station hangar %u. Please relog and report this error.", stationID);
+        return;
+    }
+
     sItemFactory.UnsetUsingClient();
 }
 
@@ -1807,6 +1997,167 @@ bool Client::ContainsTypeQty(uint16 typeID, uint32 qty) const
     return false;
 }
 
+bool Client::StartEncounterMission(MissionOffer& offer)
+{
+    if (m_system == nullptr || m_char.get() == nullptr || !sDataMgr.IsStation(m_locationID)
+        || m_clientState != Player::State::Idle || offer.typeID != Mission::Type::Encounter
+        || offer.agentID == 0 || offer.offerID == 0)
+        return false;
+
+    // Pick an unused pocket away from belts, gates, existing anomalies and pilots.
+    SystemBubble* pBubble = nullptr;
+    GPoint sitePoint;
+    for (uint8 attempt = 0; attempt < 12; ++attempt) {
+        sitePoint = sMapData.GetAnomalyPoint(m_system);
+        SystemBubble* candidate = sBubbleMgr.GetBubble(m_system, sitePoint);
+        if (candidate == nullptr || candidate->IsBelt() || candidate->IsGate()
+            || candidate->IsAnomaly() || candidate->IsMission()
+            || candidate->CountNPCs() != 0 || candidate->CountPlayers() != 0
+            || candidate->CountDynamics() != 0)
+            continue;
+        pBubble = candidate;
+        break;
+    }
+    if (pBubble == nullptr || m_system->GetSpawnMgr() == nullptr)
+        return false;
+
+    const std::string beaconName = "Mission Site - " + offer.name;
+    ItemData beaconData(EVEDB::invTypes::CosmicAnomaly, m_char->itemID(), m_system->GetID(),
+                        flagNone, beaconName.c_str(), sitePoint);
+    sItemFactory.SetUsingClient(this);
+    CelestialObjectRef beacon = sItemFactory.SpawnWormhole(beaconData);
+    sItemFactory.UnsetUsingClient();
+    if (beacon.get() == nullptr)
+        return false;
+
+    beacon->SetCustomInfo("mission");
+    beacon->SaveItem();
+    // Mission sites use the Cosmic Anomaly group and must be represented by
+    // AnomalySE so the client receives the anomaly-specific slim item and
+    // destiny representation (rather than a generic celestial object).
+    AnomalySE* pBeacon = new AnomalySE(beacon, m_system->GetServiceMgr(), m_system);
+    if (pBeacon == nullptr) {
+        beacon->Delete();
+        return false;
+    }
+    m_system->AddEntity(pBeacon);
+
+    // Prefer the faction attached to the selected mission's dungeon template.
+    // The issuing agent faction is a fallback for templates without faction metadata.
+    Agent* pAgent = sEntityList.GetAgent(offer.agentID);
+    const uint32 agentFactionID = (pAgent != nullptr ? pAgent->GetFactionID() : 0);
+    MissionData missionTemplate = {};
+    uint32 missionDungeonID = 0;
+    if (sMissionDataMgr.GetMissionData(offer.missionID, missionTemplate))
+        missionDungeonID = missionTemplate.dungeonID;
+
+    // The placed beacon must occupy the empty bubble validated above.
+    // Bubble overlap adjustments can otherwise put it into a live pocket.
+    SystemBubble* beaconBubble = pBeacon->SysBubble();
+    if (beaconBubble == nullptr || beaconBubble != pBubble
+        || beaconBubble->IsMission() || beaconBubble->IsBelt()
+        || beaconBubble->IsGate() || beaconBubble->IsAnomaly()
+        || beaconBubble->CountNPCs() != 0
+        || beaconBubble->CountPlayers() != 0
+        || beaconBubble->CountDynamics() > 1) {
+        _log(AGENT__ERROR,
+            "Client::StartEncounterMission() - offer %u rejected unsafe beacon bubble: "
+            "expected %u, actual %u. Beacon rolled back.",
+            offer.offerID, pBubble->GetID(),
+            (beaconBubble != nullptr ? beaconBubble->GetID() : 0));
+        m_system->RemoveEntity(pBeacon);
+        beacon->Delete();
+        SafeDelete(pBeacon);
+        return false;
+    }
+    pBubble = beaconBubble;
+    _log(AGENT__MESSAGE,
+        "Client::StartEncounterMission() - accepting offer %u mission %u (level %u, agent %u, faction %u, dungeon %u).",
+        offer.offerID, offer.missionID, offer.range, offer.agentID, agentFactionID, missionDungeonID);
+    if (pBubble == nullptr || !m_system->GetSpawnMgr()->DoSpawnForMission(
+            pBubble, m_system->GetRegionID(), offer.range, m_char->itemID(),
+            offer.agentID, offer.offerID, offer.missionID, beacon->itemID(), agentFactionID, missionDungeonID)) {
+        _log(AGENT__ERROR,
+            "Client::StartEncounterMission() - spawn failed for offer %u mission %u.",
+            offer.offerID, offer.missionID);
+        m_system->RemoveEntity(pBeacon);
+        beacon->Delete();
+        SafeDelete(pBeacon);
+        return false;
+    }
+
+    offer.destinationID = beacon->itemID();
+    offer.destinationTypeID = EVEDB::invTypes::CosmicAnomaly;
+    offer.destinationOwnerID = m_char->itemID();
+    offer.destinationSystemID = m_system->GetID();
+    offer.dungeonLocationID = pBubble->GetID();
+    offer.dungeonSolarSystemID = m_system->GetID();
+    offer.courierTypeID = 0;
+    // Use the exact kill requirement recorded by the mission pocket, rather
+    // than a generic entity count that may include non-objective NPCs.
+    offer.courierAmount = static_cast<uint16>(pBubble->GetMissionKillsRequired());
+
+    // The mission journal reads its warp destinations from bookmarks, not
+    // directly from destinationID. Use the standard util.KeyVal bookmark
+    // structure used by courier objectives so the site appears in the journal.
+    PySafeDecRef(offer.bookmarks);
+    offer.bookmarks = new PyList();
+    PyDict* bookmarkData = new PyDict();
+    bookmarkData->SetItemString("itemID", new PyInt(beacon->itemID()));
+    bookmarkData->SetItemString("typeID", new PyInt(EVEDB::invTypes::CosmicAnomaly));
+    bookmarkData->SetItemString("agentID", new PyInt(offer.agentID));
+    bookmarkData->SetItemString("hint", new PyString(beaconName));
+    bookmarkData->SetItemString("locationType", new PyString("objective.target"));
+    bookmarkData->SetItemString("memo", new PyString(""));
+    bookmarkData->SetItemString("created", new PyLong(GetFileTimeNow()));
+    bookmarkData->SetItemString("locationNumber", new PyInt(0));
+    bookmarkData->SetItemString("flag", PyStatic.NewNone());
+    bookmarkData->SetItemString("locationID", new PyInt(m_system->GetID()));
+    bookmarkData->SetItemString("ownerID", new PyInt(m_char->itemID()));
+    bookmarkData->SetItemString("x", new PyFloat(sitePoint.x));
+    bookmarkData->SetItemString("y", new PyFloat(sitePoint.y));
+    bookmarkData->SetItemString("z", new PyFloat(sitePoint.z));
+    bookmarkData->SetItemString("solarsystemID", new PyInt(m_system->GetID()));
+    offer.bookmarks->AddItem(new PyObject("util.KeyVal", bookmarkData));
+
+    return offer.courierAmount > 0;
+}
+
+void Client::RemoveEncounterMissionSite(const MissionOffer& offer)
+{
+    if (m_system == nullptr || offer.destinationID == 0
+        || offer.destinationSystemID != m_system->GetID())
+        return;
+
+    SystemEntity* pSite = m_system->GetSE(offer.destinationID);
+    // Even if its beacon is gone, a mission bubble may retain stale spawns.
+    SystemBubble* pBubble = (pSite != nullptr ? pSite->SysBubble() : nullptr);
+    if (pBubble == nullptr && offer.dungeonLocationID != 0)
+        pBubble = sBubbleMgr.FindBubbleByID(static_cast<uint16>(offer.dungeonLocationID));
+    if (pBubble != nullptr && pBubble->GetSystem() == m_system
+        && pBubble->IsMission()
+        && pBubble->GetMissionCharacterID() == offer.characterID
+        && pBubble->GetMissionAgentID() == offer.agentID
+        && pBubble->GetMissionOfferID() == offer.offerID
+        && pBubble->GetMissionBeaconID() == offer.destinationID
+        && m_system->GetSpawnMgr() != nullptr) {
+        m_system->GetSpawnMgr()->ReleaseMissionBubble(pBubble, offer.offerID);
+    } else {
+        _log(AGENT__WARNING,
+            "Client::RemoveEncounterMissionSite() - no matching live bubble for "
+            "offer %u beacon %u; another mission was not modified.",
+            offer.offerID, offer.destinationID);
+    }
+
+    if (pSite == nullptr)
+        return;
+    InventoryItemRef siteItem = pSite->GetSelf();
+    m_system->RemoveEntity(pSite);
+    if (siteItem.get() != nullptr)
+        siteItem->Delete();
+    SafeDelete(pSite);
+}
+
 bool Client::IsMissionComplete(MissionOffer& data)
 {
     // dont know all the stipulations of "completion" yet, but skeleton code for starters...
@@ -1814,6 +2165,7 @@ bool Client::IsMissionComplete(MissionOffer& data)
         case Mission::Type::Tutorial: {
         } break;
         case Mission::Type::Encounter: {
+            return (data.courierAmount > 0 && data.courierTypeID >= data.courierAmount);
         } break;
         case Mission::Type::Courier: {
             if (m_locationID == data.destinationID)
@@ -2763,9 +3115,9 @@ bool Client::Handle_Notify(PyPacket* packet)
                 continue;
             }
 
-            // clear bindID from internal map
-            m_bindSet.erase(bindID);
-            m_services.ClearBoundObject(bindID, this);
+            // The client can send another release after unbinding on a jump.
+            if (m_bindSet.erase(bindID) != 0)
+                m_services.ClearBoundObject(bindID, this);
         }
     } else {
         sLog.Error("Client::Notify","Unhandled notification from %s: unknown method '%s'", m_char->name(), notify.method.c_str());
@@ -2782,9 +3134,10 @@ void Client::SendErrorMsg(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "CustomError";
@@ -2799,8 +3152,9 @@ void Client::SendErrorMsg(const char* fmt, ...)
 void Client::SendErrorMsg(const char* fmt, va_list args)
 {
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "CustomError";
@@ -2818,9 +3172,10 @@ void Client::SendInfoModalMsg(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "ServerMessage";
@@ -2838,9 +3193,10 @@ void Client::SendNotifyMsg(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "CustomNotify";
@@ -2855,8 +3211,9 @@ void Client::SendNotifyMsg(const char* fmt, ...)
 void Client::SendNotifyMsg(const char* fmt, va_list args)
 {
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     Notify_OnRemoteMessage n;
     n.msgType = "CustomNotify";
@@ -2874,9 +3231,10 @@ void Client::SelfChatMessage(const char* fmt, ...)
     va_list args;
     va_start(args, fmt);
     char* str(nullptr);
-    vasprintf(&str, fmt, args);
-    assert(str);
+    const int formatResult = vasprintf(&str, fmt, args);
     va_end(args);
+    if (formatResult < 0 || str == nullptr)
+        return;
 
     if (m_channels.empty()) {
         if (m_char.get() != nullptr)

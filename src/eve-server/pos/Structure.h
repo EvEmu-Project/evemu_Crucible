@@ -139,7 +139,7 @@ public:
     /* virtual functions default to base class and overridden as needed */
     virtual void                Killed(Damage &damage);
     virtual void                Init();
-    virtual void                InitData();
+    virtual bool                InitData();
     virtual void                Scoop();
 
     /* virtual functions to be overridden in derived classes */
@@ -178,6 +178,7 @@ public:
     inline void                 SetTimer(uint32 time)   { m_procTimer.SetTimer(time); }
 
     void                        SetUsageFlags(int8 view=0, int8 take=0, int8 use=0);
+    bool                        IsPOSInitialized() const { return m_loaded; }
     inline int8                 CanUse()                { return m_data.use; }
     inline int8                 CanView()               { return m_data.view; }
     inline int8                 CanTake()               { return m_data.take; }
@@ -196,6 +197,9 @@ public:
     void                        SendSlimUpdate();
 
 protected:
+    // Restore anchored state if a sovereignty online precondition fails.
+    // The base Process() has already entered Onlining before invoking SetOnline().
+    void                        RejectOnlining();
     void                        SendEffectUpdate(int16 effectID, bool active);
 
     PosMgrDB                    m_db;

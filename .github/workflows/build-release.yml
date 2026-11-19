@@ -1,0 +1,560 @@
+name: EVEmu Build and Release
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    # Keep the long-running upstream contribution branch testable in the fork.
+    # This exercises Docker, Linux/Windows and MariaDB on its exact head.
+    branches: [master, "contrib/upstream-crucible-maintenance-2026-11-15"]
+    tags: ["v*", "stable-rizonx"]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BUILD_TYPE: Release
+  CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+jobs:
+  linux:
+    name: Linux GCC build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential ccache cmake ninja-build zlib1g-dev libmariadb-dev libboost-all-dev libtinyxml-dev libutfcpp-dev
+      - name: Cache compiler outputs
+        uses: actions/cache@v5
+        with:
+          path: .ccache
+          key: ccache-linux-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-linux-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}-
+            ccache-linux-${{ runner.arch }}-
+      - name: Configure
+        run: |
+          ccache --max-size=1G
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_INSTALL_PREFIX=stage -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Build
+        run: |
+          cmake --build build --parallel 2
+          ccache --show-stats
+      - name: Verify experimental agent portraits are fully removed
+        run: python3 tools/verify_agent_portraits_removed.py
+      - name: Verify agent journal and inventory safety invariants
+        run: python3 tools/verify_station_crash_safety.py
+      - name: Verify NPC market prices are exactly 100 percent of base value
+        run: python3 tools/verify_npc_market_baseprice.py
+      - name: Verify standard NPC buy orders at 100 percent
+        run: python3 tools/verify_npc_buy_seed.py
+      - name: Verify 100-million-unit ore and mineral orders
+        run: python3 tools/verify_ore_mineral_100m.py
+      - name: Verify market lookup and database performance invariants
+        run: python3 tools/verify_market_performance.py
+      - name: Verify gameplay subsystem source invariants
+        run: python3 tools/verify_subsystems_audit.py
+      - name: Verify 12-ship cruiser and battlecruiser Blockade mission
+        run: python3 tools/verify_blockade_12_ship_fleet.py
+      - name: Verify independent DED and Officer Security Agent mission
+        run: python3 tools/verify_elite_security_mission.py
+      - name: Verify Crucible-era weapon ranges and hull warp speed
+        run: python3 tools/verify_crucible_range_and_warp.py
+      - name: Verify blueprint industry workflows
+        run: python3 tools/verify_industry_workflows.py
+      - name: Verify sovereignty and POS integrity invariants
+        run: python3 tools/verify_sov_pos_integrity.py
+      - name: Test
+        run: |
+          ctest --test-dir build -N | tee test-list.txt
+          grep -qE '^  Test #[0-9]+' test-list.txt || { echo "No CTest tests were registered" >&2; exit 1; }
+          ctest --test-dir build --output-on-failure
+      - name: Install
+        run: cmake --install build --prefix stage
+      - name: Set up Go for EVEDBTool
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.23.x'
+      - name: Build patched EVEDBTool Linux x86_64 binary
+        run: |
+          git clone --quiet --depth 1 --branch 0.0.6 https://github.com/EvEmu-Project/EVEDBTool.git "$RUNNER_TEMP/EVEDBTool"
+          cp tools/evedbtool/command_seed.go "$RUNNER_TEMP/EVEDBTool/command_seed.go"
+          cd "$RUNNER_TEMP/EVEDBTool"
+          go version
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w -X main.version=evemu-crucible" -o "$GITHUB_WORKSPACE/sql/evedbtool" .
+          test -s "$GITHUB_WORKSPACE/sql/evedbtool"
+          chmod +x "$GITHUB_WORKSPACE/sql/evedbtool"
+      - name: Smoke-test EVEDBTool market seed SQL
+        run: |
+          cp sql/evedb.yaml.example sql/evedb.yaml
+          (cd sql && ./evedbtool seed -force -dryrun) > "$RUNNER_TEMP/evedbtool-seed-dryrun.log" 2>&1
+          for expected in "550000" "100000000" "RAND() < @saturation" "officer" "deadspace" "faction" "storyline" "NOT EXISTS" "seededGroup.groupID IN (12, 340, 448, 649)" "ig.groupID IN (12, 340, 448, 649)" "marketGroupID IS NOT NULL" "NPC BUY SQL" "eligible.referencePrice * eligible.quantity" "1000125" "tExistingNPCBuySeed"; do
+            grep -Fqi -- "$expected" "$RUNNER_TEMP/evedbtool-seed-dryrun.log" || {
+              echo "EVEDBTool dry-run output is missing expected SQL: $expected" >&2
+              cat "$RUNNER_TEMP/evedbtool-seed-dryrun.log" >&2
+              exit 1
+            }
+          done
+          (cd sql && ./evedbtool seed -buy-only -dryrun) > "$RUNNER_TEMP/evedbtool-buy-only.log" 2>&1
+          grep -q 'NPC BUY SQL' "$RUNNER_TEMP/evedbtool-buy-only.log"
+          if grep -q 'NPC SELL SQL' "$RUNNER_TEMP/evedbtool-buy-only.log"; then
+            echo "Buy-only dryrun would unexpectedly include NPC sells" >&2
+            exit 1
+          fi
+          rm -f sql/evedb.yaml
+      - name: Add runtime files and package
+        run: |
+          mkdir -p stage/share/evemu
+          cp -a sql stage/share/evemu/
+          cp -a tools stage/share/evemu/
+          cp -a utils stage/share/evemu/
+          cp -a config stage/share/evemu/ 2>/dev/null || true
+          printf 'Server Version: 0.8.7-Rizonx\nCommit: %s\nBranch: %s\nPlatform: Linux x86_64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
+          tar -czf evemu-crucible-linux-x86_64.tar.gz -C stage .
+          sha256sum evemu-crucible-linux-x86_64.tar.gz > evemu-crucible-linux-x86_64.tar.gz.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: evemu-crucible-linux-x86_64
+          path: |
+            evemu-crucible-linux-x86_64.tar.gz
+            evemu-crucible-linux-x86_64.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    name: Windows 64-bit UCRT64 GCC build
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Set up MSYS2 UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-binutils
+            mingw-w64-ucrt-x86_64-ccache
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-boost
+            mingw-w64-ucrt-x86_64-libmariadbclient
+            mingw-w64-ucrt-x86_64-tinyxml
+            mingw-w64-ucrt-x86_64-utf8cpp
+            mingw-w64-ucrt-x86_64-zlib
+      - name: Cache compiler outputs
+        uses: actions/cache@v5
+        with:
+          path: .ccache
+          key: ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-${{ hashFiles('CMakeLists.txt', 'cmake/**') }}-
+            ccache-windows-${{ runner.arch }}-${{ github.ref_name }}-
+            ccache-windows-${{ runner.arch }}-
+      - name: Configure
+        shell: msys2 {0}
+        run: |
+          ccache --max-size=1G
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG" -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG" -DCMAKE_INSTALL_PREFIX=stage -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          cmake --build build --parallel 2
+          ccache --show-stats
+      - name: Verify experimental agent portraits are fully removed
+        shell: pwsh
+        run: |
+          python tools/verify_agent_portraits_removed.py
+          if ($LASTEXITCODE -ne 0) { throw "Experimental agent portrait rollback regression" }
+      - name: Verify agent journal and inventory safety invariants
+        shell: pwsh
+        run: |
+          python tools/verify_station_crash_safety.py
+          if ($LASTEXITCODE -ne 0) { throw "Station agent/inventory safety guard regression" }
+      - name: Verify NPC market prices are exactly 100 percent of base value
+        shell: pwsh
+        run: |
+          python tools/verify_npc_market_baseprice.py
+          if ($LASTEXITCODE -ne 0) { throw "NPC market base price regression" }
+      - name: Verify standard NPC buy orders at 100 percent
+        shell: pwsh
+        run: |
+          python tools/verify_npc_buy_seed.py
+          if ($LASTEXITCODE -ne 0) { throw "NPC buy seed regression" }
+      - name: Verify 100-million-unit ore and mineral orders
+        shell: pwsh
+        run: |
+          python tools/verify_ore_mineral_100m.py
+          if ($LASTEXITCODE -ne 0) { throw "Ore/mineral quantity regression" }
+      - name: Verify market lookup and database performance invariants
+        shell: pwsh
+        run: |
+          python tools/verify_market_performance.py
+          if ($LASTEXITCODE -ne 0) { throw "Market query/index/cleanup regression" }
+      - name: Verify gameplay subsystem source invariants
+        shell: pwsh
+        run: |
+          python tools/verify_subsystems_audit.py
+          if ($LASTEXITCODE -ne 0) { throw "Gameplay subsystem audit regression" }
+      - name: Verify 12-ship cruiser and battlecruiser Blockade mission
+        shell: pwsh
+        run: |
+          python tools/verify_blockade_12_ship_fleet.py
+          if ($LASTEXITCODE -ne 0) { throw "Blockade 12-ship fleet regression" }
+      - name: Verify independent DED and Officer Security Agent mission
+        shell: pwsh
+        run: |
+          python tools/verify_elite_security_mission.py
+          if ($LASTEXITCODE -ne 0) { throw "DED/Officer mission regression" }
+      - name: Verify Crucible-era weapon ranges and hull warp speed
+        shell: pwsh
+        run: |
+          python tools/verify_crucible_range_and_warp.py
+          if ($LASTEXITCODE -ne 0) { throw "Crucible weapon/warp regression" }
+      - name: Verify blueprint industry workflows
+        shell: pwsh
+        run: |
+          python tools/verify_industry_workflows.py
+          if ($LASTEXITCODE -ne 0) { throw "Industry blueprint workflow regression" }
+      - name: Verify sovereignty and POS integrity invariants
+        shell: pwsh
+        run: |
+          python tools/verify_sov_pos_integrity.py
+          if ($LASTEXITCODE -ne 0) { throw "Sovereignty/POS source regression" }
+      - name: Test
+        shell: msys2 {0}
+        run: |
+          ctest --test-dir build -N | tee test-list.txt
+          grep -qE '^  Test #[0-9]+' test-list.txt || { echo "No CTest tests were registered" >&2; exit 1; }
+          ctest --test-dir build --output-on-failure
+      - name: Install
+        shell: msys2 {0}
+        run: cmake --install build --prefix stage
+      - name: Set up Go for EVEDBTool
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.23.x'
+      - name: Build patched EVEDBTool Windows x86_64 binary
+        shell: pwsh
+        run: |
+          $toolSource = Join-Path $env:RUNNER_TEMP "EVEDBTool"
+          git clone --quiet --depth 1 --branch 0.0.6 https://github.com/EvEmu-Project/EVEDBTool.git $toolSource
+          Copy-Item tools/evedbtool/command_seed.go (Join-Path $toolSource "command_seed.go")
+          Push-Location $toolSource
+          $env:CGO_ENABLED = "0"
+          $env:GOOS = "windows"
+          $env:GOARCH = "amd64"
+          go version
+          go build -trimpath -ldflags "-s -w -X main.version=evemu-crucible" -o "$env:GITHUB_WORKSPACE/sql/evedbtool.exe" .
+          Pop-Location
+          if (!(Test-Path "sql/evedbtool.exe") -or (Get-Item "sql/evedbtool.exe").Length -lt 1000000) {
+            throw "Patched EVEDBTool build is missing or unexpectedly small."
+          }
+          Get-FileHash "sql/evedbtool.exe" -Algorithm SHA256 | Format-List
+      - name: Smoke-test EVEDBTool market seed SQL
+        shell: pwsh
+        run: |
+          Copy-Item sql/evedb.yaml.example sql/evedb.yaml
+          Push-Location sql
+          $output = & .\evedbtool.exe seed -force -dryrun 2>&1 | Out-String
+          $exitCode = $LASTEXITCODE
+          Pop-Location
+          if ($exitCode -ne 0) { throw "EVEDBTool seed dry-run failed: $output" }
+          foreach ($expected in @("550000", "100000000", "RAND() < @saturation", "officer", "deadspace", "faction", "storyline", "NOT EXISTS", "seededGroup.groupID IN (12, 340, 448, 649)", "ig.groupID IN (12, 340, 448, 649)", "marketGroupID IS NOT NULL", "NPC BUY SQL", "eligible.referencePrice * eligible.quantity", "1000125", "tExistingNPCBuySeed")) {
+            if (!$output.Contains($expected, [StringComparison]::OrdinalIgnoreCase)) {
+              throw "EVEDBTool dry-run output is missing expected SQL: $expected"
+            }
+          }
+          Push-Location sql
+          try {
+            $buyOnlyOutput = & .\evedbtool.exe seed -buy-only -dryrun 2>&1 | Out-String
+            $buyOnlyExitCode = $LASTEXITCODE
+          } finally {
+            Pop-Location
+          }
+          if ($buyOnlyExitCode -ne 0 -or !$buyOnlyOutput.Contains("NPC BUY SQL") -or $buyOnlyOutput.Contains("NPC SELL SQL")) {
+            throw "EVEDBTool -buy-only dryrun is not isolated to NPC buys: $buyOnlyOutput"
+          }
+          Remove-Item sql/evedb.yaml -Force
+      - name: Bundle UCRT64 runtime DLLs beside executables
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          mkdir -p stage/share/evemu
+          cp -a sql stage/share/evemu/
+          cp -a tools stage/share/evemu/
+          cp -a utils stage/share/evemu/
+          if [[ -d config ]]; then cp -a config stage/share/evemu/; fi
+          printf 'Server Version: 0.8.7-Rizonx\nCommit: %s\nBranch: %s\nPlatform: Windows x86_64 UCRT64\n' "$GITHUB_SHA" "$GITHUB_REF_NAME" > stage/BUILD-INFO.txt
+
+          # Use the active UCRT64 prefix explicitly. Do not resolve objdump
+          # from the Windows PATH, which can select an unrelated MINGW64 tool.
+          objdump=/ucrt64/bin/objdump.exe
+          test -x "$objdump"
+          mapfile -t exe_dirs < <(find stage -type f -iname '*.exe' ! -path '*/share/evemu/sql/evedbtool.exe' -printf '%h\n' | sort -u)
+          (("${#exe_dirs[@]}" > 0)) || { echo "No staged Windows executable found" >&2; exit 1; }
+
+          for exe_dir in "${exe_dirs[@]}"; do
+            declare -A copied=()
+            queue=()
+            while IFS= read -r -d '' binary; do queue+=("$binary"); done < <(find "$exe_dir" -maxdepth 1 -type f \( -iname '*.exe' -o -iname '*.dll' \) -print0)
+            index=0
+            while (( index < ${#queue[@]} )); do
+              binary="${queue[$index]}"
+              ((index+=1))
+              while IFS= read -r name; do
+                [[ -n "$name" ]] || continue
+                key="${name,,}"
+                [[ -z "${copied[$key]+x}" ]] || continue
+                copied[$key]=1
+                candidate="/ucrt64/bin/$name"
+                if [[ -f "$candidate" ]]; then
+                  destination="$exe_dir/$name"
+                  if [[ ! -f "$destination" ]]; then cp -f "$candidate" "$destination"; fi
+                  queue+=("$destination")
+                fi
+              done < <("$objdump" -p "$binary" 2>/dev/null | awk '/DLL Name:/ {print $3}')
+            done
+          done
+
+          # Verify the exact UCRT64 package filenames in the Windows loader
+          # search directory. TinyXML's UCRT64 package ships libtinyxml-0.dll.
+          for exe_dir in "${exe_dirs[@]}"; do
+            for name in libtinyxml-0.dll libmariadb.dll libz-1.dll; do
+              if [[ ! -f "$exe_dir/$name" ]]; then
+                echo "Required runtime DLL $name missing beside executable in $exe_dir" >&2
+                echo "Available UCRT64 DLLs:" >&2
+                find /ucrt64/bin -maxdepth 1 -type f -iname '*.dll' -printf '%f\n' | sort >&2
+                exit 1
+              fi
+            done
+          done
+      - name: Create Windows ZIP and checksum
+        shell: pwsh
+        run: |
+          Compress-Archive -Path stage\* -DestinationPath evemu-crucible-windows-x86_64.zip -Force
+          $hash = (Get-FileHash evemu-crucible-windows-x86_64.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  evemu-crucible-windows-x86_64.zip" | Set-Content evemu-crucible-windows-x86_64.zip.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: evemu-crucible-windows-x86_64
+          path: |
+            evemu-crucible-windows-x86_64.zip
+            evemu-crucible-windows-x86_64.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  npc-buy-mariadb:
+    name: NPC buy seed MariaDB insertion (unsigned orderRange)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    services:
+      mariadb:
+        image: mariadb:11.8
+        env:
+          MARIADB_ROOT_PASSWORD: npc_seed_ci_only
+          MARIADB_DATABASE: EvE
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.23.x'
+      - name: Install MariaDB client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mariadb-client
+      - name: Verify POS industry slot migration and provisioning
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE pos_industry_test"
+          python3 tools/tests/verify_pos_industry_lines.py --host=127.0.0.1 --user=root --database=pos_industry_test
+      - name: Verify guarded Crucible static attribute migration
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          set -euo pipefail
+          mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE crucible_attribute_test"
+          {
+            cat <<'SQL'
+          CREATE TABLE invTypes (typeID INT PRIMARY KEY, radius DOUBLE, mass DOUBLE, capacity DOUBLE);
+          CREATE TABLE dgmTypeAttributes (typeID INT, attributeID INT, valueInt INT, valueFloat DOUBLE, PRIMARY KEY (typeID, attributeID));
+          CREATE TABLE entity (itemID INT PRIMARY KEY, typeID INT, locationID INT, flag INT);
+          INSERT INTO invTypes VALUES (4256,1,1,150),(450,1,1,0),(451,1,420,0),(12346,100,1,0);
+          INSERT INTO dgmTypeAttributes VALUES (22852,271,NULL,0.97),(22544,12,4,NULL),(2998,12,5,NULL);
+          INSERT INTO entity VALUES (100,22544,0,0),(101,1,100,11);
+          SQL
+            sed '/^-- +migrate Down/,$d' sql/migrations/20261118123000-crucible-static-attribute-corrections.sql
+            cat <<'SQL'
+          SELECT GROUP_CONCAT(CONCAT(typeID,':',radius,':',mass,':',capacity) ORDER BY typeID)
+          FROM invTypes WHERE typeID IN (4256,450,451);
+          SELECT GROUP_CONCAT(CONCAT(typeID,':',COALESCE(valueInt,valueFloat)) ORDER BY typeID)
+          FROM dgmTypeAttributes;
+          SELECT radius FROM invTypes WHERE typeID = 12346;
+          SQL
+          } | mariadb --host=127.0.0.1 --user=root --database=crucible_attribute_test --batch --skip-column-names > "$RUNNER_TEMP/crucible-attribute-test.txt"
+          diff -u <(printf '%s\n' '450:1:500:0,451:1:420:0,4256:1:1:225' '2998:3,22544:4,22852:1' '10') "$RUNNER_TEMP/crucible-attribute-test.txt"
+      - name: Verify Crucible capital warp seed and rollback
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          set -euo pipefail
+          mariadb --host=127.0.0.1 --user=root -e "CREATE DATABASE crucible_capital_warp_test"
+          migration=sql/migrations/20261118130000-crucible-capital-warp-speeds.sql
+          {
+            cat <<'SQL'
+          CREATE TABLE invTypes (typeID INT PRIMARY KEY, groupID INT, published BIT);
+          CREATE TABLE dgmTypeAttributes (typeID INT, attributeID INT, valueInt INT, valueFloat DOUBLE, PRIMARY KEY (typeID, attributeID)) ENGINE=MyISAM;
+          INSERT INTO invTypes VALUES (671,30,1),(20183,513,1),(20185,513,1),(20187,513,0),(20189,513,1),(28352,883,1),(28606,941,1),(28844,902,1);
+          INSERT INTO dgmTypeAttributes VALUES (671,600,NULL,1.5),(20183,600,NULL,0.25),(20185,600,NULL,0.75),(20187,600,NULL,0.25),(20189,600,NULL,0.5),(28352,600,NULL,1.5),(28606,600,NULL,1.5),(28606,1281,1,NULL),(28844,600,NULL,0.75);
+          SQL
+            sed '/^-- +migrate Down/,$d' "$migration"
+            sed '/^-- +migrate Down/,$d' "$migration"
+            cat <<'SQL'
+          SELECT COUNT(*) FROM crucibleCapitalWarpPrevious;
+          SELECT GROUP_CONCAT(CONCAT(typeID,':',attributeID,':',COALESCE(valueFloat,valueInt)) ORDER BY typeID,attributeID) FROM dgmTypeAttributes;
+          UPDATE dgmTypeAttributes SET valueFloat=3.3 WHERE typeID=28606 AND attributeID=600;
+          SQL
+            sed -n '/^-- +migrate Down/,$p' "$migration"
+            printf '%s\n' "SELECT GROUP_CONCAT(CONCAT(typeID,':',attributeID,':',COALESCE(valueFloat,valueInt)) ORDER BY typeID,attributeID) FROM dgmTypeAttributes;"
+          } | mariadb --host=127.0.0.1 --user=root --database=crucible_capital_warp_test --batch --skip-column-names > "$RUNNER_TEMP/crucible-capital-warp.txt"
+          diff -u <(printf '%s\n' '3' '671:600:1.5,20183:600:0.75,20185:600:0.75,20187:600:0.25,20189:600:0.5,28352:600:1.2,28606:600:2.7,28606:1281:1,28844:600:0.75' '671:600:1.5,20183:600:0.25,20185:600:0.75,20187:600:0.25,20189:600:0.5,28352:600:1.5,28606:600:3.3,28606:1281:1,28844:600:0.75') "$RUNNER_TEMP/crucible-capital-warp.txt"
+      - name: Build the patched EVEDBTool
+        run: |
+          git clone --quiet --depth 1 --branch 0.0.6 https://github.com/EvEmu-Project/EVEDBTool.git "$RUNNER_TEMP/EVEDBTool"
+          cp tools/evedbtool/command_seed.go "$RUNNER_TEMP/EVEDBTool/command_seed.go"
+          (cd "$RUNNER_TEMP/EVEDBTool" && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o "$GITHUB_WORKSPACE/sql/evedbtool" .)
+          chmod +x sql/evedbtool
+      - name: Prove seed executes against an unsigned database column
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          set -euo pipefail
+          mariadb --host=127.0.0.1 --port=3306 --user=root --database=EvE < tools/tests/npc_buy_seed_unsigned_schema.sql
+          sed -e 's/db-user: evemu/db-user: root/'               -e 's/db-pass: CHANGE_ME/db-pass: npc_seed_ci_only/'               -e 's/seed-saturation: 80/seed-saturation: 100/'               sql/evedb.yaml.example > sql/evedb.yaml
+          # This exact -force operation previously failed at INSERT row 1.
+          (cd sql && ./evedbtool seed -buy-only -force)
+          query() {
+            mariadb --host=127.0.0.1 --port=3306 --user=root --database=EvE --batch --skip-column-names -e "$1"
+          }
+          expect() {
+            local actual
+            actual="$(query "$1")"
+            if [[ "$actual" != "$2" ]]; then
+              echo "FAIL: expected [$2] but found [$actual] for: $1" >&2
+              exit 1
+            fi
+          }
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "6"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=1" "0"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=32767 AND price=6.25 AND escrow=25.00" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000 AND bid=1 AND price=5.00 AND escrow=50.00" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000 AND bid=0 AND price=8.00" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND price=6.25" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID=101 AND price=100.00" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID=100 AND price=0.01 AND volEntered=550000" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID IN (34,35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "4"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID=200 AND escrow=42050000000.00" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID=202" "0"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID IN (102,103)" "0"
+          # A second normal seed must not duplicate the force-seeded orders.
+          (cd sql && ./evedbtool seed -buy-only)
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "6"
+          # A second force must refresh only the seed-managed rows.
+          (cd sql && ./evedbtool seed -buy-only -force)
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250" "6"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000" "2"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0" "1"
+          expect "SELECT COUNT(*) FROM (SELECT stationID,typeID,COUNT(*) AS n FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND duration=250 GROUP BY stationID,typeID HAVING n>1) AS dup" "0"
+          # Full seed creates matching NPC sell quantities; players remain untouched.
+          (cd sql && ./evedbtool seed -force)
+          # The fixture has a player Tritanium sell: seeded NPC sells must not replace it.
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND typeID IN (35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "3"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000 AND bid=0 AND typeID=34 AND volEntered=10 AND volRemaining=10" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=1000125 AND bid=0 AND typeID=100 AND volEntered=550000" "1"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000" "2"
+          expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID IN (34,35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "4"
+          rm -f sql/evedb.yaml
+          echo "PASS: unsigned orderRange insert, 100% prices, legacy NPC migration, player preservation, rerun and force scope."
+      - name: Validate additive market indexes against the MariaDB order fixture
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          set -euo pipefail
+          migration=sql/migrations/20261119113000-market-order-lookup-indexes.sql
+          sed '/^-- +migrate Down/,$d' "$migration" | mariadb --host=127.0.0.1 --user=root --database=EvE
+          # Idempotence: re-running Up must not remove data or duplicate indexes.
+          sed '/^-- +migrate Down/,$d' "$migration" | mariadb --host=127.0.0.1 --user=root --database=EvE
+          actual="$(mariadb --host=127.0.0.1 --user=root --database=EvE --batch --skip-column-names -e "SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA='EvE' AND TABLE_NAME='mktOrders' AND INDEX_NAME IN ('ix_mkt_region_book_v1','ix_mkt_station_asks_v1','ix_mkt_system_asks_v1','ix_mkt_owner_expiry_v1')")"
+          [[ "$actual" == "4" ]] || { echo "Missing additive market indexes: $actual" >&2; exit 1; }
+          # No market transactions/orders should be rewritten by the index DDL.
+          actual="$(mariadb --host=127.0.0.1 --user=root --database=EvE --batch --skip-column-names -e "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000")"
+          [[ "$actual" == "2" ]] || { echo "Player orders changed during index migration" >&2; exit 1; }
+          mariadb --host=127.0.0.1 --user=root --database=EvE --batch -e "EXPLAIN SELECT price, orderID FROM mktOrders WHERE regionID=10000001 AND typeID=34 AND bid=0"
+          mariadb --host=127.0.0.1 --user=root --database=EvE --batch -e "EXPLAIN SELECT typeID, MIN(price) FROM mktOrders WHERE stationID=60000001 AND bid=0 GROUP BY typeID"
+          echo "PASS: market lookup indexes are additive, idempotent and preserve player orders."
+
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          pull: true
+          push: false
+          tags: evemu-crucible:ci
+          cache-from: type=gha,scope=evemu-docker
+          cache-to: type=gha,mode=max,scope=evemu-docker
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/tags/stable-rizonx'
+    needs: [linux, windows, docker, npc-buy-mariadb]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download Linux build
+        uses: actions/download-artifact@v8
+        with:
+          name: evemu-crucible-linux-x86_64
+          path: dist
+      - name: Download Windows build
+        uses: actions/download-artifact@v8
+        with:
+          name: evemu-crucible-windows-x86_64
+          path: dist
+      - name: Publish release with both platforms and checksums
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/evemu-crucible-linux-x86_64.tar.gz
+            dist/evemu-crucible-linux-x86_64.tar.gz.sha256
+            dist/evemu-crucible-windows-x86_64.zip
+            dist/evemu-crucible-windows-x86_64.zip.sha256

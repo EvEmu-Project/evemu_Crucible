@@ -641,13 +641,25 @@ int64 Character::GetEndOfTraining() {
 
 void Character::RemoveFromQueue(SkillRef sRef)
 {
+    if (sRef.get() == nullptr)
+        return;
+
+    bool removed(false);
     SkillQueue::iterator itr = m_skillQueue.begin();
     while (itr != m_skillQueue.end()) {
-        if (sRef->typeID() == itr->typeID)
-            if (sRef->GetAttribute(AttrSkillLevel).get_uint32() >= itr->level)
-                itr = m_skillQueue.erase(itr);
+        if ((sRef->typeID() == itr->typeID)
+            && (sRef->GetAttribute(AttrSkillLevel).get_uint32() >= itr->level)) {
+            itr = m_skillQueue.erase(itr);
+            removed = true;
+        } else {
+            // Always advance when the current queue entry is retained.
+            ++itr;
+        }
     }
-    SkillQueueLoop();
+
+    // Recalculate and notify only when this skill actually changed the queue.
+    if (removed)
+        SkillQueueLoop();
 }
 
 void Character::ClearSkillQueue(bool update/*false*/)

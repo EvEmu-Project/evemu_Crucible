@@ -25,6 +25,9 @@
 */
 
 #include <boost/algorithm/string.hpp>
+#include <iomanip>
+#include <locale>
+#include <sstream>
 #include "eve-server.h"
 
 #include "EntityList.h"
@@ -268,10 +271,18 @@ void ServiceDB::ProcessRealChange(const char * key, double oldValue, double newV
     val->items[1] = new PyFloat(newValue);
     notif->SetItemString(key, val);
 
-    int* nullInt(nullptr);
+    // Use a locale-independent fixed-point representation for SQL numeric
+    // literals. fcvt() requires valid output pointers and is not thread-safe.
+    std::ostringstream formattedValue;
+    formattedValue.imbue(std::locale::classic());
+    // Rates such as a 12.5% corporation tax are stored as 0.125.
+    // Two decimal places silently turned them into 13%; retain fractional
+    // percent precision for all persisted real-valued changes.
+    formattedValue << std::fixed << std::setprecision(6) << newValue;
+
     std::string qValue(key);
     qValue += " = ";
-    qValue += fcvt(newValue, 2, nullInt, nullInt);
+    qValue += formattedValue.str();
     dbQ.push_back(qValue);
 }
 

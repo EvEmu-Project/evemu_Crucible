@@ -54,34 +54,58 @@ void TurretModule::UnloadCharge()
 
 void TurretModule::ApplyDamage()
 {
+    Client* pilot = m_shipRef->GetPilot();
+    ShipSE* sourceSE = (pilot != nullptr) ? pilot->GetShipSE() : nullptr;
+    SystemManager* system = (sourceSE != nullptr) ? sourceSE->SystemMgr() : nullptr;
+    SystemEntity* liveTarget = (system != nullptr && m_targetID != 0)
+        ? system->GetSE(m_targetID) : nullptr;
+
+    // Turret modules must never fire without a live, current target and source.
+    // Resolve by ID before touching the cached target pointer, which may have
+    // been invalidated by target removal during the previous server tick.
+    if (pilot == nullptr || sourceSE == nullptr || liveTarget == nullptr
+        || liveTarget != m_targetSE || liveTarget->DestinyMgr() == nullptr
+        || liveTarget->GetSelf().get() == nullptr) {
+        _log(MODULE__WARNING, "TurretModule::ApplyDamage() - module %s(%u) has no live source/target; stopping cycle.",
+             m_modRef->name(), m_modRef->itemID());
+        m_targetSE = nullptr;
+        Deactivate("TargetDestroyed");
+        return;
+    }
+
     if (m_chargeRef.get() == nullptr) {
-        // catchall
-        m_shipRef->GetPilot()->SendErrorMsg("Your %s in %s doesnt have a charge registered.<br>You can try Unload/Reload, but if this error happens again, dock or relog.", \
+        pilot->SendErrorMsg("Your %s in %s doesnt have a charge registered.<br>You can try Unload/Reload, but if this error happens again, dock or relog.",
                 m_modRef->name(), sDataMgr.GetFlagName(m_modRef->flag()));
-        _log(MODULE__ERROR, "TurretModule::ApplyDamage() - module %s(%u) does not have a m_chargeRef.",  m_modRef->name(), m_modRef->itemID());
+        _log(MODULE__ERROR, "TurretModule::ApplyDamage() - module %s(%u) does not have a m_chargeRef.",
+             m_modRef->name(), m_modRef->itemID());
         Deactivate();
         return;
     }
-    // add data to StatisticMgr
+
     sStatMgr.Increment(Stat::pcShots);
 
-    Damage d(m_shipRef->GetPilot()->GetShipSE(),
+    Damage d(sourceSE,
             m_modRef,
             m_chargeRef->GetAttribute(AttrKineticDamage).get_float(),
             m_chargeRef->GetAttribute(AttrThermalDamage).get_float(),
             m_chargeRef->GetAttribute(AttrEmDamage).get_float(),
             m_chargeRef->GetAttribute(AttrExplosiveDamage).get_float(),
-            m_formula.GetToHit(m_shipRef, this, m_targetSE),
+            m_formula.GetToHit(m_shipRef, this, liveTarget),
             m_effectID
     );
 
-    d *= GetAttribute(AttrDamageMultiplier).get_float();
+    // A missing DamageMultiplier should not turn an otherwise functional
+    // civilian/legacy turret into a zero-damage weapon.
+    float weaponMultiplier = GetAttribute(AttrDamageMultiplier).get_float();
+    if (!std::isfinite(weaponMultiplier) || weaponMultiplier <= 0.0f)
+        weaponMultiplier = 1.0f;
+    d *= weaponMultiplier;
     d *= sConfig.rates.turretDamage;
 
     if (m_linkMaster)
-        d *= m_shipRef->GetLoadedLinkedCount(this);   // only loaded weapons add to damage.
+        d *= m_shipRef->GetLoadedLinkedCount(this);
 
-    m_targetSE->ApplyDamage(d);
+    liveTarget->ApplyDamage(d);
 
     switch (m_modRef->groupID()) {
         case EVEDB::invGroups::Projectile_Weapon:
@@ -89,13 +113,12 @@ void TurretModule::ApplyDamage()
             ConsumeCharge();
         } break;
         case EVEDB::invGroups::Energy_Weapon: {
-            // AttrUsageDamagePercent
             if (m_chargeRef->HasAttribute(AttrCrystalsGetDamaged))
-                if (MakeRandomFloat(0,1) < m_crystalDmgChance) {
+                if (MakeRandomFloat(0, 1) < m_crystalDmgChance) {
                     m_crystalDmg += m_crystalDmgAmount;
                     if (m_crystalDmg > 1.0f) {
-                        m_shipRef->GetPilot()->SendNotifyMsg("Your %s loaded in %s has been destroyed.", m_chargeRef->name(), m_modRef->name());
-                        InventoryItemRef chargeRef = m_chargeRef;   // make a copy of item ref, as m_chargeRef = NULL after next call returns
+                        pilot->SendNotifyMsg("Your %s loaded in %s has been destroyed.", m_chargeRef->name(), m_modRef->name());
+                        InventoryItemRef chargeRef = m_chargeRef;
                         m_shipRef->RemoveItem(m_chargeRef);
                         chargeRef->Delete();
                     } else {

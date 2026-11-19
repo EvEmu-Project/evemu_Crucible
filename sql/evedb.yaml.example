@@ -1,0 +1,14 @@
+# Copy this file to evedb.yaml and edit the connection details.
+# Keep your real password local; do not commit evedb.yaml.
+log-level: Info
+db-host: 127.0.0.1
+db-port: "3306"
+db-user: evemu
+db-pass: CHANGE_ME
+db-database: EvE
+migrations-dir: migrations
+base-dir: base
+dungeon-dir: dungeons
+seed-regions:
+  - Derelik
+seed-saturation: 80

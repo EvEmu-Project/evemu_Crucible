@@ -75,7 +75,6 @@ m_beltMgr(new BeltMgr(this, svc)),
 m_dungMgr(new DungeonMgr(this, svc)),
 m_spawnMgr(new SpawnMgr(this, svc)),
 m_loaded(false),
-m_entityChanged(false),
 m_docked(0),
 m_players(0),
 m_beltCount(0),
@@ -224,36 +223,47 @@ bool SystemManager::LoadCosmicMgrs()
 bool SystemManager::ProcessTic() {
     double profileStartTime(GetTimeUSeconds());
 
-    /* the idea here is entities map NEVER has invalid items in it, but our iterator may become invalid
-     *      when SE->Process() returns because Process() will add/remove from the map as needed
-     *      (new objects, destroyed objects, moved objects, etc)
-     *  std::map internally orders items by key(itemID here), so use an int var to hold last-processed itemID (mLast).
-     *  when iteration starts over, increment until cur > mLast and continue from there to end of list.
+    /*
+     * Entity Process() callbacks can add or remove entities from the system
+     * maps.  Never keep a std::map iterator alive across one of those callbacks:
+     * erasing the current or another entry invalidates an iterator that a later
+     * ++itr would otherwise dereference inside std::_Rb_tree_increment.
+     *
+     * Snapshot IDs first, then re-resolve each entry immediately before calling
+     * it.  This gives newly-added entities their first tic on the next pass and
+     * safely skips entities removed earlier in this pass.
      */
-    std::map<uint32, SystemEntity*>::iterator itr = m_ticEntities.begin();
-    uint32 mLast(0);
-    while (itr != m_ticEntities.end()) {
-        if (mLast >= itr->first) {
-            ++itr;
-            continue;
-        }
+    std::vector<uint32> ticEntityIDs;
+    ticEntityIDs.reserve(m_ticEntities.size());
+    for (const auto& entry : m_ticEntities)
+        ticEntityIDs.push_back(entry.first);
 
-         /* main process call. */
-        mLast = itr->first;     // not sure if this will slow this down or not.  check profile
-        itr->second->Process();
-
-        if (m_entityChanged) {
-            m_entityChanged = false;
-            itr = m_ticEntities.begin();
+    for (uint32 entityID : ticEntityIDs) {
+        auto itr = m_ticEntities.find(entityID);
+        if (itr == m_ticEntities.end() || itr->second == nullptr)
             continue;
-        }
-        ++itr;
+
+        SystemEntity* pSE = itr->second;
+        pSE->Process();
     }
 
-    // tic for sov structures (as they aren't in ticEntities)
-    for (auto cur : m_opStaticEntities)
-        if (cur.second->IsOperSE())
-            cur.second->GetPOSSE()->Process();
+    // Tic sov structures (not present in ticEntities).  Process from an ID
+    // snapshot as these callbacks can also change the operational-entity map.
+    std::vector<uint32> operationalEntityIDs;
+    operationalEntityIDs.reserve(m_opStaticEntities.size());
+    for (const auto& entry : m_opStaticEntities)
+        operationalEntityIDs.push_back(entry.first);
+
+    for (uint32 entityID : operationalEntityIDs) {
+        auto itr = m_opStaticEntities.find(entityID);
+        if (itr == m_opStaticEntities.end() || itr->second == nullptr)
+            continue;
+
+        SystemEntity* pSE = itr->second;
+        if (pSE->IsOperSE())
+            pSE->GetPOSSE()->Process();
+    }
+
     // check bounty timer
     if (m_bountyTimer.Check(sConfig.server.BountyPayoutDelayed))
         PayBounties();
@@ -266,9 +276,16 @@ bool SystemManager::ProcessTic() {
 
     // process planets for PI
     if (m_minutetimer.Check()) {
-        //++m_minutes;  // not used at this time
-        for (auto cur : m_planetMap)
-            cur.second->Process();
+        std::vector<uint32> planetIDs;
+        planetIDs.reserve(m_planetMap.size());
+        for (const auto& entry : m_planetMap)
+            planetIDs.push_back(entry.first);
+
+        for (uint32 entityID : planetIDs) {
+            auto itr = m_planetMap.find(entityID);
+            if (itr != m_planetMap.end() && itr->second != nullptr)
+                itr->second->Process();
+        }
     }
 
     if (sConfig.debug.UseProfiling)
@@ -395,6 +412,12 @@ bool SystemManager::LoadSystemStatics() {
                 /*  types 12242 - 22298 in group 15 are outposts */
                 /*  types 29323 - 29390 in group 15 are wrecked stations */
                 StationItemRef itemRef = sItemFactory.GetStationRef(cur.itemID);
+                if (itemRef.get() == nullptr) {
+                    sLog.Error("SystemManager::LoadSystemStatics",
+                               "Cannot load station item %u (type %u) in system %u; skipping invalid static entity.",
+                               cur.itemID, cur.typeID, m_data.systemID);
+                    continue;
+                }
                 StationSE *pSSE = new StationSE(itemRef, GetServiceMgr(), this);
                 sEntityList.AddStation(cur.itemID, itemRef);
                 pSE = pSSE;
@@ -483,7 +506,7 @@ bool SystemManager::LoadSystemDynamics() {
         if (pSE->GetPosition().isZero())
             pSE->SetPosition(sMapData.GetRandPointOnPlanet(m_data.systemID));
         //pSE->SetPosition(sMapData.GetRandPointOnMoon(m_data.systemID));
-        if (pSE->GetTypeID() == EVEDB::invGroups::Wormhole) { //Wormholes don't need anomaly signals
+        if (pSE->GetGroupID() == EVEDB::invGroups::Wormhole) { // Wormholes don't need anomaly signals
             AddEntity(pSE, false);
         } else {
             AddEntity(pSE);
@@ -559,7 +582,7 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
         case EVEDB::invCategories::Asteroid: {
             InventoryItemRef asteroid = sItemFactory.GetItemRef( entity.itemID );
             if (asteroid.get() == nullptr)
-                ; /** @todo make error msg here */
+                return nullptr;
             AsteroidSE* aSE = new AsteroidSE(asteroid, sysMgr.GetServiceMgr(), &sysMgr);
             _log(ITEM__TRACE, "DynamicEntityFactory::BuildEntity() making AsteroidSE for %s (%u)", entity.itemName.c_str(), entity.itemID);
             return aSE;
@@ -915,8 +938,14 @@ SystemEntity* DynamicEntityFactory::BuildEntity(SystemManager& sysMgr, const DBS
             }
         } break;
     }
-    sLog.Warning("BuildEntity", "Unhandled dynamic entity category %u for item %u of type %u", entity.categoryID, entity.itemID, entity.typeID);
-    EvE::traceStack();
+    // Unsupported legacy database rows are data-validation failures, not
+    // necessarily fatal C++ errors. An unconditional traceStack() here printed
+    // the same unsymbolized Windows call stack once for EVERY skipped row
+    // during system loading, obscuring the useful IDs from the log.
+    sLog.Warning("DynamicEntityFactory::BuildEntity",
+                 "Skipping unsupported dynamic entity %u: category=%u group=%u type=%u system=%u.",
+                 entity.itemID, entity.categoryID, entity.groupID,
+                 entity.typeID, sysMgr.GetID());
     return nullptr;
 }
 
@@ -1070,7 +1099,6 @@ void SystemManager::AddEntity(SystemEntity* pSE, bool addSignal/*true*/) {
             sEntityList.AddProbe(itemID, pSE->GetProbeSE());
         } else if (!IsStaticItem(itemID)) {
             // *most* dynamic items need proc tics.  add to proc list
-            m_entityChanged = true;
             m_ticEntities[itemID] = pSE;
         } else {
             addSignal = false;
@@ -1094,7 +1122,6 @@ void SystemManager::RemoveEntity(SystemEntity* pSE) {
     RemoveItemFromInventory(pSE->GetSelf());
     // remove entity from our maps
     uint32 itemID(pSE->GetID());
-    m_entityChanged = true;
     m_ticEntities.erase(itemID);
     m_staticEntities.erase(itemID);
     m_opStaticEntities.erase(itemID);
@@ -1257,9 +1284,8 @@ void SystemManager::DoSpawnForBubble(SystemBubble* pBubble)
     if (!m_spawnMgr->IsInitialized())
         return;
 
-    if (m_beltCount < 1)
-        return;
-
+    // Gate NPCs must remain possible in systems with no asteroid belts.
+    // The belt-cap check below still protects roaming belt spawns.
     if (is_log_enabled(SPAWN__MESSAGE))
         _log(SPAWN__MESSAGE, "Spawn called for bubble %u(%u) in %s(%u)[%.4f], region %u.", \
              pBubble->GetID(), sBubbleMgr.GetBeltID(pBubble->GetID()), m_data.name.c_str(), \
@@ -1289,11 +1315,10 @@ void SystemManager::GetSpawnBubbles(SpawnBubbleMap* bubbleMap)
 
 void SystemManager::RemoveSpawnBubble(SystemBubble* pBubble)
 {
-    if (pBubble->IsBelt()) {
-        m_ratBubbles.erase(pBubble->GetID());
+    const bool wasTracked = m_ratBubbles.erase(pBubble->GetID()) > 0;
+    if (wasTracked && pBubble->IsBelt() && m_activeRatSpawns > 0) {
         --m_activeRatSpawns;
-    } else if (pBubble->IsGate()) {
-        m_ratBubbles.erase(pBubble->GetID());
+    } else if (wasTracked && pBubble->IsGate() && m_activeGateSpawns > 0) {
         --m_activeGateSpawns;
     }
     if (is_log_enabled(SPAWN__MESSAGE))
@@ -1302,7 +1327,9 @@ void SystemManager::RemoveSpawnBubble(SystemBubble* pBubble)
 
 uint32 SystemManager::GetRandBeltID()
 {
-    return m_beltVector.at(MakeRandomInt(0, m_beltCount));
+    if (m_beltVector.empty())
+        return 0;
+    return m_beltVector.at(MakeRandomInt(0, m_beltVector.size() - 1));
 }
 
 void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) const {
@@ -1341,7 +1368,7 @@ void SystemManager::MakeSetState(const SystemBubble* pBubble,  SetState& into) c
 
     //go through all visible entities and gather the info we need...
     for (auto cur : visibleEntities) {
-        if (!cur.second->IsMissileSE() or !cur.second->IsFieldSE())
+        if (!cur.second->IsMissileSE() && !cur.second->IsFieldSE())
             into.damageState[ cur.first ] = cur.second->MakeDamageState();
 
         into.slims->AddItem( new PyObject( "foo.SlimItem", cur.second->MakeSlimItem()));

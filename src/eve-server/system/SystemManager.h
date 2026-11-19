@@ -154,11 +154,18 @@ public:
     std::map<uint32, SystemEntity*> GetOperationalStatics() { return m_opStaticEntities; }
     std::map<uint32, SystemEntity*> GetGates() { return m_gateMap; }
 
-    SystemEntity* GetEntityByID(uint32 itemID) { return m_entities.find(itemID)->second; }
+    // Do not dereference end() when a destroyed entity is queried by ID.
+    SystemEntity* GetEntityByID(uint32 itemID) {
+        const auto itr = m_entities.find(itemID);
+        return (itr != m_entities.end()) ? itr->second : nullptr;
+    }
 
     void GetClientList(std::vector<Client*>& cVec);
 
+    // Retain the copy-returning API for callers needing a stable snapshot.
     std::map< uint32, SystemEntity* > GetEntities()     { return m_entities; }
+    // Read-only view for scans that do not mutate the registry (e.g. DroneAI).
+    const std::map<uint32, SystemEntity*>& GetEntitiesView() const { return m_entities; }
 
     SystemEntity* GetPlanet(uint32 planetID);
 
@@ -221,7 +228,6 @@ private:
     uint32 m_activityTime;
 
     // system entity lists:
-    bool m_entityChanged :1;
     std::map<uint32, NPC*> m_npcs;
     std::map<uint32, Client*> m_clients;
     std::map<uint32, SystemEntity*> m_entities;         // this list is all entities in this system.  we own these.

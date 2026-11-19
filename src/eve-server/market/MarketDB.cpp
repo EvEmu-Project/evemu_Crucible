@@ -43,11 +43,18 @@
 PyRep *MarketDB::GetStationAsks(uint32 stationID) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        "SELECT"
-        "    typeID, MIN(price) AS price, volRemaining, stationID "
-        " FROM mktOrders "
-        " WHERE stationID=%u"
-        " GROUP BY typeID",  stationID))
+        "SELECT orders.typeID, orders.price, orders.volRemaining, orders.stationID "
+        " FROM mktOrders AS orders "
+        " INNER JOIN ("
+        "   SELECT MIN(candidate.orderID) AS orderID "
+        "   FROM mktOrders AS candidate "
+        "   INNER JOIN ("
+        "     SELECT typeID, MIN(price) AS minPrice "
+        "     FROM mktOrders WHERE stationID=%u AND bid=%u GROUP BY typeID"
+        "   ) AS cheapest ON cheapest.typeID=candidate.typeID AND cheapest.minPrice=candidate.price "
+        "   WHERE candidate.stationID=%u AND candidate.bid=%u "
+        "   GROUP BY candidate.typeID"
+        " ) AS best ON best.orderID=orders.orderID", stationID, Market::Type::Sell, stationID, Market::Type::Sell))
         //" LIMIT %u",  stationID, sConfig.market.StationOrderLimit))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
@@ -64,11 +71,18 @@ PyRep *MarketDB::GetStationAsks(uint32 stationID) {
 PyRep *MarketDB::GetSystemAsks(uint32 solarSystemID) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        "SELECT"
-        "    typeID, MIN(price) AS price, volRemaining, stationID "
-        " FROM mktOrders "
-        " WHERE solarSystemID=%u"
-        " GROUP BY typeID", solarSystemID))
+        "SELECT orders.typeID, orders.price, orders.volRemaining, orders.stationID "
+        " FROM mktOrders AS orders "
+        " INNER JOIN ("
+        "   SELECT MIN(candidate.orderID) AS orderID "
+        "   FROM mktOrders AS candidate "
+        "   INNER JOIN ("
+        "     SELECT typeID, MIN(price) AS minPrice "
+        "     FROM mktOrders WHERE solarSystemID=%u AND bid=%u GROUP BY typeID"
+        "   ) AS cheapest ON cheapest.typeID=candidate.typeID AND cheapest.minPrice=candidate.price "
+        "   WHERE candidate.solarSystemID=%u AND candidate.bid=%u "
+        "   GROUP BY candidate.typeID"
+        " ) AS best ON best.orderID=orders.orderID", solarSystemID, Market::Type::Sell, solarSystemID, Market::Type::Sell))
         //" LIMIT %u", solarSystemID, sConfig.market.SystemOrderLimit))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
@@ -85,11 +99,18 @@ PyRep *MarketDB::GetSystemAsks(uint32 solarSystemID) {
 PyRep *MarketDB::GetRegionBest(uint32 regionID) {
     DBQueryResult res;
     if (!sDatabase.RunQuery(res,
-        "SELECT"
-        "    typeID, MIN(price) AS price, volRemaining, stationID "
-        " FROM mktOrders "
-        " WHERE regionID=%u AND bid=%u"
-        " GROUP BY typeID", regionID, Market::Type::Sell))
+        "SELECT orders.typeID, orders.price, orders.volRemaining, orders.stationID "
+        " FROM mktOrders AS orders "
+        " INNER JOIN ("
+        "   SELECT MIN(candidate.orderID) AS orderID "
+        "   FROM mktOrders AS candidate "
+        "   INNER JOIN ("
+        "     SELECT typeID, MIN(price) AS minPrice "
+        "     FROM mktOrders WHERE regionID=%u AND bid=%u GROUP BY typeID"
+        "   ) AS cheapest ON cheapest.typeID=candidate.typeID AND cheapest.minPrice=candidate.price "
+        "   WHERE candidate.regionID=%u AND candidate.bid=%u "
+        "   GROUP BY candidate.typeID"
+        " ) AS best ON best.orderID=orders.orderID", regionID, Market::Type::Sell, regionID, Market::Type::Sell))
         //" LIMIT %u", regionID, Market::Type::Sell, sConfig.market.RegionOrderLimit))
     {
         codelog(MARKET__DB_ERROR, "Error in query: %s", res.error.c_str());
@@ -278,7 +299,7 @@ bool MarketDB::GetOrderInfo(uint32 orderID, Market::OrderInfo &oInfo) {
     }
 
     oInfo.quantity   = row.GetUInt(0);
-    oInfo.price      = row.GetFloat(1);
+    oInfo.price      = row.GetDouble(1);
     oInfo.typeID     = row.GetUInt(2);
     oInfo.stationID  = row.GetUInt(3);
     oInfo.regionID   = row.GetUInt(4);

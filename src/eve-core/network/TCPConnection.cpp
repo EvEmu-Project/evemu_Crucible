@@ -31,6 +31,7 @@
 #include "network/TCPConnection.h"
 #include "network/NetUtils.h"
 #include "threading/Threading.h"
+#include <sstream>
 #include "utils/timer.h"
 
 const uint32 TCPCONN_RECVBUF_SIZE = 0x1000;
@@ -58,7 +59,11 @@ TCPConnection::TCPConnection(Socket* socket, uint32 mrIP, uint16 mrPort)
 
 TCPConnection::~TCPConnection()
 {
-    _log(THREAD__WARNING, "Destroying TCPConnection for thread 0x%X", std::this_thread::get_id());
+    // Ordinary connection teardown is not itself a crash. std::thread::id is
+    // not an unsigned int: passing it to a printf-style %X was undefined.
+    std::ostringstream threadID;
+    threadID << std::this_thread::get_id();
+    _log(THREAD__TRACE, "Releasing TCPConnection on thread %s", threadID.str().c_str());
     // Make sure we are disconnected
     Disconnect();
     // Wait for loop to stop

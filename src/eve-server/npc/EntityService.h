@@ -40,13 +40,13 @@ public:
 
     uint32 GetSystemID() { return this->m_systemID; }
 protected:
-    PyResult CmdEngage(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdEngage(PyCallArgs& call, PyList* droneIDs, PyRep* targetID);
     PyResult CmdRelinquishControl(PyCallArgs& call, PyList* IDs);
     PyResult CmdDelegateControl(PyCallArgs& call, PyList* droneIDs, PyInt* controllerID);
     PyResult CmdAssist(PyCallArgs& call, PyInt* assistID, PyList* droneIDs);
     PyResult CmdGuard(PyCallArgs& call, PyInt* guardID, PyList* droneIDs);
-    PyResult CmdMine(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
-    PyResult CmdMineRepeatedly(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
+    PyResult CmdMine(PyCallArgs& call, PyList* droneIDs, PyRep* targetID);
+    PyResult CmdMineRepeatedly(PyCallArgs& call, PyList* droneIDs, PyRep* targetID);
     PyResult CmdUnanchor(PyCallArgs& call, PyList* droneIDs, PyInt* targetID);
     PyResult CmdReturnHome(PyCallArgs& call, PyList* droneIDs);
     PyResult CmdReturnBay(PyCallArgs& call, PyList* droneIDs);
@@ -54,6 +54,7 @@ protected:
     PyResult CmdReconnectToDrones(PyCallArgs& call, PyList* droneCandidates);
 
 protected:
+    PyResult OrderMiningDrones(PyCallArgs& call, PyList* droneIDs, PyRep* targetID, bool repeat);
     SystemManager* m_sysMgr;
 
     uint32 m_systemID;

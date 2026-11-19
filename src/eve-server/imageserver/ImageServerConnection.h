@@ -62,15 +62,17 @@ private:
     uint32 _id;
     uint32 _size;
     std::string _redirectUrl;
+    std::string _responseHeaders; // own buffer until async HTTP header write completes
 
     boost::asio::streambuf _buffer;
     boost::asio::ip::tcp::socket _socket;
     std::shared_ptr<std::vector<char> > _imageData;
 
-    static boost::asio::const_buffers_1 _responseOK;
-    static boost::asio::const_buffers_1 _responseNotFound;
-    static boost::asio::const_buffers_1 _responseRedirectBegin;
-    static boost::asio::const_buffers_1 _responseRedirectEnd;
+    static boost::asio::const_buffer _responseOK;
+    static boost::asio::const_buffer _responseOKPNG;
+    static boost::asio::const_buffer _responseNotFound;
+    static boost::asio::const_buffer _responseRedirectBegin;
+    static boost::asio::const_buffer _responseRedirectEnd;
 };
 
 #endif // __IMAGESERVERCONNECTION__H__INCL__

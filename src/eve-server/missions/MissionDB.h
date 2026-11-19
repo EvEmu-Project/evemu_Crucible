@@ -29,6 +29,9 @@ public:
     static void LoadMissionBookMark(DBQueryResult& res, std::vector<int32>& bmIDs);
 
     static void UpdateMissionOffer(MissionOffer& data);
+    static uint32 GetCompletedStarterMissionCount(uint32 characterID);
+    static void GetCompletedStarterMissionIDs(uint32 characterID, std::vector<uint16>& missionIDs);
+    static bool HasActiveStarterMission(uint32 characterID);
 
     static void DeleteOffer(MissionOffer& data);
     static void RemoveMissionItem(uint32 charID, uint16 typeID, uint32 qty);   // this is for removing mission items from offline clients.

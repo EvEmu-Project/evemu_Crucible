@@ -21,7 +21,7 @@ COMMAND( setattr, Acct::Role::CONTENT,
          "(itemID) (attributeID) (value) - Sets attributeID of itemID to value." )
 COMMAND( fit, Acct::Role::VIP,
         "(itemID) - Fits selected item to active ship." )
-COMMAND( giveallskills, Acct::Role::ADMIN,
+COMMAND( giveallskills, Acct::Role::GMH,
         "['me'|<characterID>] - gives ALL skills to designated character or self" )
 COMMAND( giveskill, Acct::Role::VIP,
          "(skillID) (level) - gives skillID to specified level." )
@@ -33,8 +33,9 @@ COMMAND( repairmodules, Acct::Role::HEALSELF,
         "(entityID) (itemID) - repair the modules of the character with the entityID" )
 COMMAND( giveskills, Acct::Role::ADMIN,
         "(itemID) - gives skills to character." )
-COMMAND( dogma, Acct::Role::ADMIN,
-        "(attribute) - change item attribute value" )
+// Allow either the existing ADMIN grant or CONTENT developers (DEV).
+COMMAND_ANY( dogma, Acct::Role::CONTENT, Acct::Role::ADMIN,
+        "(itemID|me) (attributeName) = (value) - modify item dogma attribute" )
 COMMAND( kick, Acct::Role::ADMIN,
         "(charName) - kicks [charName] from the server")
 COMMAND( ban, Acct::Role::ADMIN,

@@ -47,8 +47,11 @@ public:
     DroneAIMgr(DroneSE *who);
 
     void Process();
+    bool Mine(SystemEntity* asteroid, bool repeat);
+    bool HasMiningFlight() const;
 
     void Target(SystemEntity *by_who);
+    void TargetAcquired(SystemEntity *pTarget);
     void Targeted(SystemEntity *by_who);
     void TargetLost(SystemEntity *by_who);
 
@@ -58,7 +61,10 @@ public:
     int8 GetState();
 
     void SetIdle();
-    void Return();
+    void Return(bool returnToBay=false);
+    void SetAutoEngage(bool enabled)                   { m_autoEngageEnabled = enabled; }
+    uint32 GetAssignedTargetID() const                  { return m_assignedTargetID; }
+    bool IsScoopRequested() const                       { return m_scoopRequested; }
     void AssignShip(ShipSE* pSE)                        { m_assignedShip = pSE; }
 
 protected:
@@ -72,6 +78,10 @@ protected:
     std::string GetStateName(int8 stateID);
 
 private:
+    void ProcessMining();
+    void StopMiningBeam();
+    bool DeliverMiningOre(ShipSE* ship);
+
     //cached to reduce access times. (faster but uses more memory)
     double m_sigRadius;
     double m_attackSpeed;
@@ -88,6 +98,16 @@ private:
 
     DroneSE* m_pDrone;
     ShipSE* m_assignedShip;
+    uint32 m_pendingTargetID;
+    uint32 m_assignedTargetID; // selected target shared by the controlled drone flight
+    bool m_returnToBay;
+    bool m_scoopRequested;
+    bool m_autoEngageEnabled;
+    uint32 m_miningTargetID = 0;
+    uint16 m_minedTypeID = 0;
+    int32 m_minedUnits = 0;
+    bool m_repeatMining = false;
+    Timer m_miningTimer;
 
     TurretFormulas m_formula;
 

@@ -28,6 +28,7 @@
 #include "EntityList.h"
 #include "StatisticMgr.h"
 #include "exploration/Scan.h"
+#include "EVE_ScanningMath.h"
 #include "math/Trig.h"
 #include "Probes.h"
 #include "system/SystemBubble.h"
@@ -36,26 +37,62 @@
 
 Scan::Scan(Client* pClient)
 : m_client(pClient),
-  m_system(pClient->SystemMgr())
+  m_system(pClient->SystemMgr()),
+  m_scanSystemID(pClient->GetSystemID())
 {
     m_probeScan = false;
     m_probeMap.clear();
     m_activeProbeMap.clear();
 }
 
+bool Scan::RefreshSystem()
+{
+    // Scan stays attached to Client across solar-system jumps. A previous
+    // SystemManager may already have been unloaded when a scan timer fires.
+    SystemManager* current = m_client != nullptr ? m_client->SystemMgr() : nullptr;
+    const uint32 currentID = m_client != nullptr ? m_client->GetSystemID() : 0;
+    if (current != m_system || currentID != m_scanSystemID) {
+        m_system = current;
+        m_scanSystemID = currentID;
+        m_probeScan = false;
+        // Old probe pointers belong to the previous solar system. Never
+        // dereference them while rebuilding the scan session.
+        m_probeMap.clear();
+        m_activeProbeMap.clear();
+        _log(SCAN__MESSAGE, "Scan::RefreshSystem() - rebound scanner to system %u.",
+            currentID);
+    }
+    return m_system != nullptr;
+}
+
 void Scan::AddProbe(ProbeSE* pProbe)
 {
+    if (pProbe == nullptr || !RefreshSystem())
+        return;
     pProbe->SetScan(this);
     m_probeMap.emplace(pProbe->GetID(), pProbe);
 }
 
 void Scan::RemoveProbe(ProbeSE* pProbe)
 {
-    m_probeMap.erase(pProbe->GetID());
+    if (pProbe == nullptr)
+        return;
+    const uint32 probeID = pProbe->GetID();
+    m_probeMap.erase(probeID);
+    // Recovery/destruction must invalidate pending scan results as well.
+    m_activeProbeMap.erase(probeID);
+    if (m_activeProbeMap.empty())
+        m_probeScan = false;
 }
 
 void Scan::ProcessScan(bool useProbe/*false*/)
 {
+    if (!RefreshSystem() || m_client->GetShip().get() == nullptr)
+        return;
+    if (useProbe && m_activeProbeMap.empty()) {
+        m_probeScan = false;
+        return;
+    }
     if (!useProbe) {
         ShipScanResult();
         return;
@@ -97,47 +134,43 @@ void Scan::ProcessScan(bool useProbe/*false*/)
 }
 
 
-PyRep* Scan::ConeScan(Call_ConeScan args) {
-    //  WORKING CODE...DONT FUCK WITH THIS!!  -allan 7Dec15
+PyRep* Scan::ConeScan(Call_ConeScan args)
+{
+    PyList* results = new PyList();
+    if (!RefreshSystem() || m_client->GetShipSE() == nullptr || args.range <= 0)
+        return results;
 
-    // NOTE:  max distance is 14.4AU or maxInt (2417482647 in km)
-    /* to find if a point is inside a cone.     (-allan 10Aug20)
-     * U = unit vector along cone axis (sent from client, decoded as x,y,z)
-     * VR = vector from cone vertex(V) to test point(R).
-     * Uvr = unit vector of cone vertex to test point (normalized VR)
-     * DP = Uvr dot U (dot product of Uvr and U).  this will give cosine of angle between VR and U
-     * acDP = arc cosine of DP to give angle
-     * test acDP < cone angle = point is inside cone.
-     */
-    bool test(false);
-    float dot(0), acDP(0), angle(args.ScanAngle/2);
-    std::vector<SystemEntity*> seVec;
-    const GPoint vertex(m_client->GetShipSE()->GetPosition());
-    const GPoint U(args.x, args.y, args.z);
-    m_client->SystemMgr()->DScan(args.range, vertex, seVec);
-    _log(SCAN__TRACE, "ConeScan() - query returned %u objects within range.  angle is %.3f", seVec.size(), angle);
-    PyList* list = new PyList();
-    for (auto cur : seVec ) {
-        GVector VR(vertex, cur->GetPosition());
-        VR.normalize();
-        dot = U.dotProduct(VR);
-        acDP = acos(dot);
-        if (acDP < angle) {
-            test = true;
-            DirectionScanResult res;
-            res.id         = cur->GetID();
-            res.typeID     = cur->GetSelf()->typeID();
-            res.groupID    = cur->GetSelf()->groupID();
-            list->AddItem(res.Encode());
-        }
-        _log(SCAN__TRACE, "ConeScan() - tested %s(%u).  dot %.5f, acDP %.5f, result %s", cur->GetName(), cur->GetID(), dot, acDP, test?"true":"false");
-        test = false;
+    const GPoint origin(m_client->GetShipSE()->GetPosition());
+    std::vector<SystemEntity*> visibleEntities;
+    m_system->DScan(args.range, origin, visibleEntities);
+    _log(SCAN__TRACE,
+        "ConeScan() - found %u objects within range, full cone angle %.3f radians.",
+        static_cast<uint32>(visibleEntities.size()), args.ScanAngle);
+
+    for (SystemEntity* entity : visibleEntities) {
+        if (entity == nullptr || entity->GetID() == m_client->GetShipID()
+            || entity->GetSelf().get() == nullptr)
+            continue;
+        const GPoint target(entity->GetPosition());
+        // The client-supplied scan axis need not be normalized.
+        if (!EVEmuScan::WithinConeRadians(
+                args.x, args.y, args.z,
+                target.x - origin.x, target.y - origin.y, target.z - origin.z,
+                args.ScanAngle))
+            continue;
+
+        DirectionScanResult result;
+        result.id = entity->GetID();
+        result.typeID = entity->GetTypeID();
+        result.groupID = entity->GetGroupID();
+        results->AddItem(result.Encode());
     }
-
-    return list;
+    return results;
 }
 
 void Scan::RequestScans(PyDict* dict) {
+    if (!RefreshSystem() || m_client->GetShip().get() == nullptr)
+        return;
     uint16 duration = m_client->GetShip()->GetAttribute(AttrScanSpeed).get_uint32();
     if ((dict == nullptr) or dict->empty()) {
         _log(SCAN__MESSAGE, "Scan::RequestScans() called by %s in %s using ship scanner.", \
@@ -204,6 +237,8 @@ void Scan::RequestScans(PyDict* dict) {
 
 void Scan::SystemScanStarted(uint16 duration)
 {
+    if (!RefreshSystem())
+        return;
     _log(SCAN__TRACE, "Scan::SystemScanStarted()  for %s in system %u", m_client->GetName(), m_client->GetSystemID());
 
     GPoint pos(NULL_ORIGIN);
@@ -244,6 +279,8 @@ void Scan::SystemScanStarted(uint16 duration)
 }
 
 void Scan::ShipScanResult() {
+    if (!RefreshSystem())
+        return;
     //  WORKING CODE...DONT FUCK WITH THIS!!  -allan 11Dec15
     /** @todo  see client code to verify what it expects, and what it can calculate */
     // client scan data found in EVE_Scanning.h
@@ -252,8 +289,12 @@ void Scan::ShipScanResult() {
         m_system->GetAllEntities(anom);
         // bubble centers only populate when bubble markers are enabled.
         sBubbleMgr.GetBubbleCenterMarkers(m_system->GetID(), anom);
-    } else {
+    } else if (m_system->GetAnomMgr() != nullptr) {
         m_system->GetAnomMgr()->GetAnomalyList(anom);
+    } else {
+        _log(SCAN__WARNING,
+            "ShipScanResult() - anomaly manager unavailable for system %u.",
+            m_scanSystemID);
     }
 
     PyList* resultList = new PyList();
@@ -294,6 +335,11 @@ void Scan::ShipScanResult() {
 
 void Scan::ProbeScanResult()
 {
+    if (!RefreshSystem() || m_system->GetAnomMgr() == nullptr) {
+        _log(SCAN__WARNING,
+            "ProbeScanResult() - system or anomaly manager unavailable.");
+        return;
+    }
     // this will use outline of above code, but be MUCH more complicated...
     _log(SCAN__TRACE, "Scan::ProbeScanResult()  for %s in system %u", m_client->GetName(), m_client->GetSystemID());
 

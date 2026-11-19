@@ -69,7 +69,7 @@ public:
     // public methods to enable calls from other classes (namely, TurretFormulas.cpp)
     bool IsIdle()                                       { return (m_state == NPCAI::State::Idle); }
     bool IsFighting();
-    uint16 GetOptimalRange()                            { return m_optimalRange; }
+    uint32 GetOptimalRange()                            { return m_optimalRange; }
     uint16 GetSigRes()                                  { return m_sigResolution; }
     uint32 GetFalloff()                                 { return m_falloff; }
     uint32 GetAttackRange()                             { return m_maxAttackRange; }
@@ -123,7 +123,7 @@ private:
     uint16 m_sigResolution;
     uint16 m_orbitSpeed;
     uint16 m_targetRange;   // max targeting range  default: m_maxAttackRange (unused)
-    uint16 m_optimalRange;
+    uint32 m_optimalRange;
     uint16 m_boostRange;    // distance for Speed Boost activation   default:2500
     uint16 m_armorRepairDuration;
     uint16 m_shieldBoosterDuration;

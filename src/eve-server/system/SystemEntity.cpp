@@ -146,9 +146,10 @@ void SystemEntity::EncodeDestiny( Buffer& into )
 void SystemEntity::Killed(Damage& damage)
 {
     if (m_targMgr != nullptr) {
-        // loop thru list of all modules targeting this entity and let them know it has been killed.
+        // Destroyed() aborts target-dependent modules and calls
+        // ClearAllTargets(), which clears both outgoing locks and incoming
+        // targeters while this entity is still registered and valid.
         m_targMgr->Destroyed();
-        // remove TargMgr here to avoid redundant calls upon object deletion
         SafeDelete(m_targMgr);
     }
     Delete();
@@ -725,7 +726,9 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into )
     using namespace Destiny;
     BallHeader head = BallHeader();
         head.entityID = m_self->itemID();
-        head.mode = Ball::Mode::STOP;
+        head.mode = (m_destiny->GetState() == Ball::Mode::WARP)
+            ? Ball::Mode::WARP
+            : Ball::Mode::STOP;
         head.radius = m_radius;
         head.posX = x();
         head.posY = y();
@@ -747,9 +750,13 @@ void DynamicSystemEntity::EncodeDestiny( Buffer& into )
         data.velZ = m_destiny->GetVelocity().z;
         data.speedfraction = m_destiny->GetSpeedFraction();
     into.Append( data );
-    STOP_Struct main;
-        main.formationID = 0xFF;
-    into.Append( main );
+    if (head.mode == Ball::Mode::WARP) {
+        m_destiny->EncodeWarpState(into);
+    } else {
+        STOP_Struct main;
+            main.formationID = 0xFF;
+        into.Append(main);
+    }
 
     _log(SE__DESTINY, "DSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }

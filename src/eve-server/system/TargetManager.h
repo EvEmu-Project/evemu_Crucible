@@ -170,11 +170,12 @@ protected:
 
     class TargetEntry {
     public:
-        TargetEntry()
-        : state(TargMgr::State::Idle), timer(0) {}
+        explicit TargetEntry(uint32 id = 0)
+        : targetID(id), state(TargMgr::State::Idle), timer(0) {}
 
         void Dump(SystemEntity* pSE) const;
 
+        uint32 targetID; // retained so stale entity pointers can be pruned safely
         uint8 state;
 
         Timer timer;
@@ -182,15 +183,18 @@ protected:
 
     class TargetedByEntry {
     public:
-        TargetedByEntry()
-        : state(TargMgr::State::Idle) {}
+        explicit TargetedByEntry(uint32 id = 0)
+        : targetID(id), state(TargMgr::State::Idle) {}
 
         void Dump(SystemEntity* pSE) const;
 
+        uint32 targetID; // retained so stale targeter pointers are never dereferenced
         uint8 state;
     };
 
 private:
+    void                PruneStaleTargets();
+
     SystemEntity* mySE;    //we do not own this.
 
     std::map<uint32, ActiveModule*> m_modules;               // map of modID/Mod* targeting this object

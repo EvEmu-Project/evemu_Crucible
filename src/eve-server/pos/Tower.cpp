@@ -24,6 +24,7 @@
 #include "EVEServerConfig.h"
 #include "planet/Moon.h"
 #include "pos/Tower.h"
+#include "EVE_TowerShieldRules.h"
 #include "system/Container.h"
 #include "system/Damage.h"
 #include "system/SystemBubble.h"
@@ -135,27 +136,41 @@ m_pShieldSE(nullptr)
 void TowerSE::Init()
 {
     StructureSE::Init();
+    if (!IsPOSInitialized())
+        return;
 
     if (!m_db.GetTowerData(m_tdata, m_data)) {
         _log(SE__TRACE, "TowerSE %s(%u) has no saved data.  Initializing default set.", m_self->name(), m_self->itemID());
         // invalid data....init to 0 as this will only hit for currently-launching items (or errors)
-        InitData();
+        if (!InitData())
+            return;
     }
 
-    // if password is already set and tower online, then we can online (create) the forcefield
+    // An online tower's force field exists independently of its password.
+    // A previous bug suppressed it whenever password was blank, then
+    // failed to persist m_tdata.harmonic on SetOnline.
     m_harmonic = m_tdata.harmonic;
-    if ((m_harmonic > EVEPOS::Harmonic::Offline)
-    and (!m_tdata.password.empty())
-    and (m_data.state > EVEPOS::StructureState::Anchored))
+    if (EVEPOS::ShieldRules::ShouldDisplay(m_data.state, EVEPOS::StructureState::Online)) {
+        m_harmonic = EVEPOS::Harmonic::Online;
+        m_tdata.harmonic = m_harmonic;
         CreateForceField();
+        m_db.UpdateHarmonicAndPassword(m_data.itemID, m_tdata);
+    }
 
     // if tower anchored, tell moon this is its tower
-    if (m_data.state > EVEPOS::StructureState::Unanchored)
+    if (m_data.state > EVEPOS::StructureState::Unanchored) {
+        if (m_moonSE == nullptr) {
+            _log(POS__ERROR, "TowerSE::Init: tower %u has no valid moon.", m_self->itemID());
+            return;
+        }
         m_moonSE->SetTower(this);
+    }
 
     // set tower in bubble
-    if (m_bubble == nullptr)
-        assert(0);
+    if (m_bubble == nullptr) {
+        _log(POS__ERROR, "TowerSE::Init: tower %u has no system bubble.", m_self->itemID());
+        return;
+    }
     m_bubble->SetTowerSE(this);
 
     /** @todo
@@ -170,18 +185,22 @@ void TowerSE::Init()
     // take resources, move items, process reactions or whatever needs to be done (follow PI proc code)
 }
 
-void TowerSE::InitData() {
-    // init base data first
-    StructureSE::InitData();
+bool TowerSE::InitData() {
+    // The base may fail when an anchor point is absent; do not persist
+    // incomplete tower/military structure metadata on failure.
+    if (!StructureSE::InitData())
+        return false;
     m_tdata.harmonic = m_harmonic;     // set during base SE creation
     m_tdata.standingOwnerID = 0;    /** @todo  get sov holder here. */
 
     m_db.SaveTowerData(m_tdata, m_data);
+    return true;
 }
 
 void TowerSE::Scoop() {
     StructureSE::Scoop();
-    m_moonSE->SetTower(nullptr);
+    if (m_moonSE != nullptr)
+        m_moonSE->SetTower(nullptr);
     m_tdata = EVEPOS::TowerData();
     m_self->ChangeSingleton(false);
     m_self->SaveItem();
@@ -222,9 +241,9 @@ void TowerSE::SetOnline()
     m_tdata.harmonic = m_harmonic;
     SetTimer(m_self->GetAttribute(AttrOnliningDelay).get_int());
 
-    if ((m_harmonic > EVEPOS::Harmonic::Offline)
-    and (!m_tdata.password.empty()))
-        CreateForceField();
+    // The password restricts access; it must never gate the visual field.
+    CreateForceField();
+    m_db.UpdateHarmonicAndPassword(m_data.itemID, m_tdata);
 
     SendSlimUpdate();
     m_destiny->SendSpecialEffect(m_self->itemID(),m_self->itemID(),m_self->typeID(),0,0,"effects.StructureOnline",0,1,1,-1,0);
@@ -247,12 +266,15 @@ void TowerSE::SetOnline()
 
 void TowerSE::SetOffline()
 {
-    if (m_hasShield) {
+    if (m_pShieldSE != nullptr) {
         m_pShieldSE->Delete();
         SafeDelete(m_pShieldSE);
-        m_hasShield = false;
     }
-
+    m_pShieldSE = nullptr;
+    m_hasShield = false;
+    m_harmonic = EVEPOS::Harmonic::Offline;
+    m_tdata.harmonic = m_harmonic;
+    m_db.UpdateHarmonicAndPassword(m_data.itemID, m_tdata);
     StructureSE::SetOffline();
 }
 
@@ -301,38 +323,18 @@ void TowerSE::Reinforced()
 
 void TowerSE::UpdatePassword()
 {
-    if (m_tdata.password.empty()) {
-        m_harmonic =EVEPOS::Harmonic::Offline;
-        m_tdata.harmonic = m_harmonic;
-        if (m_pShieldSE == nullptr)
-            return;
-
-        m_pShieldSE->SetHarmonic(m_harmonic);
-
-        //  this is for UPDATING forcefield ONLY...do not send on creation.
-        std::vector<PyTuple*> updates;
-        //  'massive' enables client-side bounce
-        SetBallMassive sbm;
-            sbm.entityID = m_pShieldSE->GetSelf()->itemID();
-            sbm.is_massive = false;         // disable client-side bump checks
-        updates.push_back(sbm.Encode());
-        // harmonic for ForceField
-        SetBallHarmonic sbh;
-            sbh.itemID = m_pShieldSE->GetSelf()->itemID();
-            sbh.corpID = m_corpID;
-            sbh.allianceID = m_allyID;
-            sbh.mass = -1;      // always -1
-            sbh.harmonic = m_harmonic;
-        updates.push_back(sbh.Encode());
-        m_destiny->SendDestinyUpdate(updates); //consumed
-    } else {
+    // Password changes must not turn an otherwise online tower's force
+    // field invisible or switch its destiny ball into STOP mode.
+    // Empty passwords have no protection effect; field visibility is
+    // governed exclusively by tower state.
+    if (EVEPOS::ShieldRules::ShouldDisplay(m_data.state, EVEPOS::StructureState::Online)) {
         m_harmonic = EVEPOS::Harmonic::Online;
         m_tdata.harmonic = m_harmonic;
-
-        if (m_data.state > EVEPOS::StructureState::Anchored)
-            CreateForceField();
+        CreateForceField();
+    } else {
+        m_harmonic = EVEPOS::Harmonic::Offline;
+        m_tdata.harmonic = m_harmonic;
     }
-
     m_db.UpdateHarmonicAndPassword(m_data.itemID, m_tdata);
 }
 
@@ -492,7 +494,11 @@ void TowerSE::CreateForceField()
     if (ifRef.get() == nullptr)
         return;  // we'll get over it
     ifRef->SetPosition(GetPosition());
-    ifRef->SetAttribute(AttrRadius, m_self->GetAttribute(AttrShieldRadius), false);
+    const double configuredRadius = m_self->GetAttribute(AttrShieldRadius).get_double();
+    const double radius = EVEPOS::ShieldRules::EffectiveRadius(m_tsize, configuredRadius);
+    ifRef->SetAttribute(AttrRadius, EvilNumber(radius), false);
+    _log(POS__MESSAGE, "Tower %u spawned physical force field radius %.1f m (configured %.1f).",
+         m_self->itemID(), radius, configuredRadius);
     FactionData data = FactionData();
         data.allianceID = m_allyID;
         data.corporationID = m_corpID;

@@ -105,11 +105,11 @@ EVEServerConfig::EVEServerConfig()
     rates.WebUpdate = 15 /*m*/;
     rates.TaxAmount = 5000;
     rates.TaxedAmount = 75000;
-    rates.PlayerCritChance = 0.02;
-    rates.NpcCritChance = 0.15;
-    rates.SentryCritChance = 0.02;
-    rates.DroneCritChance = 0.03;
-    rates.ConcordCritChance = 0.05;
+    rates.PlayerCritChance = 0.01;
+    rates.NpcCritChance = 0.01;
+    rates.SentryCritChance = 0.01;
+    rates.DroneCritChance = 0.01;
+    rates.ConcordCritChance = 0.01;
 
     //market
     market.FindBuyOrder = 10;

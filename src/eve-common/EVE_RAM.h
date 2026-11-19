@@ -58,6 +58,7 @@ namespace EvERam {
         uint8 activityID;
         uint8 rMask;
         uint32 ownerID;
+        uint32 containerID;
         float minCharSec;
         float maxCharSec;
         float minCorpSec;
@@ -98,6 +99,7 @@ namespace EvERam {
         uint32 itemID;
         uint32 ownerID;
         uint32 eventID;
+        uint32 containerID;
         int64 endTime;
         EVEItemFlags outputFlag;
     };

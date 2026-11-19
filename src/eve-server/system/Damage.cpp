@@ -28,6 +28,17 @@
 #include "system/Damage.h"
 
 #include "../../eve-common/EVE_Damage.h"
+#include "EVE_WeaponFormulas.h"
+
+namespace {
+float EffectiveResonance(const InventoryItemRef& item, uint16 attribute) {
+    if (item.get() == nullptr)
+        return 1.0f;
+    return NormalizeDamageResonance(item->GetAttribute(attribute).get_double(),
+                                    item->HasAttribute(attribute));
+}
+}
+
 
 #include "Client.h"
 #include "EntityList.h"
@@ -69,7 +80,7 @@ kinetic(wRef->GetAttribute(AttrKineticDamage).get_float()),
 thermal(wRef->GetAttribute(AttrThermalDamage).get_float()),
 explosive(wRef->GetAttribute(AttrExplosiveDamage).get_float())
 {
-    _log(DAMAGE__WARNING, "Damage:C'tor - Called by source %s(%u) with weapon %s(%u).",
+    _log(DAMAGE__TRACE, "Damage:C'tor - Called by source %s(%u) with weapon %s(%u).",
          srcSE->GetName(), srcSE->GetID(), wRef->name(), wRef->itemID() );
 }
 
@@ -82,7 +93,7 @@ kinetic(cRef->GetAttribute(AttrKineticDamage).get_float()),
 thermal(cRef->GetAttribute(AttrThermalDamage).get_float()),
 explosive(cRef->GetAttribute(AttrExplosiveDamage).get_float())
 {
-    _log(DAMAGE__WARNING, "Damage:C'tor - Called by source %s(%u) with weapon %s(%u) using charge %s(%u).",
+    _log(DAMAGE__TRACE, "Damage:C'tor - Called by source %s(%u) with weapon %s(%u) using charge %s(%u).",
          srcSE->GetName(), srcSE->GetID(), wRef->name(), wRef->itemID(), cRef->name(), cRef->itemID() );
 }
 
@@ -149,6 +160,15 @@ bool SystemEntity::ApplyDamage(Damage &d) {
             damageID = MakeRandomInt(0,8);
         } break;
         default: {
+            // NPCs pass their NPC item rather than a launcher module as the
+            // weaponRef. Their missile charge/effect must still use the
+            // configured missileDamage scaling, not the turret hit path.
+            if (d.chargeRef.get() != nullptr
+                && d.effectID == EVEEffectID::missileLaunching) {
+                d *= sConfig.rates.missileDamage;
+                damageID = 6;
+                break;
+            }
             float modifier = d.GetModifier();
             d *= modifier;
                  if (modifier == 3.0f)   { damageID = 8; }  //strikes perfectly, wrecking
@@ -169,10 +189,10 @@ bool SystemEntity::ApplyDamage(Damage &d) {
 
     // this is calculated and created on every call...
     Damage DamageToShield = d.MultiplyDup(
-        m_self->GetAttribute(AttrShieldKineticDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldThermalDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldEmDamageResonance).get_float(),
-        m_self->GetAttribute(AttrShieldExplosiveDamageResonance).get_float() );
+        EffectiveResonance(m_self, AttrShieldKineticDamageResonance),
+        EffectiveResonance(m_self, AttrShieldThermalDamageResonance),
+        EffectiveResonance(m_self, AttrShieldEmDamageResonance),
+        EffectiveResonance(m_self, AttrShieldExplosiveDamageResonance) );
 
     bool killed(false);
     float total_damage(0.0f);
@@ -211,10 +231,10 @@ bool SystemEntity::ApplyDamage(Damage &d) {
         //Armor:
         float available_armor = m_self->GetAttribute(AttrArmorHP).get_float() - m_self->GetAttribute(AttrArmorDamage).get_float();
         Damage DamageToArmor = d.MultiplyDup(
-            m_self->GetAttribute(AttrArmorKineticDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorThermalDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorEmDamageResonance).get_float(),
-            m_self->GetAttribute(AttrArmorExplosiveDamageResonance).get_float() );
+            EffectiveResonance(m_self, AttrArmorKineticDamageResonance),
+            EffectiveResonance(m_self, AttrArmorThermalDamageResonance),
+            EffectiveResonance(m_self, AttrArmorEmDamageResonance),
+            EffectiveResonance(m_self, AttrArmorExplosiveDamageResonance) );
 
         float armor_damage = DamageToArmor.GetTotal();
         if (armor_damage <= available_armor) {
@@ -248,10 +268,10 @@ bool SystemEntity::ApplyDamage(Damage &d) {
             //The base hp and damage attributes represent structure.
             float available_hull = m_self->GetAttribute(AttrHP).get_float() - m_self->GetAttribute(AttrDamage).get_float();
             Damage DamageToHull = d.MultiplyDup(
-                m_self->GetAttribute(AttrKineticDamageResonance).get_float(),
-                m_self->GetAttribute(AttrThermalDamageResonance).get_float(),
-                m_self->GetAttribute(AttrEmDamageResonance).get_float(),
-                m_self->GetAttribute(AttrExplosiveDamageResonance).get_float() );
+                EffectiveResonance(m_self, AttrKineticDamageResonance),
+                EffectiveResonance(m_self, AttrThermalDamageResonance),
+                EffectiveResonance(m_self, AttrEmDamageResonance),
+                EffectiveResonance(m_self, AttrExplosiveDamageResonance) );
 
             float hull_damage = DamageToHull.GetTotal();
             if (hull_damage < available_hull) {
@@ -366,6 +386,7 @@ void ShipSE::Killed(Damage &fatal_blow) {
         return; // make error here?
 
     m_shipRef->SetPopped(true);
+    AbandonDrones();
 
     /* {'messageKey': 'ShipExploded', 'dataID': 17881627, 'suppressable': True, 'bodyID': 258841, 'messageType': 'info', 'urlAudio': '', 'urlIcon': '', 'titleID': 258840, 'messageID': 1558}
      * u'ShipExplodedBody'}(u'Your ship has been destroyed by {[character]charID.name}.', None, {u'{[character]charID.name}': {'conditionalValues': [], 'variableType': 0, 'propertyName': 'name', 'args': 0, 'kwargs': {}, 'variableName': 'charID'}})
@@ -498,7 +519,6 @@ void ShipSE::Killed(Damage &fatal_blow) {
         blob << "<items><i t=" << data.victimShipTypeID << " f=0 s=1 d=0 x=1/></items>";
     } else {
         AbortCycle();
-        AbandonDrones();
 
         // remove all charges (per packet data)  ...why???
         //GetShipItemRef()->UnloadAllModules();

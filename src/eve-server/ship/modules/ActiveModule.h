@@ -64,7 +64,7 @@ public:
     SystemEntity*       GetTargetSE()           { return m_targetSE; }
 
     void                LaunchProbe();
-    void                LaunchMissile();
+    void                LaunchMissile(SystemEntity* targetSE=nullptr);
     void                LaunchSnowBall();
 
     /* new effects processing code and updates */
@@ -82,6 +82,8 @@ protected:
 
     void                Clear();
     void                ProcessActiveCycle();           // checks and sets cap use
+    void                ApplySmartBombDamage();
+    void                LaunchDefenderMissile();
     void                UpdateCharge(uint16 attrID, uint16 testAttrID, uint16 srcAttrID, InventoryItemRef iRef);
     void                UpdateDamage(uint16 attrID, uint16 srcAttrID, InventoryItemRef iRef);
 
@@ -92,6 +94,7 @@ protected:
     void                ConsumeCharge();                // common code to reduce ammo by one unit.
 
     uint32              GetRemainingCycleTimeMS()       { return m_timer.GetRemainingTime(); }
+    uint32              GetCycleDurationMS() const      { return m_timer.GetDuration(); }
 
     void                SetTimer(uint32 time);
     void                StopTimer()                     { m_timer.Disable(); }

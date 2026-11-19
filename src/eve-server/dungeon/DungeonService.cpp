@@ -92,10 +92,11 @@ PyResult DungeonService::IsObjectLocked(PyCallArgs& call, PyInt* objectID)
     return result;
 }
 
-PyResult DungeonService::AddObject(PyCallArgs& call, PyInt* roomID, PyInt* tupeID, PyFloat* x, PyFloat* y, PyFloat* z, PyFloat* pitch, PyFloat* roll, PyFloat* radius)
+PyResult DungeonService::AddObject(PyCallArgs& call, PyInt* roomID, PyInt* tupeID, PyFloat* x, PyFloat* y, PyFloat* z, PyRep* yaw, PyRep* pitch, PyRep* roll, PyRep* radius)
 {
     // (newObjectID, revisionID,) = sm.RemoteSvc('dungeon').AddObject(roomID, typeID, x, y, z, yaw, pitch, roll, radius)
 
+    (void)yaw; (void)pitch; (void)roll; (void)radius; // Values are decoded from call.tuple below.
     _log(DUNG__CALL,  "DungeonService::Handle_AddObject size: %lli", call.tuple->size());
     call.Dump(DUNG__CALL_DUMP);
 

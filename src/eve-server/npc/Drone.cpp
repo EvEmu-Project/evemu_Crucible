@@ -25,11 +25,14 @@
 */
 
 #include "eve-server.h"
+#include "EVE_MiningFlight.h"
+#include "tables/invGroups.h"
 
 #include "EVEServerConfig.h"
 #include "EntityList.h"
 #include "inventory/AttributeEnum.h"
 #include "npc/Drone.h"
+#include "ship/Ship.h"
 #include "system/Container.h"
 #include "system/Damage.h"
 #include "system/DestinyManager.h"
@@ -40,6 +43,7 @@
 DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemManager* pSystem, const FactionData& data)
 : DynamicSystemEntity(drone, services, pSystem),
   m_AI(new DroneAIMgr(this)),
+  m_pShipSE(nullptr),
   m_system(pSystem)
   {
       assert (m_AI != nullptr);
@@ -51,19 +55,25 @@ DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemMana
     m_allyID = data.allianceID;
     m_corpID = data.corporationID;
     m_ownerID = data.ownerID;
-    m_pClient = sEntityList.FindClientByCharID(data.ownerID);
     m_targetID = 0;
     m_controllerID = 0;
     m_controllerOwnerID = 0;
 
+    const bool miningDrone = m_self->groupID() == EVEDB::invGroups::Mining_Drone;
     m_orbitRange = m_self->GetAttribute(AttrOrbitRange).get_float();
-    if (m_orbitRange < 1) {
-        if (m_self->GetAttribute(AttrMaxRange) < m_self->GetAttribute(AttrFalloff)) {
-            m_orbitRange = m_self->GetAttribute(AttrMaxRange).get_float();
-        } else {
-            m_orbitRange = m_self->GetAttribute(AttrFalloff).get_float();
-        }
+    if ((!std::isfinite(m_orbitRange) || m_orbitRange < 1.0) && miningDrone) {
+        m_orbitRange = 200.0;
+    } else if (m_orbitRange < 1.0) {
+        const double maxRange = m_self->GetAttribute(AttrMaxRange).get_double();
+        const double falloff = m_self->GetAttribute(AttrFalloff).get_double();
+        m_orbitRange = (maxRange < falloff) ? maxRange : falloff;
+        // Old drone imports often omit orbitRange and carry very large weapon
+        // ranges. Never use those values as the idle orbit radius around ship.
+        if (m_orbitRange > 2500.0)
+            m_orbitRange = 2500.0;
     }
+    if (m_orbitRange < 1.0)
+        m_orbitRange = 500.0;
 
     // Create default dynamic attributes in the AttributeMap:
     m_self->SetAttribute(AttrInertia,             EvilOne, false);
@@ -71,7 +81,9 @@ DroneSE::DroneSE(InventoryItemRef drone, EVEServiceManager &services, SystemMana
     m_self->SetAttribute(AttrArmorDamage,         EvilZero, false);
     m_self->SetAttribute(AttrWarpCapacitorNeed,   0.00001, false);
     m_self->SetAttribute(AttrOrbitRange,          m_orbitRange, false);
-    m_self->SetAttribute(AttrMass,                m_self->type().mass(), false);
+    const double typeMass = m_self->type().mass();
+    const double movementMass = miningDrone ? EvEMining::MovementMass(typeMass) : typeMass;
+    m_self->SetAttribute(AttrMass, movementMass, false);
     m_self->SetAttribute(AttrRadius,              m_self->type().radius(), false);
     m_self->SetAttribute(AttrVolume,              m_self->type().volume(), false);
     m_self->SetAttribute(AttrCapacity,            m_self->type().capacity(), false);
@@ -101,16 +113,58 @@ DroneSE::~DroneSE() {
     SafeDelete(m_AI);
 }
 
+Client* DroneSE::GetOwner() const {
+    // Client objects are session-owned and may be destroyed on disconnect.
+    // Resolve the owner through the live player registry instead of retaining
+    // a raw Client pointer for the lifetime of a space drone.
+    return (m_ownerID != 0) ? sEntityList.FindClientByCharID(m_ownerID) : nullptr;
+}
+
+uint32 DroneSE::GetBounty() const {
+    Client* owner = GetOwner();
+    if (owner == nullptr)
+        return 0;
+    auto character = owner->GetChar();
+    return (character.get() != nullptr) ? character->bounty() : 0;
+}
+
+float DroneSE::GetSecurityRating() const {
+    Client* owner = GetOwner();
+    if (owner == nullptr)
+        return 0.0f;
+    auto character = owner->GetChar();
+    return (character.get() != nullptr) ? character->GetSecurityRating() : 0.0f;
+}
+
 void DroneSE::SetOwner(Client* pClient) {
+    if (pClient == nullptr)
+        return;
+
     m_self->ChangeOwner(pClient->GetCharacterID());
-    m_pClient = pClient;
     m_ownerID = pClient->GetCharacterID();
     m_corpID = pClient->GetCorporationID();
     m_allyID = pClient->GetAllianceID();
     m_warID = pClient->GetWarFactionID();
     m_pShipSE = pClient->GetShipSE();
-    m_controllerID = pClient->GetShipID();
-    m_controllerOwnerID = m_pShipSE->GetOwnerID();
+    m_controllerID = (m_pShipSE != nullptr) ? m_pShipSE->GetID() : 0;
+    m_controllerOwnerID = (m_pShipSE != nullptr) ? m_pShipSE->GetOwnerID() : 0;
+}
+
+ShipSE* DroneSE::GetHomeShip() {
+    // m_pShipSE is a non-owning pointer and can become stale if the controlling
+    // ship is destroyed or replaced. Resolve the controller ID before exposing
+    // the pointer to drone AI or scoop/return code.
+    if (m_system == nullptr || m_controllerID == 0)
+        return nullptr;
+
+    SystemEntity* controller = m_system->GetSE(m_controllerID);
+    if (controller == nullptr || !controller->IsShipSE())
+        return nullptr;
+
+    ShipSE* liveShip = controller->GetShipSE();
+    if (liveShip != m_pShipSE)
+        m_pShipSE = liveShip;
+    return liveShip;
 }
 
 void DroneSE::Process() {
@@ -118,12 +172,23 @@ void DroneSE::Process() {
         return;
     double profileStartTime(GetTimeUSeconds());
 
-    /*  Enable base call to Process Targeting and Movement  */
-    SystemEntity::Process();
+    // Mining flight advances its own bounded movement once per Destiny tick.
+    if (!m_online || m_AI == nullptr || !m_AI->HasMiningFlight())
+        SystemEntity::Process();
 
-    /** @todo (allan) finish drone AI and processing */
-    if (m_online)
+    if (m_online && m_AI != nullptr) {
         m_AI->Process();
+        // Complete the inventory/system removal outside the AI call so the AI
+        // object is not destroyed while one of its methods is still executing.
+        if (m_AI->IsScoopRequested()) {
+            if (ScoopToBay())
+                return; // this entity has been removed and deleted
+            Client* owner = GetOwner();
+            if (owner != nullptr)
+                owner->SendNotifyMsg("The drone could not be returned to the drone bay. Check your drone bay capacity.");
+            m_AI->Return(false);
+        }
+    }
 
     if (sConfig.debug.UseProfiling)
         sProfiler.AddTime(Profile::drone, GetTimeUSeconds() - profileStartTime);
@@ -152,28 +217,72 @@ void DroneSE::Launch(ShipSE* pShipSE) {
 
 void DroneSE::Online(ShipSE* pShipSE/*nullptr*/) {
     m_online = true;
+    if (m_AI != nullptr)
+        m_AI->SetAutoEngage(true);
     StateChange();
 
     if (pShipSE == nullptr)
-        pShipSE = m_pShipSE;
+        pShipSE = GetHomeShip();
+    if (pShipSE == nullptr) {
+        m_online = false;
+        StateChange();
+        return;
+    }
 
     m_AI->AssignShip(pShipSE);
 }
 
 void DroneSE::Offline() {
-    // this is called by abandon also
-    m_destiny->Stop();
-    m_AI->AssignShip(nullptr);
+    // This is called by scoop and abandon. Clear combat locks before releasing
+    // control so neither side retains stale target references.
+    if (m_AI != nullptr)
+        m_AI->ClearAllTargets();
+    if (m_destiny != nullptr)
+        m_destiny->Stop();
+    if (m_AI != nullptr)
+        m_AI->AssignShip(nullptr);
     m_online = false;
     StateChange();
 }
 
+bool DroneSE::ScoopToBay() {
+    ShipSE* homeShip = GetHomeShip();
+    Client* owner = GetOwner();
+    if (!m_online || owner == nullptr || homeShip == nullptr
+        || m_system == nullptr || m_self.get() == nullptr)
+        return false;
+
+    // EVE's normal drone scoop interaction range is 2,500 metres.
+    if (GetPosition().distance(homeShip->GetPosition()) > 2500.0)
+        return false;
+
+    ShipItemRef ship = owner->GetShip();
+    if (ship.get() == nullptr || ship->itemID() != homeShip->GetID())
+        return false;
+
+    try {
+        if (!ship->GetMyInventory()->ValidateAddItem(flagDroneBay, m_self))
+            return false;
+
+        m_self->ChangeOwner(owner->GetCharacterID(), true);
+        owner->MoveItem(m_self->itemID(), ship->itemID(), flagDroneBay);
+    } catch (...) {
+        // Capacity or inventory errors must not escape the system process loop.
+        return false;
+    }
+
+    homeShip->ScoopDrone(this);
+    m_system->RemoveEntity(this);
+    delete this;
+    return true;
+}
+
 void DroneSE::IdleOrbit(ShipSE* pShipSE/*nullptr*/) {
     if (pShipSE == nullptr)
-        pShipSE = m_pShipSE;
+        pShipSE = GetHomeShip();
 
-    if (!m_online)
-        return;         // error here?
+    if (!m_online || pShipSE == nullptr || m_destiny == nullptr)
+        return;
 
     // TODO:  fix these speeds
     // set speed and begin orbit
@@ -185,6 +294,7 @@ void DroneSE::IdleOrbit(ShipSE* pShipSE/*nullptr*/) {
 void DroneSE::Abandon() {
     SystemEntity::Abandon();
     Offline();
+    ClearShipControl();
 }
 
 /*   when drone is scooped up....
@@ -202,6 +312,9 @@ void DroneSE::Abandon() {
  */
 
 void DroneSE::StateChange() {
+    if (m_bubble == nullptr)
+        return;
+
     //OnDroneStateChange(droneID, ownerID, controllerID, activityState, droneTypeID, controllerOwnerID, targetID)
     if (m_online) {
         OnDroneStateChange du;
@@ -233,11 +346,27 @@ void DroneSE::StateChange() {
 }
 
 void DroneSE::TargetAdded(SystemEntity* who) {
-    /** @todo (Allan) will need code once drones are implemented */
+    if (who == nullptr)
+        return;
+
+    SetTarget(who);
+    m_AI->TargetAcquired(who);
+    StateChange();
 }
 
 void DroneSE::TargetLost(SystemEntity *who) {
+    if (who == nullptr || m_targetID == who->GetID())
+        SetTarget();
+
     m_AI->TargetLost(who);
+
+    // Keep the client-visible target in sync when another locked target remains.
+    if (TargetMgr() != nullptr) {
+        SystemEntity* nextTarget = TargetMgr()->GetFirstTarget(true);
+        if (nextTarget != nullptr)
+            SetTarget(nextTarget);
+    }
+    StateChange();
 }
 
 void DroneSE::TargetedAdd(SystemEntity *who) {
@@ -245,7 +374,11 @@ void DroneSE::TargetedAdd(SystemEntity *who) {
 }
 
 void DroneSE::TargetedLost(SystemEntity* who) {
-    /** @todo (Allan) will need code once drones are implemented */
+    // This callback means another entity stopped locking this drone. It does not
+    // change the drone's own target or combat state.
+    if (who != nullptr)
+        _log(DRONE__AI_TRACE, "Drone %s(%u): %s(%u) stopped targeting it.",
+             GetName(), GetID(), who->GetName(), who->GetID());
 }
 
 PyDict* DroneSE::MakeSlimItem() {
@@ -294,27 +427,16 @@ void DroneSE::EncodeDestiny( Buffer& into )
         data.velY = m_destiny->GetVelocity().y;
         data.velZ = m_destiny->GetVelocity().z;
         data.inertia = m_destiny->GetInertia();
-        data.speedfraction = m_destiny->GetSpeedFraction();
+        data.speedfraction = m_destiny->GetCommandedSpeedFraction();
     into.Append( data );
     switch (mode) {
         case Ball::Mode::WARP: {
-            GPoint target = m_destiny->GetTargetPoint();
-            WARP_Struct warp;
-                warp.formationID = 0xFF;
-                warp.targX = target.x;
-                warp.targY = target.y;
-                warp.targZ = target.z;
-                warp.speed = m_destiny->GetWarpSpeed();       //ship warp speed x10  (dont ask...this is what it is...more dumb ccp shit)
-                // warp timing.  see Ship::EncodeDestiny() for notes/updates
-                warp.effectStamp = -1; //m_destiny->GetStateStamp();   //timestamp when warp started
-                warp.followRange = 0;   //this isnt right
-                warp.followID = 0;  //this isnt right
-            into.Append( warp );
+            m_destiny->EncodeWarpState(into);
         }  break;
         case Ball::Mode::FOLLOW: {
             FOLLOW_Struct follow;
                 follow.followID = m_destiny->GetTargetID();
-                follow.followRange = m_destiny->GetFollowDistance();
+                follow.followRange = m_destiny->GetFollowRange();
                 follow.formationID = 0xFF;
             into.Append( follow );
         }  break;
@@ -326,34 +448,47 @@ void DroneSE::EncodeDestiny( Buffer& into )
             into.Append( orbit );
         }  break;
         case Ball::Mode::GOTO: {
-            GPoint target = m_destiny->GetTargetPoint();
-            GOTO_Struct go;
-                go.formationID = 0xFF;
-                go.x = target.x;
-                go.y = target.y;
-                go.z = target.z;
-            into.Append( go );
+            GOTO_Struct goto_; 
+                goto_.formationID = 0xFF;
+                goto_.x = m_destiny->GetTargetPoint().x;
+                goto_.y = m_destiny->GetTargetPoint().y;
+                goto_.z = m_destiny->GetTargetPoint().z;
+            into.Append( goto_ );
+        }  break;
+        case Ball::Mode::STOP: {
+            STOP_Struct stop;
+                stop.formationID = 0xFF;
+            into.Append( stop );
         }  break;
         default: {
-            STOP_Struct main;
-                main.formationID = 0xFF;
-            into.Append( main );
-        } break;
+            _log(DRONE__ERROR, "DroneSE::EncodeDestiny - Unknown destiny mode %u for %s", mode, m_self->name());
+        }  break;
     }
-    _log(SE__DESTINY, "DroneSE::EncodeDestiny(): %s - id:%lli, mode:%u, flags:0x%X", GetName(), head.entityID, head.mode, head.flags);
 }
 
-void DroneSE::MakeDamageState(DoDestinyDamageState &into)
-{
-    into.shield = (m_self->GetAttribute(AttrShieldCharge).get_float() / m_self->GetAttribute(AttrShieldCapacity).get_float());
-    into.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_float() + 5;
+
+void DroneSE::MakeDamageState(DoDestinyDamageState& into) {
+    const auto clamp01 = [](double value) -> double {
+        if (value < 0.0) return 0.0;
+        if (value > 1.0) return 1.0;
+        return value;
+    };
+    const double shieldCapacity = m_self->GetAttribute(AttrShieldCapacity).get_double();
+    const double armorCapacity = m_self->GetAttribute(AttrArmorHP).get_double();
+    const double hullCapacity = m_self->GetAttribute(AttrHP).get_double();
+    into.shield = (shieldCapacity > 0.0)
+        ? clamp01(m_self->GetAttribute(AttrShieldCharge).get_double() / shieldCapacity) : 0.0;
+    into.recharge = m_self->GetAttribute(AttrShieldRechargeRate).get_double() + 5.0;
     into.timestamp = GetFileTimeNow();
-    into.armor = 1.0 - (m_self->GetAttribute(AttrArmorDamage).get_float() / m_self->GetAttribute(AttrArmorHP).get_float());
-    into.structure = 1.0 - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHP).get_float());
+    into.armor = (armorCapacity > 0.0)
+        ? clamp01(1.0 - m_self->GetAttribute(AttrArmorDamage).get_double() / armorCapacity) : 0.0;
+    into.structure = (hullCapacity > 0.0)
+        ? clamp01(1.0 - m_self->GetAttribute(AttrDamage).get_double() / hullCapacity) : 0.0;
 }
 
 void DroneSE::SetResists() {
-    /* fix for missing resist attribs -allan 18April16  */
+    // Some legacy drone types are missing resistance attributes in static data.
+    // Add defaults only where an attribute is absent.
     if (!m_self->HasAttribute(AttrShieldEmDamageResonance)) m_self->SetAttribute(AttrShieldEmDamageResonance, EvilOne, false);
     if (!m_self->HasAttribute(AttrShieldExplosiveDamageResonance)) m_self->SetAttribute(AttrShieldExplosiveDamageResonance, EvilOne, false);
     if (!m_self->HasAttribute(AttrShieldKineticDamageResonance)) m_self->SetAttribute(AttrShieldKineticDamageResonance, EvilOne, false);
@@ -368,152 +503,79 @@ void DroneSE::SetResists() {
     if (!m_self->HasAttribute(AttrThermalDamageResonance)) m_self->SetAttribute(AttrThermalDamageResonance, EvilOne, false);
 }
 
-void DroneSE::Killed(Damage &damage) {
-    if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
-        return; // make error here?
+void DroneSE::Killed(Damage& damage) {
+    // Unregister from the controlling ship before the item is deleted.
+    // Resolve the controller ID first; m_pShipSE is a non-owning cached pointer
+    // and may have become stale if the ship was removed before this drone died.
+    ShipSE* homeShip = GetHomeShip();
+    if (homeShip != nullptr)
+        homeShip->ScoopDrone(this);
 
+    if (m_bubble == nullptr || m_destiny == nullptr || m_system == nullptr || m_self.get() == nullptr) {
+        sLog.Error("DroneSE::Killed()", "Cannot create drone wreck: required state unavailable for drone %u", GetID());
+        return;
+    }
+
+    SystemEntity* killer = damage.srcSE;
+    Client* pClient = nullptr;
     uint32 killerID = 0;
-    Client* pClient(nullptr);
-    SystemEntity *killer(damage.srcSE);
-
-    if (killer->HasPilot()) {
-        pClient = killer->GetPilot();
-        killerID = pClient->GetCharacterID();
-    } else if (killer->IsDroneSE()) {
-        pClient = sEntityList.FindClientByCharID( killer->GetSelf()->ownerID() );
-        if (pClient == nullptr) {
-            sLog.Error("DroneSE::Killed()", "killer == IsDrone and pPlayer == nullptr");
+    if (killer != nullptr) {
+        if (killer->HasPilot()) {
+            pClient = killer->GetPilot();
+            if (pClient != nullptr) killerID = pClient->GetCharacterID();
+        } else if (killer->IsDroneSE()) {
+            pClient = killer->GetDroneSE()->GetOwner();
+            if (pClient != nullptr) killerID = pClient->GetCharacterID();
         } else {
-            killerID = pClient->GetCharacterID();
+            killerID = killer->GetID();
         }
-    } else {
-        killerID = killer->GetID();
     }
 
     if (pClient != nullptr) {
-        //award kill bounty.
-        AwardBounty( pClient );
-        if (m_system->GetSystemSecurityRating() > 0)
-            AwardSecurityStatus(m_self, pClient->GetChar().get());  // this awards secStatusChange for npcs in empire space
+        AwardBounty(pClient);
+        if (m_system->GetSystemSecurityRating() > 0.0)
+            AwardSecurityStatus(m_self, pClient->GetChar().get());
     }
 
-    GPoint wreckPosition = m_destiny->GetPosition();
+    const GPoint wreckPosition = m_destiny->GetPosition();
     if (wreckPosition.isNaN()) {
-        sLog.Error("DroneSE::Killed()", "Wreck Position is NaN");
+        sLog.Error("DroneSE::Killed()", "Wreck position is invalid for drone %u", GetID());
         return;
     }
 
-    uint32 wreckTypeID = 26972;   //Faction Drone Wreck -- best i can find.
-
-    std::string wreck_name = m_self->itemName();
-    wreck_name += " Wreck";
-    ItemData wreckItemData(wreckTypeID, killerID, m_system->GetID(), flagNone, wreck_name.c_str(), wreckPosition, itoa(m_allyID));
-    WreckContainerRef wreckItemRef = sItemFactory.SpawnWreckContainer( wreckItemData );
+    const uint32 wreckTypeID = 26972; // Faction drone wreck.
+    const std::string wreckName = m_self->itemName() + " Wreck";
+    ItemData wreckItemData(wreckTypeID, killerID, m_system->GetID(), flagNone,
+                           wreckName.c_str(), wreckPosition, itoa(m_allyID));
+    WreckContainerRef wreckItemRef = sItemFactory.SpawnWreckContainer(wreckItemData);
     if (wreckItemRef.get() == nullptr) {
-        sLog.Error("DroneSE::Killed()", "Creating Wreck Item Failed for %s of type %u", wreck_name.c_str(), wreckTypeID);
+        sLog.Error("DroneSE::Killed()", "Creating wreck failed for drone %s(%u)", m_self->name(), m_self->itemID());
         return;
     }
 
-    if (is_log_enabled(PHYSICS__TRACE))
-        _log(PHYSICS__TRACE, "DroneSE::Killed() - Drone %s(%u) Position: %.2f,%.2f,%.2f.  Wreck %s(%u) Position: %.2f,%.2f,%.2f.", \
-        GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
+    if (is_log_enabled(PHYSICS__TRACE)) {
+        _log(PHYSICS__TRACE,
+             "DroneSE::Killed() - Drone %s(%u) Position: %.2f,%.2f,%.2f. Wreck %s(%u) Position: %.2f,%.2f,%.2f.",
+             GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(),
+             wreckPosition.x, wreckPosition.y, wreckPosition.z);
+    }
 
     DBSystemDynamicEntity wreckEntity = DBSystemDynamicEntity();
-        wreckEntity.allianceID = (killer->GetAllianceID() == 0 ? m_allyID : killer->GetAllianceID());
-        wreckEntity.categoryID = EVEDB::invCategories::Celestial;
-        wreckEntity.corporationID = killer->GetCorporationID();
-        wreckEntity.factionID = (killer->GetWarFactionID() == 0 ? m_warID : killer->GetWarFactionID());
-        wreckEntity.groupID = EVEDB::invGroups::Wreck;
-        wreckEntity.itemID = wreckItemRef->itemID();
-        wreckEntity.itemName = wreck_name;
-        wreckEntity.ownerID = killerID;
-        wreckEntity.typeID = wreckTypeID;
-        wreckEntity.position = wreckPosition;
+    wreckEntity.allianceID = (killer != nullptr && killer->GetAllianceID() != 0) ? killer->GetAllianceID() : m_allyID;
+    wreckEntity.categoryID = EVEDB::invCategories::Celestial;
+    wreckEntity.corporationID = (killer != nullptr) ? killer->GetCorporationID() : m_corpID;
+    wreckEntity.factionID = (killer != nullptr && killer->GetWarFactionID() != 0) ? killer->GetWarFactionID() : m_warID;
+    wreckEntity.groupID = EVEDB::invGroups::Wreck;
+    wreckEntity.itemID = wreckItemRef->itemID();
+    wreckEntity.itemName = wreckName;
+    wreckEntity.ownerID = killerID;
+    wreckEntity.typeID = wreckTypeID;
+    wreckEntity.position = wreckPosition;
 
     if (!m_system->BuildDynamicEntity(wreckEntity, m_self->itemID())) {
-        sLog.Error("DroneSE::Killed()", "Spawning Wreck Failed for typeID %u", wreckTypeID);
+        sLog.Error("DroneSE::Killed()", "Spawning wreck failed for drone typeID %u", m_self->typeID());
         wreckItemRef->Delete();
         return;
     }
     m_destiny->SendJettisonPacket();
 }
-
-/*
-    [PyObjectData Name: macho.MachoAddress]
-      [PyTuple 3 items]
-        [PyInt 8]
-        [PyString "entity"]
-        [PyNone]
-    [PyInt 5654387]
-    [PyTuple 1 items]
-      [PyTuple 2 items]
-        [PyInt 0]
-        [PySubStream 40 bytes]
-          [PyTuple 4 items]
-            [PyInt 1]
-            [PyString "MachoResolveObject"]
-            [PyTuple 2 items]
-              [PyInt 30000302]
-              [PyInt 0]
-            [PyDict 1 kvp]
-              [PyString "machoVersion"]
-              [PyInt 1]
-
-
-    [PyObjectData Name: macho.MachoAddress]
-      [PyTuple 4 items]
-        [PyInt 1]
-        [PyInt 790408]
-        [PyString "entity"]
-        [PyNone]
-    [PyInt 5654387]
-    [PyTuple 1 items]
-      [PyTuple 2 items]
-        [PyInt 0]
-        [PySubStream 88 bytes]
-          [PyTuple 4 items]
-            [PyInt 1]
-            [PyString "MachoBindObject"]
-            [PyTuple 2 items]
-              [PyInt 30000302]
-              [PyTuple 3 items]
-                [PyString "CmdEngage"]
-                [PyTuple 2 items]
-                  [PyList 3 items]
-                    [PyIntegerVar 1005909240632]
-                    [PyIntegerVar 1005909240642]
-                    [PyIntegerVar 1005902745093]
-                  [PyIntegerVar 9000000000001190094]
-                [PyDict 0 kvp]
-            [PyDict 1 kvp]
-              [PyString "machoVersion"]
-              [PyInt 1]
-
-    [PyObjectData Name: macho.MachoAddress]
-      [PyTuple 4 items]
-        [PyInt 1]
-        [PyInt 790408]
-        [PyString "entity"]
-        [PyNone]
-    [PyInt 5654387]
-    [PyTuple 1 items]
-      [PyTuple 2 items]
-        [PyInt 0]
-        [PySubStream 81 bytes]
-          [PyTuple 4 items]
-            [PyInt 1]
-            [PyString "MachoBindObject"]
-            [PyTuple 2 items]
-              [PyInt 30000302]
-              [PyTuple 3 items]
-                [PyString "CmdReturnBay"]
-                [PyTuple 1 items]
-                  [PyList 3 items]
-                    [PyIntegerVar 1005909240632]
-                    [PyIntegerVar 1005909240642]
-                    [PyIntegerVar 1005902745093]
-                [PyDict 0 kvp]
-            [PyDict 1 kvp]
-              [PyString "machoVersion"]
-              [PyInt 1]
-        */

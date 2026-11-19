@@ -1820,11 +1820,11 @@ std::string CorporationDB::GetDivisionName(uint32 corpID, uint16 acctKey)
 }
 
 
-bool CorporationDB::UpdateCorporation(uint32 corpID, const std::string& description, const std::string& url, double taxRate, PyDict * notif) {
+bool CorporationDB::UpdateCorporation(uint32 corpID, const std::string& description, const std::string& url, double taxRate, uint32 applicationEnabled, PyDict * notif) {
     DBQueryResult res;
 
     if (!sDatabase.RunQuery(res,
-        " SELECT description, url, taxRate "
+        " SELECT description, url, taxRate, isRecruiting "
         " FROM crpCorporation "
         " WHERE corporationID = %u ", corpID))
     {
@@ -1842,6 +1842,9 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const std::string& descript
     ProcessStringChange("description", row.GetText(0), description, notif, dbQ);
     ProcessStringChange("url", row.GetText(1), url, notif, dbQ);
     ProcessRealChange("taxRate", row.GetDouble(2), taxRate, notif, dbQ);
+    // The client calls this fourth argument applicationEnabled; the server
+    // stores the corresponding public-recruitment/application flag as isRecruiting.
+    ProcessIntChange("isRecruiting", row.GetUInt(3), applicationEnabled, notif, dbQ);
 
     std::string query = " UPDATE crpCorporation SET ";
 
@@ -1851,11 +1854,14 @@ bool CorporationDB::UpdateCorporation(uint32 corpID, const std::string& descript
         if (i < N - 1) query += ", ";
     }
 
-    query += " WHERE corporationID = %u";
+    query += " WHERE corporationID = ";
+    query += std::to_string(corpID);
 
-    // only update if there is anything to update
-    if ((N > 0) && (!sDatabase.RunQuery(res.error, query.c_str(), corpID))) {
-        codelog(CORP__DB_ERROR, "Error in query: %s", res.error.c_str());
+    // Do not use dynamically generated SQL as a printf format. Corporation
+    // descriptions/URLs can legitimately contain '%', which would otherwise
+    // be treated as a format directive by DBcore::RunQuery.
+    if ((N > 0) && (!sDatabase.RunQuery(res.error, "%s", query.c_str()))) {
+        codelog(CORP__DB_ERROR, "Error updating corporation %u: %s", corpID, res.error.c_str());
         return false;
     }
 

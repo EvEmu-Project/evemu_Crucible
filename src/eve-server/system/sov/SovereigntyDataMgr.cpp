@@ -10,6 +10,8 @@
 
 #include <boost/range/iterator_range.hpp>
 #include "system/sov/SovereigntyDataMgr.h"
+#include <algorithm>
+#include <limits>
 #include "database/EVEDBUtils.h"
 #include "packets/Sovereignty.h"
 #include "StaticDataMgr.h"
@@ -18,6 +20,7 @@
 SovereigntyDataMgr::SovereigntyDataMgr()
 {
     m_sovData.clear();
+    m_indexOverrides.clear();
 }
 
 SovereigntyDataMgr::~SovereigntyDataMgr()
@@ -46,7 +49,19 @@ void SovereigntyDataMgr::Clear()
     //for (auto cur : m_sovPyData)
     //    PySafeDecRef(cur.second);
     m_sovData.clear();
+    m_indexOverrides.clear();
     //m_sovPyData.clear();
+}
+
+// The client's claimedFor field is claim age in days, not allianceID.
+static int32 ClaimedForDays(const SovereigntyData& sov)
+{
+    if (sov.claimTime <= 0)
+        return 0;
+    const double days = (GetFileTimeNow() - sov.claimTime) / Win32Time_Day;
+    if (days <= 0.0)
+        return 0;
+    return static_cast<int32>(std::min(days, static_cast<double>(std::numeric_limits<int32>::max())));
 }
 
 void SovereigntyDataMgr::Populate()
@@ -59,6 +74,7 @@ void SovereigntyDataMgr::Populate()
 
     //This data is added by solar system, so we need to use that tag here
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
+    bySolar.clear(); // Safe when reinitialized after DB reconnect.
 
     SovereigntyDB::GetSovereigntyData(*res);
     while (res->GetRow(row))
@@ -80,6 +96,25 @@ void SovereigntyDataMgr::Populate()
         sData.beaconID = row.GetUInt(13);
         sData.jammerID = row.GetUInt(14);
         bySolar.insert(sData);
+    }
+
+    // Recover development test overrides on restart without touching claims.
+    // Missing migration must not stop the live sovereignty cache from loading.
+    m_indexOverrides.clear();
+    DBQueryResult overrideRows;
+    if (SovereigntyDB::GetIndexOverrides(overrideRows)) {
+        DBResultRow overrideRow;
+        while (overrideRows.GetRow(overrideRow)) {
+            EVESovIndex::Override item = {
+                overrideRow.GetUInt(1),
+                overrideRow.GetUInt(2),
+                overrideRow.GetUInt(3),
+                static_cast<uint16>(overrideRow.GetUInt(4))
+            };
+            m_indexOverrides[overrideRow.GetUInt(0)] = item;
+        }
+    } else {
+        _log(SOV__WARNING, "GM index overrides unavailable: apply 20261118070000 migration.");
     }
 
     sLog.Cyan("       SovDataMgr", "%lu Sovereignty data sets loaded in %.3fms.",
@@ -119,18 +154,17 @@ SovereigntyData SovereigntyDataMgr::GetSovereigntyData(uint32 systemID)
     } else
     {
         //Return empty object in case we don't find anything
-        SovereigntyData sData;
-        return sData;
+        return SovereigntyData();
     }
 }
 
 PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
 {
     SystemData sysData = SystemData();
-    PyDict *args = new PyDict();
+    if (!sDataMgr.GetSystemData(systemID, sysData))
+        return new PyNone();
 
-    //Figure out if this system is in empire space
-    sDataMgr.GetSystemData(systemID, sysData);
+    // Figure out if this system is in empire space.
 
     if (sysData.factionID)
     {   // If we have a factionID, the system is not claimable.
@@ -153,13 +187,22 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
             _log(SOV__DEBUG, "allianceID: %u", sData.allianceID);
             _log(SOV__DEBUG, "claimStructureID: %u", sData.claimStructureID);
             _log(SOV__DEBUG, "==========");
+            PyDict *args = new PyDict();
             args->SetItemString("contested", new PyInt(sData.contested));
             args->SetItemString("corporationID", new PyInt(sData.corporationID));
-            args->SetItemString("claimTime", new PyLong(sData.claimTime));
+            // Only the response is backdated for the client. The actual
+            // sovereignty claimTime in mapSystemSovInfo is never modified.
+            const uint32 effectiveDays = GetEffectiveStrategicDays(sData);
+            const int64 displayTime = (effectiveDays > static_cast<uint32>(ClaimedForDays(sData)))
+                ? GetFileTimeNow() - static_cast<int64>(
+                    static_cast<double>(effectiveDays) * Win32Time_Day)
+                : sData.claimTime;
+            args->SetItemString("claimTime", new PyLong(displayTime));
             args->SetItemString("claimStructureID", new PyInt(sData.claimStructureID));
             args->SetItemString("hubID", new PyInt(sData.hubID));
             args->SetItemString("allianceID", new PyInt(sData.allianceID));
             args->SetItemString("solarSystemID", new PyInt(sData.solarSystemID));
+            return new PyObject("util.KeyVal", args);
         }
         else
         {
@@ -168,7 +211,7 @@ PyRep *SovereigntyDataMgr::GetSystemSovereignty(uint32 systemID)
             return new PyNone();
         }
     }
-    return new PyObject("util.KeyVal", args);
+    return new PyNone();
 }
 
 PyRep *SovereigntyDataMgr::GetAllianceSystems() //Get all systems associated with all alliances?
@@ -220,8 +263,8 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
     header->AddColumn("locationID", DBTYPE_I4);
     header->AddColumn("allianceID", DBTYPE_I4);
     header->AddColumn("stationCount", DBTYPE_I2);
-    header->AddColumn("militaryPoints", DBTYPE_I2);
-    header->AddColumn("industrialPoints", DBTYPE_I2);
+    header->AddColumn("militaryPoints", DBTYPE_I4);
+    header->AddColumn("industrialPoints", DBTYPE_I4);
     header->AddColumn("claimedFor", DBTYPE_I4);
     CRowSet *rowset = new CRowSet(&header);
 
@@ -234,9 +277,9 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
             row->SetField("locationID", new PyInt(sData.solarSystemID));
             row->SetField("allianceID", new PyInt(sData.allianceID));
             row->SetField("stationCount", new PyInt(sData.stationCount));
-            row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
-            row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
-            row->SetField("claimedFor", new PyInt(sData.allianceID));
+            row->SetField("militaryPoints", new PyInt(GetEffectiveMilitaryPoints(sData)));
+            row->SetField("industrialPoints", new PyInt(GetEffectiveIndustrialPoints(sData)));
+            row->SetField("claimedFor", new PyInt(GetEffectiveStrategicDays(sData)));
         }
     }
     //Get all unique alliances in the region who hold sovereignty
@@ -252,25 +295,28 @@ PyRep *SovereigntyDataMgr::GetCurrentSovData(uint32 locationID)
                 row->SetField("locationID", new PyInt(sData.constellationID));
                 row->SetField("allianceID", new PyInt(sData.allianceID));
                 row->SetField("stationCount", new PyInt(sData.stationCount));
-                row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
-                row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
-                row->SetField("claimedFor", new PyInt(sData.allianceID));
+                row->SetField("militaryPoints", new PyInt(GetEffectiveMilitaryPoints(sData)));
+                row->SetField("industrialPoints", new PyInt(GetEffectiveIndustrialPoints(sData)));
+                row->SetField("claimedFor", new PyInt(GetEffectiveStrategicDays(sData)));
                 cv.push_back(sData.constellationID);
             }
         }
     }
     else if (sDataMgr.IsSolarSystem(locationID))
     {
-        for (SovereigntyData const &sData : boost::make_iterator_range(
-                 m_sovData.get<SovDataByRegion>().equal_range(locationID)))
+        // Solar-system IDs belong to the solar index, not the region index.
+        const auto& bySolar = m_sovData.get<SovDataBySolarSystem>();
+        const auto it = bySolar.find(locationID);
+        if (it != bySolar.end())
         {
+            const SovereigntyData& sData = *it;
             PyPackedRow *row = rowset->NewRow();
             row->SetField("locationID", new PyInt(sData.solarSystemID));
             row->SetField("allianceID", new PyInt(sData.allianceID));
             row->SetField("stationCount", new PyInt(sData.stationCount));
-            row->SetField("militaryPoints", new PyInt(sData.militaryPoints));
-            row->SetField("industrialPoints", new PyInt(sData.industrialPoints));
-            row->SetField("claimedFor", new PyInt(sData.allianceID));
+            row->SetField("militaryPoints", new PyInt(GetEffectiveMilitaryPoints(sData)));
+            row->SetField("industrialPoints", new PyInt(GetEffectiveIndustrialPoints(sData)));
+            row->SetField("claimedFor", new PyInt(GetEffectiveStrategicDays(sData)));
         }
     }
 
@@ -283,19 +329,12 @@ void SovereigntyDataMgr::AddSovClaim(SovereigntyData data)
 
     //Add a new sovereignty claim to DB
     uint32 claimID(0);
-    SovereigntyDB::AddSovereigntyData(data, claimID);
-    _log(SOV__DEBUG, "AddSovClaim() - ClaimID %u added to DB...", claimID);
-
-    //Define our view from container
-    auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
-
-    //Delete existing records in container which match the systemID
-    auto it = m_sovData.get<SovDataBySolarSystem>().find(data.solarSystemID);
-    if (it != m_sovData.get<SovDataBySolarSystem>().end())
-    {
-        bySolar.erase(data.solarSystemID);
+    if (!SovereigntyDB::AddSovereigntyData(data, claimID)) {
+        _log(SOV__ERROR, "AddSovClaim() - database write failed for %u; cache retained.",
+             data.solarSystemID);
+        return;
     }
-
+    _log(SOV__DEBUG, "AddSovClaim() - ClaimID %u added to DB...", claimID);
     UpdateClaim(data.solarSystemID);
 }
 
@@ -314,13 +353,28 @@ void SovereigntyDataMgr::RemoveSovClaim(uint32 systemID)
 {
     _log(SOV__INFO, "RemoveSovClaim() - Removing claim for %u from DataMgr...", systemID);
 
+    // Remember the TCU before the claim is removed. A later online of the
+    // same itemID must not resurrect an old GM index test override.
+    const SovereigntyData oldClaim = GetSovereigntyData(systemID);
     //Delete sovereignty claim from DB
-    SovereigntyDB::RemoveSovereigntyData(systemID);
+    if (!SovereigntyDB::RemoveSovereigntyData(systemID)) {
+        _log(SOV__ERROR, "RemoveSovClaim() - database delete failed for %u; cache retained.",
+             systemID);
+        return;
+    }
     _log(SOV__DEBUG, "RemoveSovClaim() - Claim for %u removed from DB...", systemID);
+
+    if (oldClaim.claimStructureID
+        && !SovereigntyDB::DeleteIndexOverride(systemID, oldClaim.claimStructureID))
+        _log(SOV__WARNING,
+             "RemoveSovClaim() - unable to purge old GM index override for %u.",
+             systemID);
 
     //Remove claim from container
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
     bySolar.erase(systemID);
+    // A subsequent claim must not inherit a previous alliance's test data.
+    m_indexOverrides.erase(systemID);
 }
 
 void SovereigntyDataMgr::UpdateSystemHubID(uint32 systemID, uint32 hubID)
@@ -362,14 +416,16 @@ void SovereigntyDataMgr::UpdateClaim(uint32 systemID)
     //Define our view from container
     auto &bySolar = m_sovData.get<SovDataBySolarSystem>();
 
-    //Remove old from container
-    bySolar.erase(systemID);
-
-    //Get the data from the DB, this will avoid inconsistencies
     DBQueryResult *res = new DBQueryResult();
     DBResultRow row;
+    if (!SovereigntyDB::GetSovereigntyDataForSystem(*res, systemID)) {
+        _log(SOV__ERROR, "UpdateClaim() - read failed for %u; cache retained.", systemID);
+        SafeDelete(res);
+        return;
+    }
 
-    SovereigntyDB::GetSovereigntyDataForSystem(*res, systemID);
+    // Only replace a previous claim after a successful database read.
+    bySolar.erase(systemID);
     while (res->GetRow(row))
     {
         SovereigntyData sData = SovereigntyData();
@@ -391,4 +447,81 @@ void SovereigntyDataMgr::UpdateClaim(uint32 systemID)
         bySolar.insert(sData);
     }
     SafeDelete(res);
+}
+
+uint32 SovereigntyDataMgr::GetEffectiveMilitaryPoints(const SovereigntyData& claim) const
+{
+    const auto it = m_indexOverrides.find(claim.solarSystemID);
+    const EVESovIndex::Override* test = it == m_indexOverrides.end() ? nullptr : &it->second;
+    return EVESovIndex::EffectivePoints(claim.militaryPoints, test, claim.claimStructureID, true);
+}
+
+uint32 SovereigntyDataMgr::GetEffectiveIndustrialPoints(const SovereigntyData& claim) const
+{
+    const auto it = m_indexOverrides.find(claim.solarSystemID);
+    const EVESovIndex::Override* test = it == m_indexOverrides.end() ? nullptr : &it->second;
+    return EVESovIndex::EffectivePoints(claim.industrialPoints, test, claim.claimStructureID, false);
+}
+
+uint32 SovereigntyDataMgr::GetEffectiveStrategicDays(const SovereigntyData& claim) const
+{
+    const uint32 realDays = static_cast<uint32>(ClaimedForDays(claim));
+    const auto it = m_indexOverrides.find(claim.solarSystemID);
+    const EVESovIndex::Override* test = it == m_indexOverrides.end() ? nullptr : &it->second;
+    return EVESovIndex::EffectiveStrategicDays(realDays, test, claim.claimStructureID);
+}
+
+bool SovereigntyDataMgr::ForceLevelFiveIndices(uint32 systemID)
+{
+    const SovereigntyData claim = GetSovereigntyData(systemID);
+    if (!claim.solarSystemID || !claim.allianceID
+        || !claim.claimStructureID || !claim.hubID)
+        return false;
+    if (!SovereigntyDB::SaveIndexOverride(systemID, claim.claimStructureID))
+        return false;
+    m_indexOverrides[systemID] = EVESovIndex::Override{
+        claim.claimStructureID,
+        EVESovIndex::LevelFiveMilitaryPoints,
+        EVESovIndex::LevelFiveIndustrialPoints,
+        EVESovIndex::LevelFiveStrategicDays};
+    _log(SOV__INFO,
+         "DEV set test sovereignty indices for system %u / TCU %u: "
+         "military=%u raw points industrial=%u raw points "
+         "strategic=100 days; real claimTime unchanged.",
+         systemID, claim.claimStructureID,
+         EVESovIndex::LevelFiveMilitaryPoints,
+         EVESovIndex::LevelFiveIndustrialPoints);
+    return true;
+}
+
+PyRep* SovereigntyDataMgr::GetAllDevelopmentIndicesForClients()
+{
+    PyList* list = new PyList();
+    for (const SovereigntyData& claim : m_sovData.get<SovDataBySolarSystem>()) {
+        if (!claim.claimStructureID)
+            continue;
+        PyDict* data = new PyDict();
+        data->SetItemString("solarSystemID", new PyInt(claim.solarSystemID));
+        data->SetItemString("militaryPoints", new PyInt(GetEffectiveMilitaryPoints(claim)));
+        data->SetItemString("industrialPoints", new PyInt(GetEffectiveIndustrialPoints(claim)));
+        data->SetItemString("claimedFor", new PyInt(GetEffectiveStrategicDays(claim)));
+        list->AddItem(new PyObject("util.KeyVal", data));
+    }
+    return list;
+}
+
+
+bool SovereigntyDataMgr::ResetIndexOverrides(uint32 systemID)
+{
+    const SovereigntyData claim = GetSovereigntyData(systemID);
+    if (!claim.solarSystemID || !claim.claimStructureID)
+        return false;
+    if (!SovereigntyDB::DeleteIndexOverride(systemID, claim.claimStructureID))
+        return false;
+
+    m_indexOverrides.erase(systemID);
+    _log(SOV__INFO,
+         "DEV reset test sovereignty development index override in system %u.",
+         systemID);
+    return true;
 }

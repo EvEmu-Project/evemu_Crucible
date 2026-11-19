@@ -16,6 +16,7 @@
 #include "database/EVEDBUtils.h"
 #include "missions/MissionDataMgr.h"
 #include "inventory/ItemFactory.h"
+#include <algorithm>
 
 MissionDataMgr::MissionDataMgr()
 {
@@ -60,49 +61,66 @@ void MissionDataMgr::GetInfo()
 // called every minute from EntityList::Process()
 void MissionDataMgr::Process()
 {
-    // process open offers every 5m
-    if (++m_procCount > 5) {
-        m_procCount = 0;
+    // Process open offers approximately every five minutes.
+    if (++m_procCount <= 5)
+        return;
+    m_procCount = 0;
 
-        Agent* pAgent(nullptr);
-        Client* pClient(nullptr);
-        std::multimap<uint32, MissionOffer>::iterator itr = m_offers.begin();
-        while (itr != m_offers.end()) {
-            if (itr->second.expiryTime < GetFileTimeNow()) {
-                pAgent = sEntityList.GetAgent(itr->second.agentID);
-                pClient = sEntityList.FindClientByCharID(itr->first);
-                // notify client if they are online.  eventaully we'll send mail also
-                if (itr->second.stateID == Mission::State::Accepted) {
-                    pAgent->SendMissionUpdate(pClient, "failed");
-                    itr->second.stateID = Mission::State::Failed;
-                    if (itr->second.courierTypeID) {
-                        // remove item from player's possession
-                        if (pClient != nullptr) {
-                            pClient->RemoveMissionItem(itr->second.courierTypeID, itr->second.courierAmount);
-                        } else {
-                            MissionDB::RemoveMissionItem(itr->first, itr->second.courierTypeID, itr->second.courierAmount);
-                        }
-                    }
-                } else if (itr->second.stateID == Mission::State::Offered) {
-                    pAgent->SendMissionUpdate(pClient, "offer_expired");
-                    itr->second.stateID = Mission::State::Expired;
-                }
-                std::multimap<uint32, MissionOffer>::iterator itr2 = m_aoffers.find(itr->second.agentID);
-                if (itr2 != m_aoffers.end())
-                    m_aoffers.erase(itr2);
-                m_xoffers.emplace(itr->first, itr->second);
-                pAgent->RemoveOffer(itr->first);
-                MissionDB::UpdateMissionOffer(itr->second);
-                itr = m_offers.erase(itr);
-                pAgent = nullptr;
-                pClient = nullptr;
-            } else {
-                ++itr;
+    const double now = GetFileTimeNow();
+    auto itr = m_offers.begin();
+    while (itr != m_offers.end()) {
+        MissionOffer& offer = itr->second;
+        if (offer.expiryTime <= 0.0 || offer.expiryTime > now) {
+            ++itr;
+            continue;
+        }
+
+        const uint32 characterID = itr->first;
+        const uint32 agentID = offer.agentID;
+        const uint32 offerID = offer.offerID;
+        Agent* pAgent = sEntityList.GetAgent(agentID);
+        Client* pClient = sEntityList.FindClientByCharID(characterID);
+
+        if (offer.stateID == Mission::State::Accepted) {
+            if (pAgent != nullptr)
+                pAgent->SendMissionUpdate(pClient, "failed");
+            offer.stateID = Mission::State::Failed;
+            if (offer.typeID != Mission::Type::Encounter && offer.courierTypeID != 0) {
+                if (pClient != nullptr)
+                    pClient->RemoveMissionItem(offer.courierTypeID, offer.courierAmount);
+                else
+                    MissionDB::RemoveMissionItem(characterID, offer.courierTypeID, offer.courierAmount);
+            }
+        } else if (Mission::IsAwaitingAcceptance(offer.stateID)) {
+            if (pAgent != nullptr)
+                pAgent->SendMissionUpdate(pClient, "offer_expired");
+            offer.stateID = Mission::State::Expired;
+        }
+
+        // Only erase the matching offer, not the first entry for this agent.
+        auto agentOffers = m_aoffers.equal_range(agentID);
+        for (auto ai = agentOffers.first; ai != agentOffers.second; ++ai) {
+            if (Mission::MatchesOffer(ai->second, characterID, offerID)) {
+                m_aoffers.erase(ai);
+                break;
             }
         }
+
+        if (pAgent != nullptr) {
+            // A newer mission may have replaced a completed or expired offer.
+            MissionOffer activeOffer{};
+            if (pAgent->HasMission(characterID, activeOffer)
+                && activeOffer.offerID == offerID)
+                pAgent->RemoveOffer(characterID);
+        } else {
+            _log(AGENT__WARNING, "MissionDataMgr::Process() - agent %u unavailable while expiring offer %u.", agentID, offerID);
+        }
+
+        MissionDB::UpdateMissionOffer(offer);
+        m_xoffers.emplace(characterID, offer);
+        itr = m_offers.erase(itr);
     }
 }
-
 
 void MissionDataMgr::Populate()
 {
@@ -230,17 +248,71 @@ void MissionDataMgr::Populate()
         data.name = row.GetText(2);
         data.level = row.GetInt(3);
         data.typeID = row.GetInt(4);
+        data.raceID = row.GetUInt(7);
         data.important = row.GetBool(5);
+        data.storyline = row.GetBool(6);
         data.constellationID = row.GetInt(8);
         data.corporationID = row.GetInt(9);
         data.dungeonID = row.GetInt(10);
+        data.rewardISK = row.GetUInt(11);
+        data.rewardItemID = row.GetUInt(12);
+        data.rewardItemQty = row.GetUInt(13);
+        data.bonusISK = row.GetUInt(14);
+        data.bonusTime = row.GetUInt(15);
         if (data.important) {
             m_missionsImp.emplace(row.GetInt(3), data);
         } else {
             m_missions.emplace(row.GetInt(3), data);
         }
     }
+    // Test-only encounter: expose The Blockade (Angel Cartel, Level 1) to
+    // every security agent (levels 1-5), regardless of empire faction. The actual
+    // room NPCs come from loaded dunTemplates/dunRoomObjects; no wave sequence,
+    // briefing, bounty, or reward is fabricated here.
+    MissionData blockadeTest = MissionData();
+    blockadeTest.important = false;
+    blockadeTest.storyline = false;
+    blockadeTest.typeID = Mission::Type::Encounter;
+    blockadeTest.raceID = 0; // faction-independent
+    blockadeTest.missionID = Mission::kBlockadeSecurityTestMissionID;
+    blockadeTest.briefingID = 0;
+    blockadeTest.dungeonID = 0; // resolve an Angel Cartel room template at acceptance
+    // A modest Level 1 payout; the normal AgentBound turn-in path pays it
+    // once after the encounter kill counter reaches the required ship count.
+    blockadeTest.rewardISK = Mission::kBlockadeSecurityTestRewardISK;
+    blockadeTest.bonusISK = 0;
+    blockadeTest.name = "The Blockade - Angel Cartel (TEST)";
+    for (uint8 testLevel = 1; testLevel <= 5; ++testLevel) {
+        blockadeTest.level = testLevel;
+        blockadeTest.range = testLevel;
+        m_missions.emplace(testLevel, blockadeTest);
+
+        MissionData importantBlockadeTest = blockadeTest;
+        importantBlockadeTest.important = true;
+        m_missionsImp.emplace(testLevel, importantBlockadeTest);
+
+        // A separate, deliberately difficult DED / faction / officer
+        // mission is offered by the same Security Agent divisions and tiers.
+        // Clone the proven encounter reward/offer lifecycle, not its spawns.
+        MissionData eliteMission = blockadeTest;
+        eliteMission.missionID = Mission::kEliteSecurityMissionID;
+        eliteMission.name = "DED & Officer Expedition (TEST)";
+        eliteMission.rewardISK = Mission::kEliteSecurityRewardISK;
+        m_missions.emplace(testLevel, eliteMission);
+        eliteMission.important = true;
+        m_missionsImp.emplace(testLevel, eliteMission);
+    }
+
     sLog.Cyan("   MissionDataMgr", "%lu(%lu) Unsorted Mission Data Sets loaded in %.3fms.", m_missions.size(), m_missionsImp.size(), (GetTimeMSeconds() - start));
+
+    uint32 level1EncounterCount = 0;
+    for (const auto& entry : m_missions)
+        if (entry.first == 1 && entry.second.typeID == Mission::Type::Encounter && !entry.second.storyline)
+            ++level1EncounterCount;
+    for (const auto& entry : m_missionsImp)
+        if (entry.first == 1 && entry.second.typeID == Mission::Type::Encounter && !entry.second.storyline)
+            ++level1EncounterCount;
+    sLog.Cyan("   MissionDataMgr", "%u Level 1 Security encounter templates available.", level1EncounterCount);
 
     //res->Reset();
     start = GetTimeMSeconds();
@@ -285,8 +357,33 @@ void MissionDataMgr::Populate()
         offer.dungeonLocationID = row.GetInt(32);
         offer.dungeonSolarSystemID = row.GetInt(33);
         offer.dateCompleted = 0;
-        // will need to determine how to store/retrieve bookmarks as a list of dicts here
+        // Rebuild the mission-site bookmark from the persisted destination
+        // fields. agtOffers stores the beacon ID/system but not the PyObject
+        // bookmark payload, so this also restores journal warp access after
+        // a server restart.
         offer.bookmarks = new PyList();
+        if (offer.typeID == Mission::Type::Encounter
+            && offer.stateID == Mission::State::Accepted
+            && offer.destinationID != 0
+            && offer.destinationSystemID != 0) {
+            PyDict* bookmarkData = new PyDict();
+            bookmarkData->SetItemString("itemID", new PyInt(offer.destinationID));
+            bookmarkData->SetItemString("typeID", new PyInt(offer.destinationTypeID));
+            bookmarkData->SetItemString("agentID", new PyInt(offer.agentID));
+            bookmarkData->SetItemString("hint", new PyString("Mission Site - " + offer.name));
+            bookmarkData->SetItemString("locationType", new PyString("objective.target"));
+            bookmarkData->SetItemString("memo", new PyString(""));
+            bookmarkData->SetItemString("created", new PyLong(offer.dateAccepted));
+            bookmarkData->SetItemString("locationNumber", new PyInt(0));
+            bookmarkData->SetItemString("flag", PyStatic.NewNone());
+            bookmarkData->SetItemString("locationID", new PyInt(offer.destinationSystemID));
+            bookmarkData->SetItemString("ownerID", new PyInt(offer.destinationOwnerID));
+            bookmarkData->SetItemString("x", new PyFloat(0.0));
+            bookmarkData->SetItemString("y", new PyFloat(0.0));
+            bookmarkData->SetItemString("z", new PyFloat(0.0));
+            bookmarkData->SetItemString("solarsystemID", new PyInt(offer.destinationSystemID));
+            offer.bookmarks->AddItem(new PyObject("util.KeyVal", bookmarkData));
+        }
         m_offers.emplace(row.GetInt(2), offer);
         m_aoffers.emplace(row.GetInt(1), offer);    // do we really want dupe data here?  yes.  need offer by char and by agent
     }
@@ -383,17 +480,23 @@ void MissionDataMgr::RemoveMissionOffer(uint32 charID, MissionOffer& data)
 {
     auto itr = m_offers.equal_range(charID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if (it->second.agentID == data.agentID) {
+        if (it->second.agentID == data.agentID && it->second.offerID == data.offerID) {
             m_offers.erase(it);
             break;
         }
 
     itr = m_aoffers.equal_range(data.agentID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if (it->second.characterID == charID) {
+        if (Mission::MatchesOffer(it->second, charID, data.offerID)) {
             m_aoffers.erase(it);
             break;
         }
+}
+
+void MissionDataMgr::ArchiveMissionOffer(uint32 charID, MissionOffer& data)
+{
+    RemoveMissionOffer(charID, data);
+    m_xoffers.emplace(charID, data);
 }
 
 void MissionDataMgr::LoadAgentOffers(const uint32 agentID, std::map< uint32, MissionOffer >& data)
@@ -418,7 +521,24 @@ void MissionDataMgr::LoadMissionOffers(uint32 charID, std::vector<MissionOffer>&
     }
 }
 
-void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data)
+bool MissionDataMgr::GetMissionData(uint16 missionID, MissionData& data) const
+{
+    for (const auto& entry : m_missions) {
+        if (entry.second.missionID == missionID) {
+            data = entry.second;
+            return true;
+        }
+    }
+    for (const auto& entry : m_missionsImp) {
+        if (entry.second.missionID == missionID) {
+            data = entry.second;
+            return true;
+        }
+    }
+    return false;
+}
+
+void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID, bool important, MissionOffer& data, uint32 characterID, bool securityAgent)
 {
     // variable mission data based on agent, init to 0 here.
     data.stateID                = Mission::State::Allocated;
@@ -443,7 +563,6 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
     data.destinationSystemID    = 0;
     data.dungeonLocationID      = 0;
     data.dungeonSolarSystemID   = 0;
-    data.bookmarks              = new PyList();
 
     /** @todo  this will need to be adjusted for raceID eventually */
     switch (typeID) {
@@ -459,7 +578,12 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 for (auto it = itr.first; it != itr.second; ++it)
                     cVec.push_back(it->second);
             }
-            cData = cVec[MakeRandomInt(0, (cVec.size() -1))];
+            if (cVec.empty()) {
+                _log(AGENT__WARNING, "No Courier mission templates available for level %u.", level);
+                data.typeID = 0;
+                return;
+            }
+            cData = cVec[MakeRandomInt(0, static_cast<uint32>(cVec.size() - 1))];
             // verify mission race acceptable
             if ((cData.raceID) and ((cData.raceID & raceID) != raceID)) {
                 for (auto cur :cVec) {
@@ -496,7 +620,12 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
                 for (auto it = itr.first; it != itr.second; ++it)
                     cVec.push_back(it->second);
             }
-            cData = cVec[MakeRandomInt(0, (cVec.size() -1))];
+            if (cVec.empty()) {
+                _log(AGENT__WARNING, "No Mining mission templates available for level %u.", level);
+                data.typeID = 0;
+                return;
+            }
+            cData = cVec[MakeRandomInt(0, static_cast<uint32>(cVec.size() - 1))];
 
             data.name               = cData.name;
             data.typeID             = cData.typeID;
@@ -517,6 +646,78 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
         case Mission::Type::Tutorial: {
         } break;
         case Mission::Type::Encounter: {
+            // Level 0 is an RMR beginner tier. It borrows a real Level 1
+            // Encounter template so the existing client localization remains valid.
+            const uint8 templateLevel = (level == 0 ? 1 : level);
+            std::vector<uint16> completedStarterMissionIDs;
+            if (level == 0 && characterID != 0)
+                MissionDB::GetCompletedStarterMissionIDs(characterID, completedStarterMissionIDs);
+
+            std::vector<MissionData> candidates;
+            auto selectedRange = (important
+                ? m_missionsImp.equal_range(templateLevel)
+                : m_missions.equal_range(templateLevel));
+            for (auto it = selectedRange.first; it != selectedRange.second; ++it) {
+                const MissionData& mission = it->second;
+                const bool raceMatches = (mission.raceID == 0) || ((mission.raceID & raceID) == raceID);
+                const bool notStoryline = !mission.storyline;
+                const bool notCompletedStarter = (level != 0)
+                    || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
+                        == completedStarterMissionIDs.end());
+                if (securityAgent && Mission::IsSyntheticSecurityEncounter(mission.missionID)) {
+                    candidates.push_back(mission);
+                } else if (!securityAgent && mission.typeID == Mission::Type::Encounter
+                        && raceMatches && notStoryline && notCompletedStarter) {
+                    candidates.push_back(mission);
+                }
+            }
+
+            // Some agent templates are in the opposite important/non-important pool.
+            if (candidates.empty()) {
+                auto fallbackRange = (important
+                    ? m_missions.equal_range(templateLevel)
+                    : m_missionsImp.equal_range(templateLevel));
+                for (auto it = fallbackRange.first; it != fallbackRange.second; ++it) {
+                    const MissionData& mission = it->second;
+                    const bool raceMatches = (mission.raceID == 0) || ((mission.raceID & raceID) == raceID);
+                    const bool notStoryline = !mission.storyline;
+                    const bool notCompletedStarter = (level != 0)
+                        || (std::find(completedStarterMissionIDs.begin(), completedStarterMissionIDs.end(), mission.missionID)
+                            == completedStarterMissionIDs.end());
+                    if (securityAgent && Mission::IsSyntheticSecurityEncounter(mission.missionID)) {
+                        candidates.push_back(mission);
+                    } else if (!securityAgent && mission.typeID == Mission::Type::Encounter
+                            && raceMatches && notStoryline && notCompletedStarter) {
+                        candidates.push_back(mission);
+                    }
+                }
+            }
+
+            if (candidates.empty()) {
+                _log(AGENT__WARNING, "No Encounter mission templates for level %u (template level %u).",
+                        level, templateLevel);
+                data.typeID = 0;
+                return;
+            }
+
+            const MissionData& mission = candidates[Mission::RandomCandidateIndex(candidates.size())];
+            data.typeID = Mission::Type::Encounter;
+            data.name = mission.name;
+            if (level == 0)
+                data.name = "Level 0 - " + data.name;
+            data.missionID = mission.missionID;
+            data.briefingID = mission.briefingID;
+            data.important = mission.important;
+            data.storyline = mission.storyline;
+            data.rewardISK = mission.rewardISK;
+            data.rewardItemID = mission.rewardItemID;
+            data.rewardItemQty = mission.rewardItemQty;
+            data.bonusISK = mission.bonusISK;
+            data.bonusTime = mission.bonusTime;
+            data.courierTypeID = 0;
+            data.courierAmount = 0;
+            data.courierItemVolume = 0.0f;
+            data.range = level;
         } break;
         case Mission::Type::Trade: {
         } break;
@@ -534,6 +735,9 @@ void MissionDataMgr::CreateMissionOffer(uint8 typeID, uint8 level, uint8 raceID,
         } break;
     }
 
+    // Allocate bookmarks only after a valid offer has been selected. Empty
+    // template pools return above and must not leave an orphaned PyList.
+    data.bookmarks = new PyList();
     _log(AGENT__DEBUG, "Created %s level %u %s offer - '%s'", (important?"an important":"a"), level, GetTypeName(data.typeID).c_str(), data.name.c_str());
 }
 
@@ -582,14 +786,14 @@ void MissionDataMgr::UpdateMissionData(uint32 charID, MissionOffer& data)
 {
     auto itr = m_offers.equal_range(charID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if (it->second.agentID == data.agentID) {
+        if (it->second.agentID == data.agentID && it->second.offerID == data.offerID) {
             it->second = data;
             break;
         }
 
     itr = m_aoffers.equal_range(data.agentID);
     for (auto it = itr.first; it != itr.second; ++it)
-        if (it->second.characterID == charID) {
+        if (Mission::MatchesOffer(it->second, charID, data.offerID)) {
             it->second = data;
             break;
         }

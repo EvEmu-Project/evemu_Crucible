@@ -38,6 +38,7 @@
  */
 
 #include "eve-server.h"
+#include "EVE_MovementFormulas.h"
 
 #include "Client.h"
 #include "inventory/AttributeEnum.h"
@@ -73,6 +74,10 @@ NPCAIMgr::NPCAIMgr(NPC* who)
     /* set npc ship data */
     m_sigResolution = m_self->GetAttribute(AttrOptimalSigRadius).get_uint32();
     m_attackSpeed = m_self->GetAttribute(AttrSpeed).get_uint32();
+    // Some imported Crucible NPC variants have no attack speed in static
+    // data. Never run a 0ms attack/target-scan loop.
+    if (m_attackSpeed < 100)
+        m_attackSpeed = 2000;
     m_sigRadius = m_self->GetAttribute(AttrSignatureRadius).get_uint32();
     m_launcherCycleTime = m_self->GetAttribute(AttrMissileLaunchDuration).get_uint32();
     if (m_launcherCycleTime > 100)
@@ -86,7 +91,17 @@ NPCAIMgr::NPCAIMgr(NPC* who)
     // absolute (boosted) Max Ship Speed
     m_maxSpeed = m_self->GetAttribute(AttrMaxVelocity).get_uint32();
     // Orbit Velocity
-    m_orbitSpeed = m_self->GetAttribute(AttrEntityCruiseSpeed).get_uint32();   // ship speed when not chasing target
+    const double configuredCruise = m_self->GetAttribute(AttrEntityCruiseSpeed).get_double();
+    const double resolvedCruise = EVEmuMovement::NpcCruiseSpeed(
+        configuredCruise, m_self->GetAttribute(AttrMaxVelocity).get_double());
+    m_orbitSpeed = static_cast<uint16>(std::min(
+        resolvedCruise, static_cast<double>(UINT16_MAX)));
+    if (m_orbitSpeed == 0 && resolvedCruise > 0.0)
+        m_orbitSpeed = 1; // retain very slow, but valid, movement
+    if (configuredCruise <= 0.0 && m_orbitSpeed > 0)
+        _log(NPC__AI_TRACE,
+             "NPC %s(%u) missing entityCruiseSpeed; using maxVelocity %.1fm/s.",
+             m_npc->GetName(), m_npc->GetID(), resolvedCruise);
     //AttrEntityChaseMaxDelay  - time before 'chase speed' kicks in
     //AttrEntityChaseMaxDelayChance  - chance npc will wait AttrEntityChaseMaxDelay before chasing
     //AttrEntityChaseMaxDuration  - max time a chase will last (unless weapons fired)
@@ -288,11 +303,10 @@ void NPCAIMgr::Process() {
     switch(m_state) {
         case NPCAI::State::Idle: {
             if (m_beginFindTarget.Check()) {
-                std::vector<Client*> clientVec;
-                clientVec.clear();
                 DestinyManager* pDestiny(nullptr);
-                m_npc->SysBubble()->GetPlayers(clientVec); // what about player drones?  yes...later
-                for (auto cur : clientVec) {
+                const auto& players = m_npc->SysBubble()->GetPlayers();
+                for (const auto& player : players) {
+                    Client* cur = player.second;
                     if (cur->IsInvul())
                         continue;
                     if (cur->GetShipSE() == nullptr)
@@ -418,6 +432,12 @@ void NPCAIMgr::SetWander()
     if (pBubble->IsAnomaly() or pBubble->IsIncursion() or pBubble->IsMission()) {
         return;
     } else if (pBubble->HasDynamics() and pBubble->IsBelt()) {
+        if (m_orbitSpeed == 0) {
+            // Static NPCs must not request zero-speed orbits every tick.
+            if (m_destiny->IsMoving())
+                m_destiny->Stop();
+            return;
+        }
         // pick random entity and loosely orbit it.  if no entity found, orbit center of belt
         SystemEntity* pSE = pBubble->GetRandomEntity();
         if (pSE == nullptr)
@@ -506,7 +526,15 @@ void NPCAIMgr::SetEngaged(SystemEntity* pSE) {
         return;
     _log(NPC__AI_TRACE, "%s(%u): Begin engaging.  Target is %s(%u).", \
          m_npc->GetName(), m_npc->GetID(), pSE->GetName(), pSE->GetID());
-    // actively fighting
+    // A stationary spawn can still fight. Never retry an impossible 0m/s
+    // orbit each NPC AI tick; mobile NPCs use the validated cruise speed.
+    if (m_orbitSpeed == 0) {
+        if (m_state != NPCAI::State::Engaged)
+            m_destiny->Stop();
+        m_state = NPCAI::State::Engaged;
+        m_warpOutTimer.Disable();
+        return;
+    }
     m_destiny->SetMaxVelocity(m_orbitSpeed);
     m_destiny->Orbit(pSE, m_optimalRange);  //try to get inside orbit range
     m_state = NPCAI::State::Engaged;
@@ -769,7 +797,8 @@ void NPCAIMgr::AttackTarget(SystemEntity* pSE) {
 
 void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
 {
-    if (typeID == 0)
+    if (typeID == 0 || pSE == nullptr || m_npc == nullptr
+        || m_npc->SystemMgr() == nullptr || m_npc->SystemMgr()->GetSE(pSE->GetID()) != pSE)
         return;
     // Actually Launch a missile, creating a new Destiny object for it
     // ItemData( uint32 _typeID, uint32 _ownerID, uint32 _locationID, EVEItemFlags _flag, const char *_name = "", \
@@ -798,11 +827,23 @@ void NPCAIMgr::LaunchMissile(uint16 typeID, SystemEntity* pSE)
         return; // make error here
     double distance = pMissile->GetPosition().distance(pSE->GetPosition());
     double missileSpeed = missileRef->GetAttribute(AttrMaxVelocity).get_float();
-    double travelTime = (distance/missileSpeed);
-    if (travelTime < 1)
-        travelTime = 1;
+    if (!std::isfinite(missileSpeed) || missileSpeed <= 0.0) {
+        _log(NPC__AI_TRACE, "NPC missile launcher %u has invalid velocity %.3f for type %u.",
+             m_npc->GetID(), missileSpeed, typeID);
+        SafeDelete(pMissile);
+        missileRef->Delete();
+        return;
+    }
+    double travelTime = distance / missileSpeed;
+    if (travelTime < 1.0)
+        travelTime = 1.0;
     pMissile->SetSpeed(missileSpeed);
     pMissile->SetHitTimer(travelTime *1000);
+    if (pMissile->DestinyMgr() == nullptr) {
+        SafeDelete(pMissile);
+        missileRef->Delete();
+        return;
+    }
     pMissile->DestinyMgr()->MakeMissile(pMissile);
 
     // tell target a missile has been launched at them.. (defender missile trigger for ship, tower, pos, npc, others?)

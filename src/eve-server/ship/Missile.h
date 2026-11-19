@@ -54,8 +54,13 @@ public:
     virtual PyDict *MakeSlimItem();
 
     /* specific functions handled here. */
-    uint32 GetLauncherID()                              { return m_fromSE->GetID(); }
+    uint32 GetLauncherID()                              { return m_launcherID; }
+    uint32 GetTargetID()                                { return m_orbitingID; }
     SystemEntity* GetTargetSE()                         { return m_targetSE; }
+    void Intercept()                                    { m_alive = false; }
+    // Defender damage reduces missile hull HP. Large warheads can survive
+    // an interception and require additional defender rounds.
+    bool ApplyDefenderDamage(double damage);
 
     void SetHitTimer(uint32 setTime)                    { m_hitTimer.Start(setTime); }
     void SetSpeed(double speed)                         { m_speed = speed; }
@@ -64,6 +69,7 @@ public:
     bool IsOverloaded()                                 { return false; }
 
     double GetSpeed()                                   { return m_speed; }
+    double GetRemainingHullHP() const                   { return m_hullHP; }
 
 protected:
     SystemEntity* m_targetSE;
@@ -79,6 +85,7 @@ protected:
     bool m_alive;
 
     uint32 m_orbitingID;
+    uint32 m_launcherID;
 
     float m_damageMod;
 

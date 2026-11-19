@@ -1,0 +1,70 @@
+{
+  "dataset": "evemu-crucible-mission-catalogue",
+  "schema_version": 1,
+  "status": "research-and-staging",
+  "target": {
+    "repository": "xrizonx/evemu_Crucible",
+    "branch": "mission-data-restoration",
+    "scope": "Level 1-4 security and encounter missions first"
+  },
+  "sde": {
+    "provider": "CCP",
+    "format": "jsonl",
+    "url": "https://developers.eveonline.com/static-data/eve-online-static-data-latest-jsonl.zip",
+    "build": null,
+    "sha256": null,
+    "retrieved_utc": null,
+    "note": "Pin build and checksum before importing; do not treat latest as a reproducible version."
+  },
+  "sources": [
+    {
+      "id": "ccp-sde",
+      "role": "canonical-static-mission-definitions-and-game-types",
+      "url": "https://developers.eveonline.com/docs/services/static-data/",
+      "authority": "primary",
+      "redistribution": "subject-to-current-CCP-developer-license"
+    },
+    {
+      "id": "eveinfo-sde-missions",
+      "role": "mission-briefing-and-reward-cross-check",
+      "url": "https://eveinfo.com/sde-missions/",
+      "authority": "secondary-index-of-CCP-SDE"
+    },
+    {
+      "id": "eve-university-mission-reports",
+      "role": "mission-levels-and-enemy-faction-variants",
+      "url": "https://wiki.eveuniversity.org/Mission_reports",
+      "authority": "community-reference"
+    },
+    {
+      "id": "eve-survival",
+      "role": "historical-mission-wave-and-trigger-walkthroughs",
+      "url": "https://eve-survival.org/?wakka=MissionReports",
+      "authority": "community-reference"
+    },
+    {
+      "id": "ellatha-npc-database",
+      "role": "npc-type-and-combat-stat-cross-reference",
+      "url": "https://gamingwithdaopa.ellatha.com/eveonline/npc-list/",
+      "authority": "community-reference"
+    },
+    {
+      "id": "eveinfo-community-missions",
+      "role": "mission-objectives-and-spawn-step-cross-check",
+      "url": "https://eveinfo.com/help/missions",
+      "authority": "community-reference"
+    }
+  ],
+  "data_quality": {
+    "unknown_values": "null-not-guessed",
+    "loot": "observed-drops-separate-from-guaranteed-rewards",
+    "rewards": "preserve-source-values-and-model-runtime-formulas-separately",
+    "spawn_variants": "preserve-faction-and-mission-variant-identities",
+    "provenance_required_per_non_sde_field": true
+  },
+  "live_database_policy": {
+    "read_only_during_research": true,
+    "no_sql_execution_without_explicit_approval": true,
+    "no_drop_truncate_reset_or_character_data_changes": true
+  }
+}

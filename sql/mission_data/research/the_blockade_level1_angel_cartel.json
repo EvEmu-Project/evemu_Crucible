@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "record_kind": "research_observation_not_importable_mission",
+  "mission": {
+    "name": "The Blockade",
+    "level": 1,
+    "type": "security_encounter",
+    "variant": "Angel Cartel",
+    "sde_mission_id": null,
+    "evemu_mission_id": null,
+    "dungeon_template_id": null,
+    "target": "Destroy hostile NPCs",
+    "step_count_reported": 8
+  },
+  "sources": [
+    {
+      "id": "eveinfo-current-mission-page",
+      "url": "https://eveinfo.com/missions/394/the-blockade",
+      "observed_fields": {
+        "enemy_faction": "Angel Cartel",
+        "mission_type": "Kill",
+        "target": "Kill all NPCs",
+        "steps": 8,
+        "initial_spawn": [
+          {
+            "npc_name": "Gistii Raider",
+            "quantity": 1,
+            "bounty_isk": 7875
+          },
+          {
+            "npc_name": "Gistii Rogue",
+            "quantity": 4,
+            "bounty_isk": 3750
+          },
+          {
+            "npc_name": "Angel Stasis Tower",
+            "quantity": 1,
+            "bounty_isk": 35000
+          }
+        ],
+        "follow_up_steps": "The page reports seven further spawn steps; full structured extraction and trigger semantics still need verification."
+      },
+      "caveat": "Current community reference; NPC names and bounties are not yet mapped to this fork's invTypes or historical SDE."
+    },
+    {
+      "id": "eve-university-mission-report",
+      "url": "https://wiki.eveuniversity.org/The_Blockade_(Angel_Cartel)_(Level_1)",
+      "observed_fields": {
+        "initial_spawn": [
+          {
+            "npc_name": "Gistii Hijacker or Rogue",
+            "quantity": "3-4",
+            "hull": "Frigate"
+          },
+          {
+            "npc_name": "Gistii Ambusher or Raider",
+            "quantity": 1,
+            "hull": "Frigate"
+          },
+          {
+            "npc_name": "Starbase Stasis Tower",
+            "quantity": 1,
+            "hull": "Sentry"
+          }
+        ],
+        "reinforcement_waves": [
+          {
+            "wave": 1,
+            "groups": [
+              {
+                "group": "A",
+                "npcs": [
+                  {
+                    "npc_name": "Gistii Hijacker or Rogue",
+                    "quantity": 2
+                  }
+                ]
+              },
+              {
+                "group": "B",
+                "npcs": [
+                  {
+                    "npc_name": "Gistii Hijacker or Rogue",
+                    "quantity": 2
+                  }
+                ]
+              },
+              {
+                "group": "C",
+                "npcs": [
+                  {
+                    "npc_name": "Gistii Hijacker or Rogue",
+                    "quantity": 4
+                  },
+                  {
+                    "npc_name": "Gistii Outlaw or Thug",
+                    "quantity": 1
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "wave": 2,
+            "groups": [
+              {
+                "group": "A",
+                "npcs": [
+                  {
+                    "npc_name": "Gistii Hijacker or Rogue",
+                    "quantity": 3
+                  }
+                ]
+              },
+              {
+                "group": "B",
+                "npcs": [
+                  {
+                    "npc_name": "Gistii Hijacker or Rogue",
+                    "quantity": 4
+                  },
+                  {
+                    "npc_name": "Gistii Nomad or Ruffian",
+                    "quantity": 1
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "wave": 3,
+            "groups": [
+              {
+                "group": "A",
+                "npcs": [
+                  {
+                    "npc_name": "Gistii Hijacker or Rogue",
+                    "quantity": 4
+                  }
+                ]
+              },
+              {
+                "group": "B",
+                "npcs": [
+                  {
+                    "npc_name": "Gistii Hijacker or Rogue",
+                    "quantity": 3
+                  },
+                  {
+                    "npc_name": "Gistii Ruffian",
+                    "quantity": 1
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "wave": 4,
+            "groups": [
+              {
+                "group": "A",
+                "npcs": [
+                  {
+                    "npc_name": "Gistii Ruffian or Nomad",
+                    "quantity": "3-4"
+                  },
+                  {
+                    "npc_name": "Gistii Raider",
+                    "quantity": 1
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "completion_note": "Guide states the objective completes when the pirate leader is eliminated."
+      },
+      "caveat": "Community guide variant; its grouped reinforcement summary differs in granularity from EVE Info's eight reported steps. Preserve both source representations until trigger-by-trigger reconciliation."
+    }
+  ],
+  "unresolved": [
+    "Resolve exact SDE mission ID and legacy EVEmu mission ID.",
+    "Resolve every NPC display name to a typeID present in the target Crucible static data.",
+    "Determine whether each reported wave is time-triggered, proximity-triggered, spawn-clear-triggered, or leader-kill-triggered.",
+    "Acquire actual room coordinates from a compatible dungeon dataset or design documented placements as EVEmu-authored content.",
+    "Verify current-vs-historical bounties, guaranteed drops, random loot and salvage separately.",
+    "Do not import this research record directly into production SQL."
+  ]
+}

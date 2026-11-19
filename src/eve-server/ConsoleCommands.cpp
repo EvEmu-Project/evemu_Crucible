@@ -63,10 +63,18 @@ void ConsoleCommand::Initialize(CommandDispatcher* cd)
 
     m_inputThread = new std::thread([&] {
         std::string temp;
-        while (true) {
-            std::getline(std::cin, temp);
-            std::lock_guard<std::mutex> lock(m_inputMutex);
-            m_input.push_back(std::move(temp));
+        // getline() returns false when stdin reaches EOF (for example, when
+        // the server console is closed or input is redirected from a file).
+        // Do not enqueue failed/empty reads: doing so creates an endless
+        // stream of empty commands and floods the log with "Command not recognized".
+        while (std::getline(std::cin, temp)) {
+            if (temp.empty())
+                continue;
+
+            {
+                std::lock_guard<std::mutex> lock(m_inputMutex);
+                m_input.push_back(std::move(temp));
+            }
             m_inputCondition.notify_one();
         }
     });
@@ -100,6 +108,10 @@ bool ConsoleCommand::Process() {
 
 bool ConsoleCommand::HandleCommand(const char* buf)
 {
+    // Ignore blank input defensively; EOF is handled by the input thread.
+    if (buf == nullptr || buf[0] == '\0')
+        return true;
+
     if (strncmp(buf, "x", 1) == 0) {
         sLog.Warning("  EVEmu", "EXIT called.  Breaking out of Main Loop.");
         m_haltServer = true;

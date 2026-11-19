@@ -209,7 +209,7 @@ void ShipItem::InitAttribs()
     if (!HasAttribute(AttrMaximumRangeCap))             SetAttribute(AttrMaximumRangeCap, ((float)BUBBLE_RADIUS_METERS), false);
     // Warp Scramble Status of the ship (most ships have zero warp scramble status, but some (t2 indy) already have it defined):
     if (!HasAttribute(AttrWarpScrambleStatus))          SetAttribute(AttrWarpScrambleStatus, EvilZero, false);
-    if (!HasAttribute(AttrWarpSpeedMultiplier))         SetAttribute(AttrWarpSpeedMultiplier, EvilOne, false);
+    if (!HasAttribute(AttrWarpSpeedMultiplier))         SetAttribute(AttrWarpSpeedMultiplier, 3.0f, false);
     if (!HasAttribute(AttrArmorMaxDamageResonance))     SetAttribute(AttrArmorMaxDamageResonance, EvilOne, false);
     if (!HasAttribute(AttrShieldMaxDamageResonance))    SetAttribute(AttrShieldMaxDamageResonance, EvilOne, false);
     // hull res is stored in item type as AttrHull*Resonance for 6 ships.  set accordingly
@@ -2621,18 +2621,9 @@ void ShipSE::EncodeDestiny( Buffer& into) {
     into.Append( data);
     switch (mode) {
         case Ball::Mode::WARP: {
-            GPoint target = m_destiny->GetTargetPoint();
-            WARP_Struct warp;
-                warp.formationID = 0xFF;
-                warp.targX = target.x;
-                warp.targY = target.y;
-                warp.targZ = target.z;
-                warp.speed = m_destiny->GetWarpSpeed();       //ship warp speed x10  (dont ask...this is what it is...more dumb ccp shit)
-                // warp timing.  see ShipSE::EncodeDestiny() for notes/updates
-                warp.effectStamp = -1; //m_destiny->GetStateStamp();   //timestamp when warp started
-                warp.followRange = 0;   //this isnt right
-                warp.followID = 0;  //this isnt right
-            into.Append(warp);
+            // Use the shared encoder so player ships, NPCs, and drones emit
+            // the same verified Crucible WARP_Struct layout.
+            m_destiny->EncodeWarpState(into);
         }  break;
         case Ball::Mode::FOLLOW: {
             FOLLOW_Struct follow;
@@ -2796,7 +2787,20 @@ void ShipSE::ApplyBoost(BoostData& bData)
 //{'FullPath': u'UI/Messages', 'messageID': 257802, 'label': u'DronesDroppedBecauseOfBandwidthModificationBody'}(u'The drone control bandwidth of your ship has been modified causing you to lose the ability to control some drones.', None, None)
 
 bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
+    if (dRef.get() == nullptr || GetPilot() == nullptr || m_shipRef.get() == nullptr)
+        return false;
+
     Character* pChar = GetPilot()->GetChar().get();
+    if (pChar == nullptr)
+        return false;
+
+    // Check bandwidth before moving or creating the space entity. The old
+    // order left an inert, launched drone behind when bandwidth was exceeded.
+    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
+    load += dRef->GetAttribute(AttrDroneBandwidthUsed);
+    if (load > m_shipRef->GetAttribute(AttrDroneBandwidth))
+        return false;
+
     sLog.Magenta("ShipSE::LaunchDrone()","%s: Launching drone %u",  pChar->name(), dRef->itemID());
 
     dRef->Move(GetLocationID(), flagNone, true);
@@ -2806,6 +2810,14 @@ bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
     position.MakeRandomPointOnSphere(500.0);
     dRef->SetPosition(position);
 
+    // Reapply the pilot's current settings when launching a fresh drone.
+    for (const uint16 attribute : {static_cast<uint16>(AttrDroneFocusFire),
+                                   static_cast<uint16>(AttrDroneIsAgressive),
+                                   static_cast<uint16>(AttrFightersAttackAndFollow)}) {
+        if (m_shipRef->HasAttribute(attribute))
+            dRef->SetAttribute(attribute, m_shipRef->GetAttribute(attribute));
+    }
+
     //now we create an SE to represent it.
     FactionData data = FactionData();
         data.allianceID = pChar->allianceID();
@@ -2814,59 +2826,74 @@ bool ShipSE::LaunchDrone(InventoryItemRef dRef) {
         data.ownerID = pChar->itemID();
     DroneSE* pDrone = new DroneSE(dRef, m_services, m_system, data);
 
+    // Bind the live pilot explicitly. Looking the client up again by character
+    // ID can fail during session transitions, leaving a launched drone with a
+    // null cached owner pointer even though its ship/controller IDs are valid.
+    pDrone->SetOwner(GetPilot());
+
     // tell new drone it's being launched.
     pDrone->Launch(this);
     // add drone to launched drone map (whether onlined or not)
     m_drones.emplace(dRef->itemID(), dRef.get());
 
-    /*
-    AttrDroneBandwidth = 1271,     <-- ship attribute  (total)
-    AttrDroneBandwidthUsed = 1272, <-- drone attribute
-    AttrDroneBandwidthLoad = 1273, <-- ship attribute  (current used)
-    */
-    //  if ship doesnt have bandwidth for drone, it will not online after launch (inert)
-    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
-    load += dRef->GetAttribute(AttrDroneBandwidthUsed);
-    if (load <= m_shipRef->GetAttribute(AttrDroneBandwidth)) {
-        pDrone->Online();
-        pDrone->GetAI()->SetIdle();
-        m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false); // client dont care
-        return true;
-    }
-    //{'FullPath': u'UI/Messages', 'messageID': 258031, 'label': u'MaxBandwidthExceededBody'}(u"You don't have enough bandwidth to launch {droneName}. You need {bandwidthNeeded} Mbit/s but {droneName} requires {droneBandwidthUsed} Mbit/s.", None, {u'{droneName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'droneName'}, u'{droneBandwidthUsed}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'droneBandwidthUsed'}, u'{bandwidthNeeded}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'bandwidthNeeded'}})
-    //{'FullPath': u'UI/Messages', 'messageID': 258041, 'label': u'MaxBandwidthExceeded2Body'}(u"You don't have enough bandwidth to launch {droneName}. You need {droneBandwidthUsed} Mbit/s but only have {bandwidthLeft} Mbit/s available.", None, {u'{droneName}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'droneName'}, u'{bandwidthLeft}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'bandwidthLeft'}, u'{droneBandwidthUsed}': {'conditionalValues': [], 'variableType': 10, 'propertyName': None, 'args': 0, 'kwargs': {}, 'variableName': 'droneBandwidthUsed'}})
-    return false;
+    // Launch only after bandwidth validation succeeded above.
+    pDrone->Online();
+    pDrone->GetAI()->SetIdle();
+    m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false);
+    return true;
 }
 
 void ShipSE::ScoopDrone(SystemEntity* pSE) {
+    if (pSE == nullptr || !pSE->IsDroneSE())
+        return;
+
+    DroneSE* drone = pSE->GetDroneSE();
+    const bool usedBandwidth = drone->IsEnabled();
+    InventoryItemRef droneItem = pSE->GetSelf();
+    const double bandwidthUsed = (usedBandwidth && droneItem.get() != nullptr)
+        ? droneItem->GetAttribute(AttrDroneBandwidthUsed).get_double()
+        : 0.0;
+
     m_drones.erase(pSE->GetID());
-    pSE->GetDroneSE()->Offline();
-    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
-    load -= pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed);
-    m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false); // client dont care
+    drone->Offline();
+
+    if (bandwidthUsed > 0.0 && m_shipRef.get() != nullptr) {
+        EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
+        const EvilNumber reserved(bandwidthUsed);
+        load = (load < reserved) ? EvilZero : load - reserved;
+        m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false);
+    }
+    drone->ClearShipControl();
 }
 
 void ShipSE::UpdateDrones(std::map<int16, int8> &attribs) {
-    // update drones in space with new attrib settings
-    for (auto cur : m_drones) {
-        cur.second->SetAttribute(AttrDroneFocusFire, attribs[AttrDroneFocusFire]);
-        cur.second->SetAttribute(AttrDroneIsAgressive, attribs[AttrDroneIsAgressive]);
-        cur.second->SetAttribute(AttrFightersAttackAndFollow, attribs[AttrFightersAttackAndFollow]);
-        //cur.second->SetAttribute(AttrDroneIsChaotic, attribs[AttrDroneIsChaotic]);    // no longer used?
+    // Only apply keys actually present in the RPC: operator[] on a missing
+    // key inserts zero, silently disabling focus fire or aggression.
+    for (const auto& setting : attribs) {
+        if (setting.first != AttrDroneFocusFire
+            && setting.first != AttrDroneIsAgressive
+            && setting.first != AttrFightersAttackAndFollow)
+            continue;
+
+        // A newly launched drone must inherit the latest pilot configuration.
+        if (m_shipRef.get() != nullptr)
+            m_shipRef->SetAttribute(setting.first, static_cast<int>(setting.second));
+        for (const auto& entry : m_drones) {
+            if (entry.second != nullptr)
+                entry.second->SetAttribute(setting.first, static_cast<int>(setting.second));
+        }
     }
 }
 
 void ShipSE::AbandonDrones() {
-    SystemEntity* pSE(nullptr);
-    EvilNumber load = m_shipRef->GetAttribute(AttrDroneBandwidthLoad);
-    for (auto cur : m_drones) {
-        pSE = m_system->GetSE(cur.first);
-        if (pSE != nullptr)
-            if (pSE->IsDroneSE()) {
-                pSE->GetDroneSE()->Abandon();
-                load -= pSE->GetSelf()->GetAttribute(AttrDroneBandwidthUsed);
-            }
+    for (const auto& entry : m_drones) {
+        SystemEntity* entity = (m_system != nullptr) ? m_system->GetSE(entry.first) : nullptr;
+        if (entity != nullptr && entity->IsDroneSE())
+            entity->GetDroneSE()->Abandon();
     }
-    m_shipRef->SetAttribute(AttrDroneBandwidthLoad, load, false); // client dont care
+
+    m_drones.clear();
+    if (m_shipRef.get() != nullptr)
+        m_shipRef->SetAttribute(AttrDroneBandwidthLoad, EvilZero, false);
 }
 //AttrDroneControlDistance

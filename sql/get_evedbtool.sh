@@ -1,35 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Downloading latest EVEDBTool..."
+# Build the repository-patched EVEDBTool from pinned upstream 0.0.6 source.
+for command in git go; do
+    if ! command -v "$command" >/dev/null 2>&1; then
+        echo "ERROR: $command is required to build EVEDBTool." >&2
+        exit 1
+    fi
+done
 
-# Check if curl is available or not
-if ! command -v curl &> /dev/null
-then
-    echo "Wget or curl not found, please install one of these."
-    exit
-fi
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
 
-arch=$(arch)
+case "$(uname -m)" in
+    x86_64) GOARCH=amd64 ;;
+    aarch64|arm64) GOARCH=arm64 ;;
+    *)
+        echo "ERROR: Unsupported architecture: $(uname -m)" >&2
+        exit 1
+        ;;
+esac
 
-if [[ $arch == aarch64* ]];
-then
-echo "Using aarch64 build..."
-# Download with curl
-DOWNLOAD_URL=$(curl -s https://api.github.com/repos/EvEmu-Project/EVEDBTool/releases/latest \
-        | grep browser_download_url \
-        | grep evedb_aarch64 \
-        | cut -d '"' -f 4)
-fi
+git clone --quiet --depth 1 --branch 0.0.6 https://github.com/EvEmu-Project/EVEDBTool.git "$WORK/EVEDBTool"
+cp "$ROOT/tools/evedbtool/command_seed.go" "$WORK/EVEDBTool/command_seed.go"
 
-if [[ $arch == x86_64* ]];
-then
-echo "Using x86_64 build..."
-# Download with curl
-DOWNLOAD_URL=$(curl -s https://api.github.com/repos/EvEmu-Project/EVEDBTool/releases/latest \
-        | grep browser_download_url \
-        | grep evedbtool | grep -v exe \
-        | cut -d '"' -f 4)
-fi
+(
+    cd "$WORK/EVEDBTool"
+    CGO_ENABLED=0 GOOS=linux GOARCH="$GOARCH" go build -trimpath \
+        -ldflags "-s -w -X main.version=evemu-crucible" \
+        -o "$ROOT/sql/evedbtool" .
+)
 
-curl --output evedbtool -s -L "$DOWNLOAD_URL"
-chmod +x evedbtool
+chmod +x "$ROOT/sql/evedbtool"
+echo "Patched EVEDBTool built at $ROOT/sql/evedbtool"
+echo "Run it from the sql directory so it can find evedb.yaml and migrations."

@@ -23,12 +23,15 @@
     Author:        caytchen
 */
 
+#include "EVE_AgentHelpers.h"
 #include "imageserver/ImageServerConnection.h"
+#include <sstream>
 
-boost::asio::const_buffers_1 ImageServerConnection::_responseOK = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
-boost::asio::const_buffers_1 ImageServerConnection::_responseNotFound = boost::asio::buffer("HTTP/1.0 404 Not Found\r\n\r\n", 26);
-boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectBegin = boost::asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);
-boost::asio::const_buffers_1 ImageServerConnection::_responseRedirectEnd = boost::asio::buffer("\r\n\r\n", 4);
+boost::asio::const_buffer ImageServerConnection::_responseOK = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\n\r\n", 45);
+boost::asio::const_buffer ImageServerConnection::_responseOKPNG = boost::asio::buffer("HTTP/1.0 200 OK\r\nContent-Type: image/png\r\n\r\n", 44);
+boost::asio::const_buffer ImageServerConnection::_responseNotFound = boost::asio::buffer("HTTP/1.0 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\nCache-Control: no-store\r\n\r\n", 89);
+boost::asio::const_buffer ImageServerConnection::_responseRedirectBegin = boost::asio::buffer("HTTP/1.0 301 Moved Permanently\r\nLocation: ", 42);
+boost::asio::const_buffer ImageServerConnection::_responseRedirectEnd = boost::asio::buffer("\r\n\r\n", 4);
 
 ImageServerConnection::ImageServerConnection(boost::asio::io_context& io)
 : _socket(io),
@@ -99,9 +102,25 @@ void ImageServerConnection::ProcessHeaders()
     std::string sizeStr = request.substr(del + 1);
     _id = atoi(idStr.c_str());
     _size = atoi(sizeStr.c_str());
+    if (_id == 0 || _size == 0) {
+        NotFound();
+        return;
+    }
 
     _imageData = sImageServer.GetImage(_category, _id, _size);
     if (!_imageData) {
+        // Never send old Crucible clients a 301 to the modern HTTPS portrait
+        // CDN. The client has already requested our local image server and
+        // may not support the new host, TLS stack or response format.
+        // This applies to *missing* player and NPC portraits only; valid
+        // local character JPEGs are still served normally.
+        if (_category == "Character") {
+            sLog.Warning("     Image Server",
+                         "Missing local Character/%u_%u; returning 404 without redirect.",
+                         _id, _size);
+            NotFound();
+            return;
+        }
         if (IsPlayerItem(_id)) {
             sLog.Error("     Image Server","Image for itemID %u not found.", _id);
             NotFound();
@@ -111,12 +130,37 @@ void ImageServerConnection::ProcessHeaders()
             NotFound();
             return;
         }
+        // Preserve the current external fallback for non-Character images
+        // (corporation/alliance logos, type icons and renders).
+        _redirectUrl = EvEAgent::ModernImageUrl(_category, _id, _size);
+        if (_redirectUrl.empty()) {
+            NotFound();
+            return;
+        }
         Redirect();
         return;
     }
 
-    // first we have to send the responseOK, then our actual result
-    boost::asio::async_write(_socket, _responseOK, boost::asio::transfer_all(), std::bind(&ImageServerConnection::SendImage, shared_from_this()));
+    // An HTTP/1.0 response without Content-Length was previously sent
+    // before writing JPEG bytes in a separate async operation. Crucible 2012
+    // picture-loading is sensitive to incomplete/ambiguous HTTP bodies.
+    // Retain the header in this connection object for the entire async write.
+    const char* mime = (_category == "Character" ? "image/jpeg" : "image/png");
+    std::ostringstream header;
+    header << "HTTP/1.0 200 OK\r\n"
+           << "Content-Type: " << mime << "\r\n"
+           << "Content-Length: " << _imageData->size() << "\r\n"
+           << "Connection: close\r\n"
+           << "Cache-Control: no-store\r\n\r\n";
+    _responseHeaders = header.str();
+
+    if (_category == "Character")
+        sLog.Debug("     Image Server",
+                   "Serving JPEG Character/%u_%u (%lu bytes, Content-Length specified).",
+                   _id, _size, static_cast<unsigned long>(_imageData->size()));
+
+    boost::asio::async_write(_socket, boost::asio::buffer(_responseHeaders),
+        boost::asio::transfer_all(), std::bind(&ImageServerConnection::SendImage, shared_from_this()));
 }
 
 void ImageServerConnection::SendImage()
@@ -136,12 +180,13 @@ void ImageServerConnection::Redirect()
 
 void ImageServerConnection::RedirectLocation()
 {
-    sLog.Error("     Image Server"," RedirectLocation() called.");
-    std::string extension = _category == "Character" ? "jpg" : "png";
-    std::stringstream url;
-    url << ImageServer::FallbackURL << _category << "/" << _id << "_" << _size << "." << extension;
-    _redirectUrl = url.str();
-    boost::asio::async_write(_socket, boost::asio::buffer(_redirectUrl), boost::asio::transfer_all(), std::bind(&ImageServerConnection::RedirectFinalize, shared_from_this()));
+    // A 301 is expected for uncached NPC/static artwork; it is not a server error.
+    sLog.Debug("     Image Server", "Redirecting missing image %s/%u_%u to fallback.",
+               _category.c_str(), _id, _size);
+    // The URL has been validated BEFORE sending the 301 response prefix.
+    // It must remain a member string until the async write completes.
+    boost::asio::async_write(_socket, boost::asio::buffer(_redirectUrl),
+        boost::asio::transfer_all(), std::bind(&ImageServerConnection::RedirectFinalize, shared_from_this()));
 }
 
 void ImageServerConnection::RedirectFinalize()

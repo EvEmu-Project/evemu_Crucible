@@ -57,6 +57,7 @@ namespace Destiny {
     }
 }
 
+class Buffer;
 class InventoryItem;
 class Missile;
 class PyRep;
@@ -100,6 +101,8 @@ public:
     ~DestinyManager();
 
     void Process();
+    // Encode the mode-specific warp sector used when a moving ball is added to a client bubble.
+    void EncodeWarpState(Buffer& into) const;
 
     void SendSingleDestinyEvent(PyTuple** ev, bool self_only=false) const;
     void SendSingleDestinyUpdate(PyTuple** up, bool self_only=false) const;
@@ -110,7 +113,7 @@ public:
     const GPoint &GetPosition() const                   { return m_position; }
     const GVector &GetVelocity() const                  { return m_velocity; }
     float GetSpeedFraction()                            { return m_timeFraction; }
-    float GetSpeed()                                    { return (m_maxShipSpeed * m_timeFraction); }
+    float GetSpeed()                                    { return static_cast<float>(m_velocity.length()); }
 
     // this is only used by my bubble debug command
     uint8 GetState()                                    { return m_ballMode; }
@@ -128,12 +131,13 @@ public:
     /* Global Actions */
     void Stop();
     void Halt();     // puts entity at 0 velocity
+    void HaltForInteraction();
     void Eject();   // avoid numerous other redirect calls
     void SetCloak(bool set=false)                       { m_cloaked = set; }
 
     /* TractorBeam */
-    void TractorBeamStop();
-    void TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed);
+    void TractorBeamStop(uint32 moduleID = 0);
+    bool TractorBeamStart(SystemEntity* pShipSE, EvilNumber speed, double range, uint32 moduleID);
 
     /* Local Movement */
     void Orbit(SystemEntity* pSE, uint32 distance=0);
@@ -144,7 +148,7 @@ public:
     void SetSpeedFraction(float fraction=1.0f, bool startMovement=false);
 
     /* Larger movement */
-    void WarpTo(const GPoint& where, int32 distance = 0, bool autoPilot = false, SystemEntity* pSE = nullptr);
+    void WarpTo(const GPoint& where, int32 distance = 0);
 
     /* Ship State Query functions */
     bool IsMoving()                                     { return (m_timeFraction > 0); }
@@ -157,9 +161,12 @@ public:
     bool IsFollowing()                                  { return (m_ballMode == Destiny::Ball::Mode::FOLLOW); }
     //bool IsJumping()                                  { return (m_ballMode == Destiny::Ball::Mode::STOP); }
     bool IsWarping()                                    { return (m_warpState ? true : false); }
+    bool HasWarpOrder() const                           { return m_ballMode == Destiny::Ball::Mode::WARP; }
+    double InteractionDistanceTo(SystemEntity& target) const;
     bool IsCloaked()                                    { return m_cloaked; }
     bool IsTurning()                                    { return m_turning; }
     bool IsTractored()                                  { return m_tractored; }
+    float GetTractorStopRange() const                   { return m_followDistance; }
 
     //Destiny Update stuff:
     void Jump(bool showCloak=true);
@@ -171,6 +178,7 @@ public:
     void SetUndockSpeed();
     void DockingAccepted();
     void SendSetState() const;
+    void ApplyMiningDroneStep(const GPoint& nextPosition, double speed);
     void SendJumpOut(uint32 gateID) const;
     void SendJumpOutWormhole(uint32 wormholeID) const;
     void SendGateActivity(uint32 gateID) const;
@@ -190,12 +198,15 @@ public:
 
     //  functions to return protected variables for SystemBubble exclusive WarpTo updates and other methods that need Destiny Variables
     int32 GetDistance()                                 { return m_stopDistance; }
-    int32 GetWarpSpeed()                                { return static_cast<int32>(m_shipWarpSpeed * 10); }
+    double GetWarpSpeedAU() const                       { return m_shipWarpSpeed; }
+    int32 GetWarpSpeed() const;
     uint32 GetTargetID()                                { return m_targetEntity.first; }
     SystemEntity* GetTargetEntity()                     { return m_targetEntity.second; }
     GPoint GetTargetPoint()                             { return m_targetPoint; }
     double GetMaxVelocity()                             { return m_maxShipSpeed; }
     double GetFollowDistance()                          { return m_targetDistance; }
+    uint32 GetFollowRange() const                       { return m_followDistance; }
+    float GetCommandedSpeedFraction() const             { return m_userSpeedFraction; }
     double GetMass()                                    { return m_mass; }
     double GetAgility()                                 { return m_shipAgility; }
     double GetInertia()                                 { return m_shipInertia; }
@@ -228,7 +239,6 @@ protected:
     void ProcessState();
 
     SystemEntity* const mySE;			//we do not own this.
-    SystemBubble* m_targBubble;         //we do not own this.
 
     bool IsTargetInvalid();              //performs common target checks
 
@@ -236,14 +246,14 @@ protected:
 
     //things dictated by our entity's configuration:
     uint8 m_warpAccelTime;              //in s      - calculated internally for warp stages
-    uint8 m_warpDecelTime;              //in s      - calculated internally for warp stages
+    uint16 m_warpDecelTime;              //in s      - calculated internally for warp stages
 
     float m_mass;                       //in kg
     float m_massMKg;                    //in mg     - Millionths of kg (mg)
     float m_alignTime;                  //in s      - align and enter warp are same (for our purposes)
     float m_prevSpeed;                  //in m/s    - used to calculate speed during decel
     float m_maxShipSpeed;               //in m/s
-    float m_shipWarpSpeed;              //in au/s
+    double m_shipWarpSpeed;             // in AU/s
     float m_timeToEnterWarp;            //in s
     float m_speedToLeaveWarp;           //in m/s    - this is set to 75% of m_maxShipSpeed
 
@@ -275,6 +285,8 @@ protected:
     bool m_turning;                     //used to execute code for ship turning
     bool m_tractored;
     bool m_tractorPause;
+    uint32 m_tractorModuleID = 0;
+    double m_tractorRange = 0.0;
 
     uint8 m_ballMode;                   //current state of ball
 
@@ -301,6 +313,7 @@ protected:
     double m_callTime;                  //in ms       - time client call was processed.  this is to coordinate tic calculations
 
     GPoint m_targetPoint;               //vector      - point in space used as current destination
+    GPoint m_warpDestination;            // original client warp-to destination before applying stop range
     GVector m_shipHeading;              //direction ship is facing
     GVector m_targetHeading;            //direction to target from current heading
     std::pair<uint32, SystemEntity*> m_targetEntity;   //we do not own the SystemEntity*
@@ -313,6 +326,8 @@ protected:
     void UpdateVelocity(bool isMoving=false);
 
 private:
+    PyTuple* EncodeWarpEffect(bool active) const;
+    void SendStoppedPosition(bool warpEnded = false) const;
     bool m_frozen;                      // hack to keep ship from moving when using modules that prevent movement
     bool m_changeDelay;                 // this is to try to sync destiny with client, as client has a delay when changing destiny states.
 

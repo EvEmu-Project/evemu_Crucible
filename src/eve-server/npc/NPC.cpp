@@ -26,6 +26,7 @@
 
 
 #include "eve-server.h"
+#include "EVE_Missions.h"
 
 #include "Client.h"
 #include "EntityList.h"
@@ -151,18 +152,10 @@ void NPC::EncodeDestiny( Buffer& into )
     into.Append( data );
     switch (mode) {
         case Ball::Mode::WARP: {
-            GPoint target = m_destiny->GetTargetPoint();
-            WARP_Struct warp;
-                warp.formationID = 0xFF;
-                warp.targX = target.x;
-                warp.targY = target.y;
-                warp.targZ = target.z;
-                warp.speed = m_destiny->GetWarpSpeed();       //ship warp speed x10  (dont ask...this is what it is...more dumb ccp shit)
-                // warp timing.  see Ship::EncodeDestiny() for notes/updates
-                warp.effectStamp = -1; //m_destiny->GetStateStamp();   //timestamp when warp started
-                warp.followRange = 0;   //this isnt right
-                warp.followID = 0;  //this isnt right
-            into.Append( warp );
+            // Keep NPC warp serialization aligned with ships and drones. The
+            // legacy WARP_Struct fields (speed/followRange/followID) were
+            // removed when the Crucible client packet layout was corrected.
+            m_destiny->EncodeWarpState(into);
         }  break;
         case Ball::Mode::FOLLOW: {
             FOLLOW_Struct follow;
@@ -297,12 +290,12 @@ void NPC::SetResists() {
 }
 
 void NPC::Killed(Damage &damage) {
-    if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr))
-        return; // make error here?
-
-    //notify our spawn manager that we are gone.
-    if ((m_spawnMgr != nullptr) and (m_self.get() != nullptr))
-        m_spawnMgr->SpawnKilled(m_bubble, m_self->itemID());
+    if ((m_bubble == nullptr) or (m_destiny == nullptr) or (m_system == nullptr)) {
+        sLog.Error("NPC::Killed()", "NPC %s(%u) death callback missing context: bubble=%p destiny=%p system=%p.",
+            GetName(), GetID(), static_cast<void*>(m_bubble),
+            static_cast<void*>(m_destiny), static_cast<void*>(m_system));
+        return;
+    }
 
     uint32 killerID = 0;
     Client* pClient(nullptr);
@@ -320,6 +313,20 @@ void NPC::Killed(Damage &damage) {
         }
     } else {
         killerID = killer->GetID();
+    }
+
+    if ((m_spawnMgr != nullptr) && (m_self.get() != nullptr)) {
+        if (m_bubble->IsMission()) {
+            _log(SPAWN__ERROR,
+                "NPC mission death forwarded: %s(%u), bubble %u, spawn manager %p, killer character %u.",
+                GetName(), m_self->itemID(), m_bubble->GetID(),
+                static_cast<void*>(m_spawnMgr), (pClient != nullptr ? killerID : 0));
+        }
+        m_spawnMgr->SpawnKilled(m_bubble, m_self->itemID(), (pClient != nullptr ? killerID : 0));
+    } else if (m_bubble->IsMission()) {
+        sLog.Error("NPC::Killed()", "Mission NPC %s(%u) cannot report its death: spawn manager=%p, item=%p.",
+            GetName(), GetID(), static_cast<void*>(m_spawnMgr),
+            static_cast<void*>(m_self.get()));
     }
 
     uint32 locationID = GetLocationID();
@@ -359,6 +366,35 @@ void NPC::Killed(Damage &damage) {
         _log(PHYSICS__TRACE, "NPC::Killed() - NPC %s(%u) Position: %.2f,%.2f,%.2f.  Wreck %s(%u) Position: %.2f,%.2f,%.2f.", \
                 GetName(), GetID(), x(), y(), z(), wreckItemRef->name(), wreckItemRef->itemID(), wreckPosition.x, wreckPosition.y, wreckPosition.z);
 
+    // The optional DED/Officer Security encounter drops an actual
+    // faction, officer or deadspace module appropriate to this NPC group.
+    // Scope this strictly to mission 65534; the original Blockade, belts,
+    // ordinary missions, anomalies and all other NPCs use normal loot rules.
+    if (m_bubble != nullptr && m_bubble->IsMission()
+        && m_bubble->GetMissionTypeID() == Mission::kEliteSecurityMissionID) {
+        const uint8 metaGroup = Mission::EliteLootMetaGroupForNPCGroup(m_self->groupID());
+        uint16 rareTypeID = 0;
+        if (metaGroup != 0 && sDataMgr.GetEliteMissionLootType(metaGroup, rareTypeID)) {
+            ItemData rareDrop(rareTypeID, killerID, wreckItemRef->itemID(), flagNone, 1);
+            InventoryItemRef droppedItem = sItemFactory.SpawnItem(rareDrop);
+            if (droppedItem.get() != nullptr) {
+                wreckItemRef->AddItem(droppedItem);
+                _log(LOOT__INFO,
+                    "DED/Officer mission wreck %u received meta-group %u loot type %u from NPC group %u.",
+                    wreckItemRef->itemID(), metaGroup, rareTypeID, m_self->groupID());
+            } else {
+                _log(LOOT__ERROR,
+                    "DED/Officer mission wreck %u failed to spawn rare loot type %u.",
+                    wreckItemRef->itemID(), rareTypeID);
+            }
+        } else {
+            _log(LOOT__ERROR,
+                "DED/Officer mission NPC group %u has no valid rare loot for meta-group %u.",
+                m_self->groupID(), metaGroup);
+        }
+    }
+
+    // Normal group-based drops remain available as additional wreck loot.
     if ((MakeRandomFloat() < sConfig.npc.LootDropChance) or (m_allyID == factionRogueDrones))
         DropLoot(wreckItemRef, m_self->groupID(), killerID);
 

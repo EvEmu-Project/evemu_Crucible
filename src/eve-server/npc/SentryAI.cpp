@@ -34,11 +34,15 @@ m_webifierTimer(5000)         //arbitrary.
     m_webber = false;
     m_warpScram = false;
 
-    m_damageMultiplier = who->GetSelf()->GetAttribute(AttrDamageMultiplier).get_int();
+    m_damageMultiplier = who->GetSelf()->GetAttribute(AttrDamageMultiplier).get_float();
+    if (!std::isfinite(m_damageMultiplier) || m_damageMultiplier <= 0.0f)
+        m_damageMultiplier = 1.0f;
 
     /* set npc ship speeds and distances */
     m_sigRadius = who->GetSelf()->GetAttribute(AttrSignatureRadius).get_int();
     m_attackSpeed = who->GetSelf()->GetAttribute(AttrSpeed).get_int();
+    if (m_attackSpeed == 0)
+        m_attackSpeed = 2000;
     m_processTimer.Start(m_attackSpeed);
 
     // Optimal Range
@@ -81,7 +85,8 @@ m_webifierTimer(5000)         //arbitrary.
 }
 
 void SentryAI::Process() {
-    if ((!m_processTimer.Check()) or (!m_npc->SysBubble()->HasPlayers()))
+    if (m_npc == nullptr || m_npc->SysBubble() == nullptr
+        || !m_processTimer.Check() || !m_npc->SysBubble()->HasPlayers())
         return;
 
     /* NPC::State definitions   -allan 25July15  (UD 1June16)
@@ -211,6 +216,8 @@ void SentryAI::ClearAllTargets() {
 }
 
 void SentryAI::Target(SystemEntity* pTarget) {
+    if (pTarget == nullptr || m_npc == nullptr || m_npc->TargetMgr() == nullptr)
+        return;
     double targetTime = GetTargetTime();
     bool chase = false;
 
@@ -227,6 +234,8 @@ void SentryAI::Target(SystemEntity* pTarget) {
 }
 
 void SentryAI::Targeted(SystemEntity* pAgressor) {
+    if (pAgressor == nullptr || m_npc == nullptr || m_npc->TargetMgr() == nullptr)
+        return;
     double targetTime = GetTargetTime();
     switch(m_state) {
         case State::Idle: {
@@ -256,6 +265,13 @@ void SentryAI::Targeted(SystemEntity* pAgressor) {
 }
 
 void SentryAI::TargetLost(SystemEntity* pTarget) {
+    if (m_npc == nullptr || m_npc->TargetMgr() == nullptr)
+        return;
+    if (pTarget == nullptr) {
+        if (m_npc->TargetMgr()->HasNoTargets())
+            SetIdle();
+        return;
+    }
     if (m_state == State::Engaged) {
         if (m_npc->TargetMgr()->HasNoTargets()) {
             _log(NPC__AI_TRACE, "%s(%u): Target %s(%u) lost. No targets remain.  Return to Idle.", \

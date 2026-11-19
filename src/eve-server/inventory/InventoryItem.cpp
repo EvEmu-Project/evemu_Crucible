@@ -25,6 +25,7 @@
 */
 
 #include "eve-server.h"
+#include <limits>
 
 #include "../../eve-common/EVE_Mail.h"
 
@@ -580,7 +581,11 @@ void InventoryItem::Delete()
         if (IsValidLocationID(m_data.locationID)) {
             InventoryItemRef iRef = sItemFactory.GetItemRef(m_data.locationID);
             if (iRef.get() != nullptr) {
-                iRef->GetMyInventory()->RemoveItem(InventoryItemRef(this));
+                Inventory* parentInventory = iRef->GetMyInventory();
+                if (parentInventory != nullptr)
+                    parentInventory->RemoveItem(InventoryItemRef(this));
+                else
+                    _log(ITEM__WARNING, "II::Delete() - Parent %u has no inventory for item %u.", m_data.locationID, m_itemID);
             } else {
                 _log(ITEM__ERROR, "II::Delete() - Cant find location %u containing %s.", m_data.locationID, m_data.name.c_str());
             }
@@ -597,10 +602,10 @@ void InventoryItem::ToVirtual(uint32 locationID)
 {
     InventoryItemRef iRef = sItemFactory.GetItemContainerRef(m_itemID, false);
     if (iRef.get() != nullptr) {
-        // verify this gets inventory containing item before trying to manipulate
-        //Inventory* pInv = iRef->GetMyInventory();
-        if (pInventory != nullptr)  // this isnt right...this item wont be in it's own inventory
-            pInventory->RemoveItem(InventoryItemRef(this));
+        // Remove this item from its *parent* inventory, not its own contents.
+        Inventory* parentInventory = iRef->GetMyInventory();
+        if (parentInventory != nullptr)
+            parentInventory->RemoveItem(InventoryItemRef(this));
     }
     if (pAttributeMap != nullptr)   // should never be null, but just in case
         pAttributeMap->Delete();
@@ -636,11 +641,16 @@ void InventoryItem::Rename(std::string name)
     if (IsCharacterID(m_data.ownerID)) {
         // this will be the most-used case
         Client* pClient = sEntityList.FindClientByCharID(m_data.ownerID);
-        if (pClient == nullptr)
-            return;  //  make error here?
-        if (pClient->IsDocked()) {
-            pClient->SendNotification("OnCfgDataChanged", "charid", &tuple, false); //unsequenced.
-        } else { // client in space.  sent update to all clients in bubble
+        if (pClient == nullptr) {
+            PySafeDecRef(tuple);
+            return;
+        }
+        if (pClient->IsDocked() || pClient->GetShipSE() == nullptr
+                || pClient->GetShipSE()->SysBubble() == nullptr) {
+            // A client may be transitioning through dock/undock while a
+            // container or POS rename notification is generated.
+            pClient->SendNotification("OnCfgDataChanged", "charid", &tuple, false);
+        } else { // client in space: notify others in the bubble
             pClient->GetShipSE()->SysBubble()->BubblecastSendNotification("OnCfgDataChanged", "solarsystemid", &tuple, false);
         }
     } else if (IsPlayerCorp(m_data.ownerID)) {
@@ -650,6 +660,9 @@ void InventoryItem::Rename(std::string name)
         } else {
             sEntityList.CorpNotify(m_data.ownerID, Notify::Types::ItemUpdateSystem, "OnCfgDataChanged", "solarsystemid", tuple);
         }
+    } else {
+        // Unknown or system owners have no subscribed client.
+        PySafeDecRef(tuple);
     }
 
     /** @todo  if renaming a POS or other space object, we'll need to BubblecastSendNotification instead of CorpNotify  */
@@ -796,19 +809,28 @@ void InventoryItem::Move(uint32 new_location/*locTemp*/, EVEItemFlags new_flag/*
 }
 
 InventoryItemRef InventoryItem::Split(int32 qty/*0*/, bool notify/*true*/, bool silent/*false*/) {
-    if (qty < 1) {
-        _log(ITEM__ERROR, "II::Split() - %s(%u): Asked to split into a chunk of %i", m_data.name.c_str(), m_itemID, qty);
-        return InventoryItemRef(nullptr);
-    }
-    if (!AlterQuantity(-qty, notify)) {
-        _log(ITEM__ERROR, "II::Split() - %s(%u): Failed to remove quantity of %i during split.", m_data.name.c_str(), m_itemID, qty);
+    if (qty < 1 || m_data.singleton || qty >= m_data.quantity) {
+        _log(ITEM__ERROR, "II::Split() - %s(%u): Cannot split qty=%i from stack qty=%i singleton=%u.",
+             m_data.name.c_str(), m_itemID, qty, m_data.quantity, m_data.singleton ? 1u : 0u);
         return InventoryItemRef(nullptr);
     }
 
+    // Reserve the new item FIRST. The old order decremented (and sometimes
+    // deleted) the source stack before SpawnItem; a spawn failure silently
+    // lost cargo, including assembled market containers. If the following
+    // source decrement fails, delete only the newly reserved temporary item.
     ItemData idata(m_type.id(), m_data.ownerID, locTemp, m_data.flag, qty);
     InventoryItemRef iRef = sItemFactory.SpawnItem(idata);
-    if (iRef.get() == nullptr)
-        return InventoryItemRef(nullptr);  // couldnt spawn new item...we'll get over it.
+    if (iRef.get() == nullptr) {
+        _log(ITEM__ERROR, "II::Split() - failed to spawn split item for %u.", m_itemID);
+        return InventoryItemRef(nullptr);
+    }
+    if (!AlterQuantity(-qty, notify)) {
+        _log(ITEM__ERROR, "II::Split() - could not decrement source %u by %i; discarding temporary item %u.",
+             m_itemID, qty, iRef->itemID());
+        iRef->Delete();
+        return InventoryItemRef(nullptr);
+    }
 
     if (silent)
         return iRef;
@@ -857,7 +879,7 @@ void InventoryItem::Relocate(uint32 locID, EVEItemFlags flag) {
 }
 
 bool InventoryItem::Merge(InventoryItemRef to_merge, int32 qty/*0*/, bool notify/*true*/) {
-    if (to_merge.get() == nullptr)
+    if (to_merge.get() == nullptr || to_merge.get() == this)
         return false;
 
     if (m_data.singleton or to_merge->isSingleton())
@@ -870,6 +892,14 @@ bool InventoryItem::Merge(InventoryItemRef to_merge, int32 qty/*0*/, bool notify
 
     if (qty < 1)
         qty = to_merge->quantity();
+
+    // Validate both stacks before decrementing the source: failed target
+    // increments previously occurred after the source could be deleted.
+    if (qty < 1 || qty > to_merge->quantity() || m_data.quantity < 1
+            || qty > std::numeric_limits<int32>::max() - m_data.quantity) {
+        _log(ITEM__WARNING, "II::Merge() - invalid quantity %d for %u -> %u.", qty, to_merge->itemID(), m_itemID);
+        return false;
+    }
 
     // AlterQuantity will delete items with qty < 1
     if (!to_merge->AlterQuantity(-qty, notify)) {
@@ -927,19 +957,24 @@ bool InventoryItem::AlterQuantity(int32 qty, bool notify/*false*/) {
         return false;
     }
 
-    int32 new_qty = m_data.quantity + qty;
-    if (new_qty < 0) {
+    // Compute in 64-bit: signed overflow during merge/cargo operations is UB.
+    const int64 new_qty = static_cast<int64>(m_data.quantity) + qty;
+    if (new_qty < 0 || new_qty > std::numeric_limits<int32>::max()) {
         codelog(ITEM__ERROR, "II::AlterQuantity() - %s(%u): Tried to remove %i from stack of %i for ownerID %u.", \
                 m_data.name.c_str(), m_itemID, qty, m_data.quantity, m_data.ownerID);
-        // make player error msg here.....
-        Delete();
+        // Reject invalid reductions without destroying the player's stack.
+        // The caller can report the invalid request to the client.
         return false;
     }
 
-    return SetQuantity(new_qty, notify);
+    return SetQuantity(static_cast<int32>(new_qty), notify);
 }
 
 bool InventoryItem::SetQuantity(int32 qty, bool notify/*false*/, bool deleteOnZero/*true*/) {
+    if (qty < 0) {
+        _log(ITEM__ERROR, "II::SetQuantity() - rejecting negative qty=%d on %u.", qty, m_itemID);
+        return false;
+    }
     //if an object is singleton, there is only one, and it shouldn't be able to alter qty
     if (m_data.singleton) {
         _log(ITEM__ERROR, "II::SetQuantity() - %s(%u): Failed to set quantity %i; the items singleton bit is set", m_data.name.c_str(), m_itemID, qty);
@@ -1265,7 +1300,7 @@ bool InventoryItem::Populate(Rsp_CommonGetInfo_Entry& result )
     for (AttrMapItr itr = pAttributeMap->begin(), end = pAttributeMap->end(); itr != end; ++itr) {
         //localization.GetByLabel('UI/Fitting/FittingWindow/WarpSpeed', distText=util.FmtDist(max(1.0, bws) * wsm * 3 * const.AU, 2))
         if ((*itr).first == AttrWarpSpeedMultiplier) {
-            result.attributes[AttrWarpSpeedMultiplier] = new PyFloat((*itr).second.get_float() /3);
+            result.attributes[AttrWarpSpeedMultiplier] = new PyFloat((*itr).second.get_double() / 3.0);
         } else {
             result.attributes[(*itr).first] = (*itr).second.GetPyObject();
         }

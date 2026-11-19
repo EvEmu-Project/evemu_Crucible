@@ -26,7 +26,26 @@ SET( auth_SOURCE
 SET( marshal_SOURCE
      "marshal/EVEMarshalTest.cpp" )
 SET( utils_SOURCE
-     "utils/EvilNumberTest.cpp" )
+     "utils/EvilNumberTest.cpp"
+     "utils/WeaponFormulaTest.cpp"
+     "utils/MovementFormulaTest.cpp"
+     "utils/MiningFormulaTest.cpp"
+     "utils/IndustryFormulaTest.cpp"
+     "utils/ScanDirectionTest.cpp"
+     "utils/DroneControlRangeTest.cpp"
+     "utils/AgentHelpersTest.cpp"
+     "utils/CommandPermissionsTest.cpp"
+     "utils/SovereigntyPosIntegrityTest.cpp"
+     "utils/SovIndexOverrideTest.cpp"
+     "utils/IHubUpgradeRulesTest.cpp"
+     "utils/TowerShieldRulesTest.cpp"
+     "utils/MissionLifecycleTest.cpp"
+     "utils/ContainerAssemblyTest.cpp"
+     "utils/StationOfficeIntegrityTest.cpp"
+     "utils/ImageCompatibilityTest.cpp"
+     "utils/AsteroidSpawnTest.cpp" )
+SET( test_SUPPORT_SOURCE
+     "ProfilerTestStub.cpp" )
 
 ########################
 # Setup the executable #
@@ -34,7 +53,7 @@ SET( utils_SOURCE
 SOURCE_GROUP( "src"      ${INCLUDE} )
 SOURCE_GROUP( "src\\auth"    ${auth_SOURCE} )
 SOURCE_GROUP( "src\\marshal" ${marshal_SOURCE} )
-SOURCE_GROUP( "src\\utils"   ${utils_SOURCE} )
+SOURCE_GROUP( "src\\utils" FILES ${utils_SOURCE} )
 
 CREATE_TEST_SOURCELIST( TARGET_SOURCELIST "eve-test.cpp"
                         ${auth_SOURCE}
@@ -42,7 +61,8 @@ CREATE_TEST_SOURCELIST( TARGET_SOURCELIST "eve-test.cpp"
                         ${utils_SOURCE}
                         EXTRA_INCLUDE "eve-test.h" )
 ADD_EXECUTABLE( "${TARGET_NAME}"
-                ${TARGET_SOURCELIST} )
+                ${TARGET_SOURCELIST}
+                ${test_SUPPORT_SOURCE} )
 
 #TARGET_BUILD_PCH( "${TARGET_NAME}"
 #                  "${TARGET_INCLUDE_DIR}/eve-test.h"
@@ -51,7 +71,8 @@ target_precompile_headers( "${TARGET_NAME}" PUBLIC
                   "${TARGET_INCLUDE_DIR}/eve-test.h" )
 TARGET_INCLUDE_DIRECTORIES( "${TARGET_NAME}"
                             ${eve-common_INCLUDE_DIRS}
-                            "${TARGET_INCLUDE_DIR}" )
+                            "${TARGET_INCLUDE_DIR}"
+                            "${PROJECT_SOURCE_DIR}/src/eve-server" )
 TARGET_LINK_LIBRARIES( "${TARGET_NAME}"
                        "eve-common" )
 
@@ -64,3 +85,37 @@ ADD_TEST( NAME "EVEMarshalTest"
           COMMAND "${TARGET_NAME}" "marshal/EVEMarshalTest" )
 ADD_TEST( NAME "EvilNumberTest"
           COMMAND "${TARGET_NAME}" "utils/EvilNumberTest" )
+ADD_TEST( NAME "WeaponFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/WeaponFormulaTest" )
+ADD_TEST( NAME "ScanDirectionTest"
+          COMMAND "${TARGET_NAME}" "utils/ScanDirectionTest" )
+ADD_TEST( NAME "MovementFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/MovementFormulaTest" )
+ADD_TEST( NAME "MiningFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/MiningFormulaTest" )
+ADD_TEST( NAME "IndustryFormulaTest"
+          COMMAND "${TARGET_NAME}" "utils/IndustryFormulaTest" )
+ADD_TEST( NAME "DroneControlRangeTest"
+          COMMAND "${TARGET_NAME}" "utils/DroneControlRangeTest" )
+ADD_TEST( NAME "TowerShieldRulesTest"
+          COMMAND "${TARGET_NAME}" "utils/TowerShieldRulesTest" )
+ADD_TEST( NAME "IHubUpgradeRulesTest"
+          COMMAND "${TARGET_NAME}" "utils/IHubUpgradeRulesTest" )
+ADD_TEST( NAME "SovIndexOverrideTest"
+          COMMAND "${TARGET_NAME}" "utils/SovIndexOverrideTest" )
+ADD_TEST( NAME "SovereigntyPosIntegrityTest"
+          COMMAND "${TARGET_NAME}" "utils/SovereigntyPosIntegrityTest" )
+ADD_TEST( NAME "CommandPermissionsTest"
+          COMMAND "${TARGET_NAME}" "utils/CommandPermissionsTest" )
+ADD_TEST( NAME "AgentHelpersTest"
+          COMMAND "${TARGET_NAME}" "utils/AgentHelpersTest" )
+ADD_TEST( NAME "MissionLifecycleTest"
+          COMMAND "${TARGET_NAME}" "utils/MissionLifecycleTest" )
+ADD_TEST( NAME "ContainerAssemblyTest"
+          COMMAND "${TARGET_NAME}" "utils/ContainerAssemblyTest" )
+ADD_TEST( NAME "StationOfficeIntegrityTest"
+          COMMAND "${TARGET_NAME}" "utils/StationOfficeIntegrityTest" )
+ADD_TEST( NAME "ImageCompatibilityTest"
+          COMMAND "${TARGET_NAME}" "utils/ImageCompatibilityTest" )
+ADD_TEST( NAME "AsteroidSpawnTest"
+          COMMAND "${TARGET_NAME}" "utils/AsteroidSpawnTest" )

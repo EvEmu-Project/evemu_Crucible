@@ -35,6 +35,11 @@
 #include "ship/Ship.h"
 #include "ship/modules/GenericModule.h"
 #include "system/Damage.h"
+#include "system/SystemBubble.h"
+#include "EVE_WeaponFormulas.h"
+
+#include <algorithm>
+#include <cmath>
 
 Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemManager* pSystem, InventoryItemRef modRef, SystemEntity* tSE, SystemEntity* pSE, GenericModule* pMod)
 : DynamicSystemEntity(self, services, pSystem),
@@ -43,9 +48,10 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
   m_fromSE(pSE),
   m_hitTimer(0),
   m_lifeTimer(0),
-  m_damageMod(1),
   m_alive(true),
-  m_orbitingID(0),
+  m_orbitingID(tSE != nullptr ? tSE->GetID() : 0),
+  m_launcherID(pSE != nullptr ? pSE->GetID() : 0),
+  m_damageMod(1),
   m_speed(0),
   m_hullHP(self->GetAttribute(AttrHP).get_int())
 {
@@ -67,52 +73,66 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
         flightTime *= (1 + (0.1f * (pChar->GetSkillLevel(EvESkill::MissileBombardment, true)))); // 10% increase in flightTime
 
         self->MultiplyAttribute(AttrMaxVelocity, (1 + (0.1f * (pChar->GetSkillLevel(EvESkill::MissileProjection, true))))); // 10% increase in velocity
-        self->MultiplyAttribute(AttrAoeCloudSize, (1 - (0.05f * (pChar->GetSkillLevel(EvESkill::GuidedMissilePrecision, true)))));  //  5% decrease in exp radius
+        // Crucible Guided Missile Precision only affects guided rounds:
+        // light, heavy and cruise missiles (including FoF/T2 variants).
+        // Rockets, heavy assault missiles and torpedoes are unguided.
+        switch (m_self->groupID()) {
+            case EVEDB::invGroups::Light_Missile:
+            case EVEDB::invGroups::FoF_Light_Missile:
+            case EVEDB::invGroups::Advanced_Light_Missile:
+            case EVEDB::invGroups::Heavy_Missile:
+            case EVEDB::invGroups::FoF_Heavy_Missile:
+            case EVEDB::invGroups::Advanced_Heavy_Missile:
+            case EVEDB::invGroups::Cruise_Missile:
+            case EVEDB::invGroups::FoF_Cruise_Missile:
+            case EVEDB::invGroups::Advanced_Cruise_Missile:
+                self->MultiplyAttribute(AttrAoeCloudSize,
+                    (1 - (0.05f * pChar->GetSkillLevel(EvESkill::GuidedMissilePrecision, true))));
+                break;
+            default: break;
+        }
         self->MultiplyAttribute(AttrAoeVelocity, (1 + (0.1f * (pChar->GetSkillLevel(EvESkill::TargetNavigationPrediction, true)))));  // 10% increase in exp velocity
 
-        m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::WarheadUpgrades, true)))); // 5% increase in damage (upped from 2%)
+        m_damageMod *= (1 + (0.02f * (pChar->GetSkillLevel(EvESkill::WarheadUpgrades, true)))); // Crucible: 2% damage per level
         switch (m_self->groupID()) {
             case EVEDB::invGroups::Light_Missile:
             case EVEDB::invGroups::FoF_Light_Missile:
             case EVEDB::invGroups::Advanced_Light_Missile: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::LightMissiles, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Light_Missile)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::LightMissileSpecialization, true)))); // 3% increase in damage
+                // Light Missile Specialization modifies launcher rate of fire, not per-warhead damage.
             } break;
             case EVEDB::invGroups::Heavy_Missile:
             case EVEDB::invGroups::FoF_Heavy_Missile:
             case EVEDB::invGroups::Advanced_Heavy_Missile: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::HeavyMissiles, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Heavy_Missile)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::HeavyMissileSpecialization, true)))); // 3% increase in damage
+                // Heavy Missile Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Cruise_Missile:
             case EVEDB::invGroups::FoF_Cruise_Missile:
             case EVEDB::invGroups::Advanced_Cruise_Missile: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::CruiseMissiles, true)))); // 5% increase in
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Cruise_Missile)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::CruiseMissileSpecialization, true)))); // 3% increase in damage
+                // Cruise Missile Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Torpedo:
             case EVEDB::invGroups::Advanced_Torpedo: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::Torpedoes, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Torpedo)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::TorpedoSpecialization, true)))); // 3% increase in damage
+                // Torpedo Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Rocket:
             case EVEDB::invGroups::Advanced_Rocket: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::Rockets, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Rocket)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::RocketSpecialization, true)))); // 3% increase in damage
+                // Rocket Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Defender_Missile: {
-                m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::DefenderMissiles, true)))); // 5% increase in damage
+                // Crucible Defender Missiles skill grants +5% interceptor
+                // flight velocity per level, not damage to ships.
+                self->MultiplyAttribute(AttrMaxVelocity,
+                    (1 + (0.05f * pChar->GetSkillLevel(EvESkill::DefenderMissiles, true))));
             } break;
             case EVEDB::invGroups::Assault_Missile:
             case EVEDB::invGroups::Advanced_Assault_Missile: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::HeavyAssaultMissiles, true)))); // 5% increase in damage
-                if (m_self->groupID() == EVEDB::invGroups::Advanced_Assault_Missile)
-                    m_damageMod *= (1 + (0.03f * (pChar->GetSkillLevel(EvESkill::HeavyAssaultMissileSpecialization, true)))); // 3% increase in damage
+                // Heavy Assault Missile Specialization is a launcher rate-of-fire modifier.
             } break;
             case EVEDB::invGroups::Citadel_Cruise: {
                 m_damageMod *= (1 + (0.05f * (pChar->GetSkillLevel(EvESkill::CitadelCruiseMissiles, true)))); // 5% increase in damage
@@ -134,11 +154,17 @@ Missile::Missile( InventoryItemRef self, EVEServiceManager& services, SystemMana
         if (pMod->IsLinked()) {
             uint8 mod = m_fromSE->GetShipSE()->GetShipItemRef()->GetLinkedCount(pMod);
             m_damageMod *= mod;
-            flightTime *= mod;
+            // Weapon grouping combines volley damage but does NOT increase
+            // individual missile flight lifetime or effective range.
             m_hullHP *= mod;
         }
 
-    m_lifeTimer.Start(flightTime);
+    if (!std::isfinite(flightTime) || flightTime <= 0.0) {
+        _log(DAMAGE__ERROR, "Missile %u has invalid flight lifetime %.3f ms. Expiring safely.",
+             m_self->itemID(), flightTime);
+        flightTime = 1.0;
+    }
+    m_lifeTimer.Start(static_cast<uint32>(flightTime));
 
     //_log(DAMAGE__MESSAGE, "Created Missile object for %s (%u)", self.get()->name(), self.get()->itemID());
 }
@@ -156,7 +182,19 @@ void Missile::Process() {
     /*  Enable base call to Process Targeting and Movement  */
     SystemEntity::Process();
 
-    if (m_hitTimer.Check(false)) {
+    // The old fixed launch-time timer applied damage remotely even if the
+    // target had moved far away from the missile. Destiny now homes in on
+    // the target each tick; damage requires physical arrival, within the
+    // two ball radii, while the flight lifetime still limits pursuit.
+    SystemManager* system = SystemMgr();
+    SystemEntity* target = (system != nullptr && m_orbitingID != 0)
+        ? system->GetSE(m_orbitingID) : nullptr;
+    if (target == nullptr || target != m_targetSE || target->IsDead()
+        || target->SysBubble() == nullptr || target->SysBubble() != SysBubble()) {
+        m_alive = false;
+    } else if (IsMissileWithinImpactRange(
+                   GetPosition().distance(target->GetPosition()),
+                   GetRadius(), target->GetRadius())) {
         m_hitTimer.Disable();
         HitTarget();
     }
@@ -232,43 +270,137 @@ void Missile::MakeDamageState(DoDestinyDamageState &into) {
     into.structure = 1.0f - (m_self->GetAttribute(AttrDamage).get_float() / m_self->GetAttribute(AttrHP).get_float());
 }
 
+bool Missile::ApplyDefenderDamage(double damage) {
+    if (!m_alive || !std::isfinite(damage) || damage <= 0.0)
+        return false;
+    m_hullHP = CalculateRemainingMissileHP(m_hullHP, damage);
+    if (m_hullHP <= 0.0) {
+        m_alive = false;
+        return true;
+    }
+    return false;
+}
+
 void Missile::HitTarget() {
-    // Create Damage object:
-    Damage d(m_fromSE, m_modRef, m_self, EVEEffectID::missileLaunching);
+    // Resolve both endpoints through the live system registry. Cached raw
+    // pointers may have been invalidated while the missile was in flight.
+    SystemManager* system = SystemMgr();
+    SystemEntity* liveTarget = (system != nullptr && m_orbitingID != 0)
+        ? system->GetSE(m_orbitingID) : nullptr;
+    SystemEntity* liveSource = (system != nullptr && m_launcherID != 0)
+        ? system->GetSE(m_launcherID) : nullptr;
 
-    /*  this is damage formula for missiles
+    if (liveTarget == nullptr || liveTarget != m_targetSE
+        || liveSource == nullptr || liveSource != m_fromSE
+        || liveTarget->GetSelf().get() == nullptr
+        || m_self.get() == nullptr || m_modRef.get() == nullptr) {
+        _log(DAMAGE__WARNING, "Missile::HitTarget() - missile %u lost a valid source, module, or target; discarding impact.",
+             GetID());
+        m_alive = false;
+        return;
+    }
+
+    // Defender missiles are interception projectiles, not ordinary warheads.
+    // They remove the hostile missile on impact instead of applying ship damage.
+    if (m_modRef->groupID() == EVEDB::invGroups::Missile_Launcher_Defender
+        && liveTarget->IsMissileSE()) {
+        Missile* intercepted = liveTarget->GetMissileSE();
+        if (intercepted != nullptr && intercepted->IsAlive()) {
+            const double defenderDamage =
+                m_self->GetAttribute(AttrKineticDamage).get_double()
+                + m_self->GetAttribute(AttrThermalDamage).get_double()
+                + m_self->GetAttribute(AttrEmDamage).get_double()
+                + m_self->GetAttribute(AttrExplosiveDamage).get_double();
+            const bool destroyed = intercepted->ApplyDefenderDamage(
+                defenderDamage * m_damageMod * sConfig.rates.missileDamage
+                * sConfig.rates.damageRate);
+            _log(DAMAGE__TRACE,
+                 "Defender missile %u hit incoming missile %u for %.1f raw damage; destroyed=%u.",
+                 GetID(), intercepted->GetID(), defenderDamage * m_damageMod, destroyed ? 1 : 0);
+        }
+        m_alive = false;
+        return;
+    }
+
+    const double explosionRadius = m_self->GetAttribute(AttrAoeCloudSize).get_float();
+    const double explosionVelocity = m_self->GetAttribute(AttrAoeVelocity).get_float();
+    const double reductionFactor = m_self->GetAttribute(AttrAoeDamageReductionFactor).get_float();
+    const double reductionSensitivity = m_self->GetAttribute(AttrAoeDamageReductionSensitivity).get_float();
+
+    // Bomb launchers detonate at the impact point and damage every eligible
+    // dynamic entity inside the bomb's data-driven blast radius.
+    if (m_modRef->groupID() == EVEDB::invGroups::Missile_Launcher_Bomb) {
+        SystemBubble* bubble = SysBubble();
+        if (bubble == nullptr || system == nullptr
+            || !std::isfinite(explosionRadius) || explosionRadius <= 0.0) {
+            _log(DAMAGE__WARNING, "Bomb missile %u has no valid bubble or AoE radius; discarding detonation.",
+                 GetID());
+            m_alive = false;
+            return;
+        }
+
+        const GPoint impactPosition(liveTarget->GetPosition());
+        std::map<uint32, SystemEntity*> entities;
+        bubble->GetAllEntities(entities);
+
+        for (const auto& entry : entities) {
+            if (entry.first == GetID())
+                continue;
+
+            SystemEntity* areaTarget = system->GetSE(entry.first);
+            if (areaTarget == nullptr || areaTarget != entry.second || areaTarget->IsDead())
+                continue;
+            if (!(areaTarget->IsShipSE() || areaTarget->IsNPCSE() || areaTarget->IsDroneSE()
+                  || areaTarget->IsPOSSE() || areaTarget->IsDeployableSE() || areaTarget->IsSentrySE()
+                  || areaTarget->IsWeaponSE() || areaTarget->IsBatterySE() || areaTarget->IsTowerSE()))
+                continue;
+
+            InventoryItemRef targetItem = areaTarget->GetSelf();
+            if (targetItem.get() == nullptr
+                || impactPosition.distance(areaTarget->GetPosition()) > explosionRadius)
+                continue;
+
+            double signatureRadius = targetItem->GetAttribute(AttrSignatureRadius).get_float();
+            if (signatureRadius <= 0.0)
+                signatureRadius = targetItem->GetAttribute(AttrRadius).get_float() / 10.0;
+
+            const double damageFactor = CalculateMissileDamageFactor(
+                signatureRadius, explosionRadius, explosionVelocity,
+                areaTarget->GetVelocity().length(), reductionFactor, reductionSensitivity);
+            if (damageFactor <= 0.0)
+                continue;
+
+            Damage damage(liveSource, m_modRef, m_self, EVEEffectID::missileLaunching);
+            damage *= m_damageMod;
+            damage *= static_cast<float>(damageFactor);
+            areaTarget->ApplyDamage(damage);
+        }
+
+        m_alive = false;
+        return;
+    }
+
+    /* Standard missile damage formula:
      * Damage = D * MIN(1, Sr/Er, (Ev/V * Sr/Er)^(ln(DRF) / ln(DRS)) )
-     *
-     * D = base damage of the missile,
-     * Sr = signature radius of the target,
-     * Er = Explosion radius of the missile,
-     * Ev = Explosion Velocity of the missile,
-     * V = velocity of the target ship,
-     * DRF = damage reduction factor of the missile.
-     * DRS = damage reduction sensitivity of the missile.
-     * MIN being a function that chooses the lower of the given vaules,
-     * ln is natural logarithm.
      */
-    double Sr = m_targetSE->GetSelf()->GetAttribute(AttrSignatureRadius).get_float();    // this is a default number, based on itemtype
-    double Er = m_self->GetAttribute(AttrAoeCloudSize).get_float(); // Explosion Radius
-    double Ev = m_self->GetAttribute(AttrAoeVelocity).get_float(); // Explosion Velocity
-    double DRF = m_self->GetAttribute(AttrAoeDamageReductionFactor).get_float(); // Damage Reduction Factor
-    double DRS = m_self->GetAttribute(AttrAoeDamageReductionSensitivity).get_float(); // Damage Reduction Sensitivity
+    InventoryItemRef targetItem = liveTarget->GetSelf();
+    double signatureRadius = targetItem->GetAttribute(AttrSignatureRadius).get_float();
+    if (signatureRadius <= 0.0)
+        signatureRadius = targetItem->GetAttribute(AttrRadius).get_float() / 10.0;
 
-    GPoint Vel = m_targetSE->GetVelocity();
-    double V = Vel.length();
-    if (V <= 0)
-        V = 1;
+    const double damageFactor = CalculateMissileDamageFactor(
+        signatureRadius, explosionRadius, explosionVelocity,
+        liveTarget->GetVelocity().length(), reductionFactor, reductionSensitivity);
 
-    double v1 = Sr/Er;
-    double v2 = pow(((Ev/V) * v1), (log(DRF) / log(DRS)));
+    if (!std::isfinite(damageFactor) || damageFactor <= 0.0) {
+        m_alive = false;
+        return;
+    }
+    Damage damage(liveSource, m_modRef, m_self, EVEEffectID::missileLaunching);
+    damage *= m_damageMod;
+    damage *= static_cast<float>(damageFactor);
 
-    // apply damage modifier from char skills, if applicable
-    d *= m_damageMod;
-    // apply missile damage formula to computed total damage
-    d *= EvE::min1(v1, v2);
-
-    m_targetSE->ApplyDamage(d);
+    liveTarget->ApplyDamage(damage);
     m_alive = false;
 }
 

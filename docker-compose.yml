@@ -11,7 +11,8 @@ services:
       - "26000:26000"
       - "26001:26001"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     links:
       - "db"
     environment:
@@ -32,6 +33,12 @@ services:
     # If you want to connect to the Database pick your host port to map it to, (host-port:container-port) below. 
     #ports:
     #  - "3306:3306"  
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 60s
     environment:
       - MARIADB_RANDOM_ROOT_PASSWORD=true
       - MARIADB_USER=evemu

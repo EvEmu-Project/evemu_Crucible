@@ -331,120 +331,79 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
         return false;
     }
 
-    // quantity status of seller's item vs buyer's order
-    uint8 qtyStatus(Market::QtyStatus::Invalid);
+    // NPC bids are executable at the *stored* order price. Validate the
+    // order and requested quantity before mutating or deleting any inventory.
+    if (iRef.get() == nullptr || !oInfo.isBuy || oInfo.stationID != stationID ||
+        oInfo.typeID != typeID || iRef->typeID() != typeID ||
+        quantity == 0 || quantity > iRef->quantity() || oInfo.quantity == 0) {
+        _log(MARKET__WARNING, "ExecuteBuyOrder - mismatched order/item, invalid quantity or stale bid #%u.", orderID);
+        seller->SendNotifyMsg("The market buy order or inventory quantity is no longer valid.");
+        return false;
+    }
 
-    bool shouldDeleteItem(false);
-    uint32 qtySold(0);
+    // Check corporation wallet authorization before an inventory transfer.
+    // The previous implementation checked *after* the sold item was gone.
+    if (useCorp && (
+        (accountKey == 1000 && (seller->GetCorpRole() & Corp::Role::AccountCanTake1) == 0) ||
+        (accountKey == 1001 && (seller->GetCorpRole() & Corp::Role::AccountCanTake2) == 0) ||
+        (accountKey == 1002 && (seller->GetCorpRole() & Corp::Role::AccountCanTake3) == 0) ||
+        (accountKey == 1003 && (seller->GetCorpRole() & Corp::Role::AccountCanTake4) == 0) ||
+        (accountKey == 1004 && (seller->GetCorpRole() & Corp::Role::AccountCanTake5) == 0) ||
+        (accountKey == 1005 && (seller->GetCorpRole() & Corp::Role::AccountCanTake6) == 0) ||
+        (accountKey == 1006 && (seller->GetCorpRole() & Corp::Role::AccountCanTake7) == 0))) {
+        throw UserError("CrpAccessDenied").AddFormatValue(
+            "reason", new PyString("You do not have access to that wallet"));
+    }
 
-    if (iRef->quantity() == oInfo.quantity) {
-        qtyStatus = Market::QtyStatus::Complete;
-        qtySold = oInfo.quantity;
+    // The item stack may be larger than the quantity entered in the client.
+    // Only consume what the player requested and what the bid can still buy.
+    const uint32 qtySold = std::min(quantity, oInfo.quantity);
+    const bool orderConsumed = (qtySold == oInfo.quantity);
+    const bool wholeStack = (qtySold == iRef->quantity());
+    bool shouldDeleteItem = false;
 
-        _log(MARKET__TRACE, "ExecuteBuyOrder - order is Complete");
-
-        if (isPlayer) {
-            _log(MARKET__TRACE, "ExecuteBuyOrder - is player");
-
-            // use the "owner change" packet to alert the buyer of the new item
-            iRef->Donate(oInfo.ownerID, stationID, flagHangar, true);
-        } else if (isCorp) {
-            _log(MARKET__TRACE, "ExecuteBuyOrder - is corp");
-
-            // use the "owner change" packet to alert the buyer of the new item
-            iRef->Donate(oInfo.ownerID, stationID, flagCorpMarket, true);
-        } else if (isTraderJoe || isTrader) {
-            // Trader joe is a placeholder ID that deletes every item sold to
-            // him. Other trader accounts behave similarly to Trader Joe, but we
-            // keep valid journal entries for them
-            _log(MARKET__TRACE, "ExecuteBuyOrder - trader or trader joe encountered");
-
+    if (isTraderJoe || isTrader) {
+        // NPC buyers consume items (no phantom NPC hangar inventory).
+        if (wholeStack) {
             shouldDeleteItem = true;
         } else {
-            _log(MARKET__TRACE, "ExecuteBuyOrder - unhandled edge case");
+            iRef->AlterQuantity(-static_cast<int32>(qtySold), true);
         }
-
-    } else if (iRef->quantity() > oInfo.quantity) {
-        // The seller is selling more items than the buy order is bidding for.
-        qtyStatus = Market::QtyStatus::Over;
-        qtySold = oInfo.quantity;
-
-        _log(MARKET__TRACE, "ExecuteBuyOrder - order is Over");
-
-        if (isTraderJoe || isTrader) {
-            // NPC trader joe is a blackhole, just subtract the amount of items
-            // we're selling to him and call it a day. Also applies to other
-            // trader NPCs.
-            iRef->AlterQuantity(-oInfo.quantity, true);
-        } else {
-            _log(MARKET__TRACE, "ExecuteBuyOrder - buyer is something else?");
-
-            InventoryItemRef siRef = iRef->Split(oInfo.quantity);
-            if (siRef.get() == nullptr) {
-                _log(MARKET__ERROR, "ExecuteBuyOrder - Failed to split %u %s.", siRef->itemID(), siRef->name());
+    } else if (isPlayer || isCorp) {
+        // Split only the sold portion. Never donate a full stack when the
+        // player requested fewer units than the inventory item contains.
+        InventoryItemRef sold = iRef;
+        if (!wholeStack) {
+            sold = iRef->Split(qtySold);
+            if (sold.get() == nullptr) {
+                _log(MARKET__ERROR, "ExecuteBuyOrder - failed to split item %u.", iRef->itemID());
                 return false;
             }
-
-            // use the "owner change" packet to alert the buyer of the new item
-            if (isPlayer) {
-                siRef->Donate(oInfo.ownerID, stationID, flagHangar, true);
-            } else if (isCorp) {
-                siRef->Donate(oInfo.ownerID, stationID, flagCorpMarket, true);
-            }
         }
+        sold->Donate(oInfo.ownerID, stationID, isCorp ? flagCorpMarket : flagHangar, true);
     } else {
-        // The seller is selling fewer items than the buy order is bidding for.
-        qtyStatus = Market::QtyStatus::Under;
-        qtySold = iRef->quantity();
-
-        _log(MARKET__TRACE, "ExecuteBuyOrder - order is Under");
-
-        // use the "owner change" packet to alert the buyer of the new item
-        if (isPlayer) {
-            iRef->Donate(oInfo.ownerID, stationID, flagHangar, true);
-        } else if (isCorp) {
-            iRef->Donate(oInfo.ownerID, stationID, flagCorpMarket, true);
-        } else if (isTraderJoe || isTrader) {
-            shouldDeleteItem = true;
-        }
+        _log(MARKET__ERROR, "ExecuteBuyOrder - buyer type not supported for order #%u.", orderID);
+        return false;
     }
 
-    float money = price * qtySold;
+    // The NPC bid is at 100% reference price; the incoming client's limit
+    // price must not reduce the actual NPC payout. Keep prior player/corp
+    // settlement behavior unchanged for this focused patch.
+    const double executionPrice = (isTraderJoe || isTrader) ? oInfo.price : price;
+    const double money = executionPrice * qtySold;
+    const uint8 level = seller->GetChar()->GetSkillLevel(EvESkill::Accounting);
+    const double tax = EvEMath::Market::SalesTax(sConfig.market.salesTax, level) * money;
+
+    if (shouldDeleteItem)
+        iRef->Delete();
+
     std::string reason = "DESC:  Buying items in ";
     reason += stDataMgr.GetStationName(stationID).c_str();
-    uint32 sellerWalletOwnerID = 0;
-    uint8 level = seller->GetChar ()->GetSkillLevel (EvESkill::Accounting);
-    float tax = EvEMath::Market::SalesTax (sConfig.market.salesTax, level) * money;
 
-    // Note: The original item that was for sale still has not been deleted up
-    // until this point, because we still might need data from it to do some of
-    // the above calculations.
-    if (shouldDeleteItem) {
-        iRef->Delete();
-    }
-
-    // make sure the user has permissions to take money from the corporation account
-    if (useCorp) {
-        if (
-            (accountKey == 1000 && (seller->GetCorpRole () & Corp::Role::AccountCanTake1) == 0) ||
-            (accountKey == 1001 && (seller->GetCorpRole () & Corp::Role::AccountCanTake2) == 0) ||
-            (accountKey == 1002 && (seller->GetCorpRole () & Corp::Role::AccountCanTake3) == 0) ||
-            (accountKey == 1003 && (seller->GetCorpRole () & Corp::Role::AccountCanTake4) == 0) ||
-            (accountKey == 1004 && (seller->GetCorpRole () & Corp::Role::AccountCanTake5) == 0) ||
-            (accountKey == 1005 && (seller->GetCorpRole () & Corp::Role::AccountCanTake6) == 0) ||
-            (accountKey == 1006 && (seller->GetCorpRole () & Corp::Role::AccountCanTake7) == 0)
-        ) {
-            throw UserError("CrpAccessDenied").AddFormatValue ("reason", new PyString ("You do not have access to that wallet"));
-        }
-
-        sellerWalletOwnerID = seller->GetCorporationID();
-
-        _log(MARKET__DEBUG, "ExecuteBuyOrder - Seller is Corp: Price: %.2f, Tax: %.2f", money, tax);
-    } else {
-        sellerWalletOwnerID = seller->GetCharacterID();
-
-        _log(MARKET__DEBUG, "ExecuteBuyOrder - Seller is Player: Price: %.2f, Tax: %.2f", money, tax);
-    }
+    // Wallet role permissions were checked before mutating inventory.
+    uint32 sellerWalletOwnerID = useCorp ? seller->GetCorporationID() : seller->GetCharacterID();
+    _log(MARKET__DEBUG, "ExecuteBuyOrder - Seller is %s: Price: %.2f, Tax: %.2f",
+         useCorp ? "Corp" : "Player", money, tax);
 
     AccountService::TransferFunds (
         sellerWalletOwnerID,
@@ -498,7 +457,7 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
     data.isCorp         = useCorp;
     data.memberID       = seller->GetCharacterID(); // TODO: change this to the corp member ID if useCorp is 1?
     data.clientID       = oInfo.ownerID;
-    data.price          = price;
+    data.price          = executionPrice;
     data.quantity       = qtySold;
     data.stationID      = stationID;
     data.regionID       = sDataMgr.GetStationRegion(stationID);
@@ -519,7 +478,7 @@ bool MarketMgr::ExecuteBuyOrder(Client* seller, uint32 orderID, InventoryItemRef
 
     // update the buyer's original order to reflect the updated amount of items
     // for purchase
-    if (qtyStatus == Market::QtyStatus::Under) {
+    if (!orderConsumed) {
         uint32 newQty(oInfo.quantity - qtySold);
 
         _log(MARKET__TRACE, "ExecuteBuyOrder - Partially satisfied order #%u, altering quantity to %u.", orderID, newQty);

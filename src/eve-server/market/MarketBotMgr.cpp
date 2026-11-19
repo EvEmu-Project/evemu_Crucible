@@ -65,7 +65,19 @@ static const std::vector<uint32> VALID_GROUPS = {
     303
 };
 
-static constexpr uint32 BOT_OWNER_ID = 1000125; // NPC corp owner, default CONCORD
+static constexpr uint32 BOT_OWNER_ID = 1000125; // NPC corp owner for sell orders
+static constexpr uint32 BOT_BUY_OWNER_ID = npcTraderJoe; // 4000000; supported NPC buyer in ExecuteBuyOrder
+
+// Minerals and actual Crucible ore/ice groups, not mining crystals or charges.
+// New NPC market orders use 100 million units per mineral or ore type.
+static constexpr uint32 ORE_MINERAL_ORDER_QUANTITY = 100000000;
+static constexpr double ORE_MINERAL_MAX_UNIT_PRICE = 10000000.0;
+
+static bool IsOreOrMineralMarketGroup(uint32 groupID) {
+    return groupID == 18
+        || (groupID >= 450 && groupID <= 462)
+        || groupID == 465 || groupID == 467 || groupID == 468 || groupID == 469;
+}
 
 // helper random generators
 int GetRandomInt(int min, int max) {
@@ -121,7 +133,7 @@ void MarketBotMgr::Process(bool overrideTimer) {
     codelog(MARKET__TRACE, ">> Entered MarketBotMgr::Process()");
 
     if (!m_initalized) {
-        sLog.Error("     MarketBotMgr", "MarketBotMgr not initialized — skipping run\n");
+        sLog.Error("     MarketBotMgr", "MarketBotMgr not initialized â€” skipping run\n");
         codelog(MARKET__ERROR, "Process() called but MarketBotMgr is not initialized.");
         return;
     }
@@ -130,15 +142,12 @@ void MarketBotMgr::Process(bool overrideTimer) {
         auto timeLeft = std::chrono::duration_cast<std::chrono::milliseconds>(m_nextRunTime - now).count();
         if (timeLeft > 0) {
             sLog.Green("     Trader Joe", "Update timer not ready yet. Next run in %lld seconds.", timeLeft / 1000);
-            codelog(MARKET__TRACE, "Trader Joe waiting — next run in %lld seconds.", timeLeft);
+            codelog(MARKET__TRACE, "Trader Joe waiting â€” next run in %lld seconds.", timeLeft);
             return;
         }
     }
     
-    sLog.Green("     Market Bot Mgr", "Processing old orders...\n");
-    codelog(MARKET__TRACE, "Processing old orders...");
-    ExpireOldOrders();
-
+    // ExpireOldOrders() runs once below; do not scan all NPC orders twice.
     std::vector<uint32> eligibleSystems = GetEligibleSystems();
     sLog.Green("     Market Bot Mgr", "Trader Joe found %zu eligible systems for order placement.", eligibleSystems.size());
     codelog(MARKET__TRACE, "Trader Joe found %zu eligible systems for order placement.", eligibleSystems.size());
@@ -171,7 +180,7 @@ void MarketBotMgr::ForceRun(bool resetTimer) {
     sLog.Warning("     ForceRun", "Manually starting Trader Joe.");
 
     if (!m_initalized) {
-        sLog.Yellow("     Trader Joe", "MarketBotMgr not initialized — skipping run.");
+        sLog.Yellow("     Trader Joe", "MarketBotMgr not initialized â€” skipping run.");
         return;
     }
 
@@ -189,31 +198,55 @@ void MarketBotMgr::AddSystem() { /* To be implemented if needed */ }
 void MarketBotMgr::RemoveSystem() { /* To be implemented if needed */ }
 
 int MarketBotMgr::ExpireOldOrders() {
-    uint64_t now = GetFileTimeNow();
-
+    const uint64_t now = GetFileTimeNow();
     DBQueryResult res;
     DBResultRow row;
-
-    int expiredCount = 0;
-
-    sLog.Yellow("     Trader Joe", "ExpireOldOrders: now = %" PRIu64, now);
-    codelog(MARKET__TRACE, "ExpireOldOrders: now = %" PRIu64, now);
-
+    // Restrict by bot owner first. Keep the original 550-unit exclusion.
     if (!sDatabase.RunQuery(res,
-        "SELECT orderID FROM mktOrders WHERE (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ") < CAST(%" PRIu64 " AS UNSIGNED) AND ownerID = %u AND volEntered != 550",
-        FILETIME_TICKS_PER_DAY, now, BOT_OWNER_ID)) {
-        codelog(MARKET__DB_ERROR, "Failed to query expired bot orders.");
+        "SELECT orderID FROM mktOrders"
+        " WHERE ownerID IN (%u, %u) AND volEntered != 550"
+        " AND (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ")"
+        " < CAST(%" PRIu64 " AS UNSIGNED)",
+        BOT_OWNER_ID, BOT_BUY_OWNER_ID, FILETIME_TICKS_PER_DAY, now)) {
+        codelog(MARKET__DB_ERROR, "Failed to query expired Trader Joe orders.");
         return 0;
     }
 
-    while (res.GetRow(row)) {
-        uint32 orderID = row.GetUInt(0);
-        MarketDB::DeleteOrder(orderID);
-        ++expiredCount;
-        codelog(MARKET__TRACE, "Expired Trader Joe order %u", orderID);
-    }
+    std::vector<uint32> expiredIDs;
+    expiredIDs.reserve(res.GetRowCount());
+    while (res.GetRow(row))
+        expiredIDs.push_back(row.GetUInt(0));
 
-    return expiredCount;
+    // Batch the former one-DELETE-per-order loop. The extra conditions on
+    // DELETE avoid deleting a refreshed order or an unrelated player order.
+    constexpr size_t kDeleteBatchSize = 128;
+    int processed = 0;
+    for (size_t offset = 0; offset < expiredIDs.size(); offset += kDeleteBatchSize) {
+        const size_t limit = std::min(offset + kDeleteBatchSize, expiredIDs.size());
+        std::string ids;
+        ids.reserve((limit - offset) * 12);
+        for (size_t i = offset; i < limit; ++i) {
+            if (!ids.empty())
+                ids += ',';
+            ids += std::to_string(expiredIDs[i]);
+        }
+        DBerror err;
+        if (!sDatabase.RunQuery(err,
+            "DELETE FROM mktOrders WHERE orderID IN (%s)"
+            " AND ownerID IN (%u, %u) AND volEntered != 550"
+            " AND (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ")"
+            " < CAST(%" PRIu64 " AS UNSIGNED)",
+            ids.c_str(), BOT_OWNER_ID, BOT_BUY_OWNER_ID,
+            FILETIME_TICKS_PER_DAY, now)) {
+            codelog(MARKET__DB_ERROR, "Failed to delete expired Trader Joe order batch: %s.", err.c_str());
+            continue;
+        }
+        // Counts successfully processed candidates; concurrent refresh can
+        // make actual removed-row count smaller.
+        processed += static_cast<int>(limit - offset);
+    }
+    codelog(MARKET__TRACE, "Trader Joe expired-order candidates processed: %d.", processed);
+    return processed;
 }
 
 int MarketBotMgr::PlaceBuyOrders(uint32 systemID) {
@@ -243,8 +276,15 @@ int MarketBotMgr::PlaceBuyOrders(uint32 systemID) {
 
         uint32 quantity = GetRandomQuantity(type->groupID());
         double price = CalculateBuyPrice(itemID);
+        const bool isOreMineral = IsOreOrMineralMarketGroup(type->groupID());
+        // Do not silently reduce the 100M-unit ore/mineral quantity to one.
+        // At most 10M ISK/unit keeps its notional value <= 10^15 ISK.
+        if (isOreMineral && (!(price > 0.0) || price > ORE_MINERAL_MAX_UNIT_PRICE)) {
+            codelog(MARKET__WARNING, "Skipping ore/mineral type %u: price %.2f exceeds 100M-unit order safety limit.", itemID, price);
+            continue;
+        }
 
-        if (price * quantity > sMBotConf.main.MaxISKPerOrder) {
+        if (!isOreMineral && price * quantity > sMBotConf.main.MaxISKPerOrder) {
             if (quantity > 1) {
                 quantity = 1;
                 if (price > sMBotConf.main.MaxISKPerOrder) {
@@ -274,7 +314,7 @@ int MarketBotMgr::PlaceBuyOrders(uint32 systemID) {
         order.bid = true;
         order.issued = GetFileTimeNow();
         order.isCorp = false;
-        order.ownerID = BOT_OWNER_ID;
+        order.ownerID = BOT_BUY_OWNER_ID;
         order.orderRange = 32767; // -1 station, 0 solarsystem, 1-5 10 20 30 40 jumps, 32767 region (default)
         // marketbot update; unsure if these are really needed, but aligns with how orders are created manually in-game and through seed-market.
         order.memberID = 0;       // default value for who placed the order (0 for char order)
@@ -303,7 +343,7 @@ int MarketBotMgr::PlaceSellOrders(uint32 systemID) {
     std::vector<uint32> availableStations;
 
     if (!sDataMgr.GetStationListForSystem(systemID, availableStations)) {
-        codelog(MARKET__ERROR, "Trader Joe: No stations found for system %u — skipping order creation.", systemID);
+        codelog(MARKET__ERROR, "Trader Joe: No stations found for system %u â€” skipping order creation.", systemID);
         return 0;
     } else {
         codelog(MARKET__TRACE, "Trader Joe: Found %zu stations in system %u", availableStations.size(), systemID);
@@ -323,8 +363,15 @@ int MarketBotMgr::PlaceSellOrders(uint32 systemID) {
 
         uint32 quantity = GetRandomQuantity(type->groupID());
         double price = CalculateSellPrice(itemID);
+        const bool isOreMineral = IsOreOrMineralMarketGroup(type->groupID());
+        // Do not silently reduce the 100M-unit ore/mineral quantity to one.
+        // At most 10M ISK/unit keeps its notional value <= 10^15 ISK.
+        if (isOreMineral && (!(price > 0.0) || price > ORE_MINERAL_MAX_UNIT_PRICE)) {
+            codelog(MARKET__WARNING, "Skipping ore/mineral type %u: price %.2f exceeds 100M-unit order safety limit.", itemID, price);
+            continue;
+        }
 
-        if (price * quantity > sMBotConf.main.MaxISKPerOrder) {
+        if (!isOreMineral && price * quantity > sMBotConf.main.MaxISKPerOrder) {
             if (quantity > 1) {
                 quantity = 1;
                 if (price > sMBotConf.main.MaxISKPerOrder) {
@@ -409,9 +456,11 @@ uint32 MarketBotMgr::SelectRandomItemID() {
 }
 
 uint32 MarketBotMgr::GetRandomQuantity(uint32 groupID) {
-    // Large-quantity bulk groups: minerals, ammo, ores, charges, etc.
+    if (IsOreOrMineralMarketGroup(groupID))
+        return ORE_MINERAL_ORDER_QUANTITY;
+
+    // Non-ore high-volume items retain the former random quantities.
     if (
-        groupID == 18 ||                      // Minerals
         (groupID >= 83 && groupID <= 92) ||   // Basic ammo/charges
         (groupID >= 372 && groupID <= 377) || // Advanced ammo
         (groupID >= 384 && groupID <= 396) || // More missiles
@@ -423,9 +472,7 @@ uint32 MarketBotMgr::GetRandomQuantity(uint32 groupID) {
         groupID == 648 ||                     // Advanced Rocket
         (groupID >= 653 && groupID <= 657) || // Advanced Missiles
         groupID == 663 ||                     // Mercoxit Mining Crystals
-        groupID == 772 ||                     // Assault Missiles
-        (groupID >= 450 && groupID <= 462) || // Raw ores (part 1)
-        (groupID >= 465 && groupID <= 469)    // Raw ores (part 2)
+        groupID == 772                       // Assault Missiles
     ) {
         return GetRandomInt(1000, 1000000);  // Large stack sizes
     }
@@ -446,10 +493,19 @@ uint32 MarketBotMgr::GetRandomQuantity(uint32 groupID) {
 
 double MarketBotMgr::CalculateBuyPrice(uint32 itemID) {
     const ItemType* type = sItemFactory.GetType(itemID);
-    return type ? type->basePrice() * GetRandomFloat(0.8f, 1.1f) : 1000.0;
+    // All NPC buy orders follow the same 100% static reference-price
+    // policy as the regional seed. No randomized 80%-110% adjustment.
+    return (type && type->basePrice() > 0.0)
+        ? std::max(0.01, static_cast<double>(type->basePrice()))
+        : 100.0;
 }
 
 double MarketBotMgr::CalculateSellPrice(uint32 itemID) {
     const ItemType* type = sItemFactory.GetType(itemID);
-    return type ? type->basePrice() * GetRandomFloat(1.0f, 1.3f) : 1000.0;
+    // NPC sell orders use 100% of the static item reference value.
+    // A zero/negative base price cannot define a percentage; use the same
+    // explicit 100 ISK fallback as EVEDBTool's market seeder.
+    return (type && type->basePrice() > 0.0)
+        ? std::max(0.01, static_cast<double>(type->basePrice()))
+        : 100.0;
 }

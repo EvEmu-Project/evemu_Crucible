@@ -25,10 +25,12 @@
 
 /** @todo  boost is the only system in this code that does NOT leak */
 
+#include "EVE_ImageHelpers.h"
+#include "EVE_LegacyAgentThumbnail.h"
 #include "imageserver/ImageServer.h"
 #include "imageserver/ImageServerListener.h"
 
-const char *const ImageServer::FallbackURL = "http://image.eveonline.com/";
+const char *const ImageServer::FallbackURL = "https://images.evetech.net/";
 
 const char *const ImageServer::Categories[] = {
     "Alliance",
@@ -46,19 +48,22 @@ ImageServer::ImageServer()
     _url = urlBuilder.str();
 
     _basePath = sConfig.files.imageDir;
-    if (_basePath[_basePath.size() - 1] != '/')
+    if (_basePath.empty())
+        _basePath = "../image_cache";
+    if (_basePath.back() != '/' && _basePath.back() != '\\')
         _basePath += "/";
 
     sLog.Cyan("      ImageServer", "Image Server URL: %s", _url.c_str());
     sLog.Cyan("      ImageServer", "Image Server path: %s", _basePath.c_str());
 
-    if (CreateDirectory( _basePath.c_str(), NULL ) == 0) {
-        for (int i = 0; i < CategoryCount; i++) {
-            std::string subdir = _basePath;
-            subdir.append(Categories[i]);
-            CreateDirectory( subdir.c_str(), NULL );
-        }
-    } /* else directory probably exists */
+    // Always ensure category folders exist: CreateDirectory returns nonzero
+    // when it successfully creates the base folder. The old code skipped
+    // creating subfolders in that case.
+    CreateDirectory(_basePath.c_str(), NULL);
+    for (uint32 i = 0; i < CategoryCount; ++i) {
+        const std::string subdir = _basePath + Categories[i];
+        CreateDirectory(subdir.c_str(), NULL);
+    }
     sLog.Blue("      ImageServer", "Image Server Initalized.");
 }
 
@@ -67,11 +72,13 @@ void ImageServer::ReportNewImage(uint32 accountID, std::shared_ptr<std::vector<c
     sLog.Warning("      ImageServer"," ReportNewImage() called.");
     Lock lock(_limboLock);
 
-    if (_limboImages.find(accountID) != _limboImages.end()) {
-        _limboImages.insert(std::pair<uint32,std::shared_ptr<std::vector<char> > >(accountID, imageData));
-    } else {
-        _limboImages[accountID] = imageData;
+    // insert() does not replace existing map entries. A second upload from
+    // the same account must replace the stale image, not silently get ignored.
+    if (imageData == nullptr || imageData->empty()) {
+        sLog.Warning("      ImageServer", "Ignoring empty portrait upload for account %u.", accountID);
+        return;
     }
+    _limboImages[accountID] = imageData;
 }
 
 void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID)
@@ -79,37 +86,33 @@ void ImageServer::ReportNewCharacter(uint32 creatorAccountID, uint32 characterID
     sLog.Warning("      ImageServer"," ReportNewCharacter() called.");
     Lock lock(_limboLock);
 
-    // check if we received an image from this account previously
-    if (_limboImages.find(creatorAccountID) == _limboImages.end()) {
-        sLog.Error("      ImageServer"," Image not received for characterID %u.", characterID);
-        /** @todo  need to get client here, and send msg about emailing char pic and name to charPics@eve.alasiya.net for manual insertion */
+    const auto it = _limboImages.find(creatorAccountID);
+    if (it == _limboImages.end() || it->second == nullptr || it->second->empty()) {
+        sLog.Warning("      ImageServer", "No valid portrait upload for characterID %u.", characterID);
         return;
     }
 
-    // we have, so save it
-    //std::ofstream stream;
     std::string dirName = "Character";
-    std::string path(GetFilePath(dirName, characterID, 512));
-    FILE * fp = fopen(path.c_str(), "wb");
+    const std::string path = GetFilePath(dirName, characterID, 512);
+    FILE* fp = fopen(path.c_str(), "wb");
+    if (fp == nullptr) {
+        sLog.Error("      ImageServer", "Could not open portrait file %s for writing.", path.c_str());
+        return;
+    }
 
-    //stream.open(path, std::ios::binary | std::ios::trunc | std::ios::out);
-    std::shared_ptr<std::vector<char> > data = _limboImages[creatorAccountID];
+    const std::shared_ptr<std::vector<char>>& data = it->second;
+    const size_t bytesWritten = fwrite(data->data(), 1, data->size(), fp);
+    const int closeResult = fclose(fp);
+    if (bytesWritten != data->size() || closeResult != 0) {
+        sLog.Error("      ImageServer", "Failed to write complete portrait for characterID %u.", characterID);
+        remove(path.c_str());
+        return;
+    }
 
-    fwrite(&((*data)[0]), 1, data->size(), fp);
-    fclose(fp);
-
-    //std::copy(data->begin(), data->end(), std::ostream_iterator<char>(stream));
-    //stream.flush();
-    //stream.close();
-
-    /** @todo  we will need to make size 64 and size 40 images, and possibably 128/256 of char portaits */
-    // github.com/nothings/stb/blob/master/stb_image_resize.h
-    // github.com/nothings/stb/blob/master/stb_image.h
-
-    // and delete it from our limbo map
-    _limboImages.erase(creatorAccountID);
-
-    sLog.Green("      ImageServer", "Received image from %u and saved as %s", creatorAccountID, path.c_str());
+    // Only discard the upload after the portrait has been saved completely.
+    _limboImages.erase(it);
+    sLog.Green("      ImageServer", "Received image from %u and saved as %s",
+               creatorAccountID, path.c_str());
 }
 
 std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category, uint32 id, uint32 size)
@@ -119,32 +122,62 @@ std::shared_ptr<std::vector<char> > ImageServer::GetImage(std::string& category,
     if (!ValidateCategory(category) || !ValidateSize(category, size))
         return std::shared_ptr<std::vector<char> >();
 
-    //std::ifstream stream;
+    // The client uses our local HTTP endpoint, but for station agents the
+    // actual JPEG must come from the server's image_cache/Character folder.
+    // Prefer <agentID>_50.jpg; permit an operator-supplied generic 50px
+    // fallback. Never send the previous 322-byte compiled-in placeholder,
+    // a mismatched 512px portrait, or a modern HTTPS redirect for this path.
+    const bool localAgent50 = EvEImage::IsLegacyAgentThumbnail50(category, id, size);
     std::string path(GetFilePath(category, id, size));
     FILE * fp = fopen(path.c_str(), "rb");
-    if (fp == NULL)
+    if (fp == NULL && localAgent50) {
+        path = _basePath + "Character/agent_fallback_50.jpg";
+        fp = fopen(path.c_str(), "rb");
+    }
+    // Keep legacy 512px fallback for other Character requests only.
+    if (fp == NULL && category == "Character" && size != 512 && !localAgent50) {
+        path = GetFilePath(category, id, 512);
+        fp = fopen(path.c_str(), "rb");
+    }
+    if (fp == NULL) {
+        if (localAgent50)
+            sLog.Warning("      ImageServer",
+                         "No local JPEG for agent %u; expected %s or Character/agent_fallback_50.jpg.",
+                         id, GetFilePath(category, id, size).c_str());
         return std::shared_ptr<std::vector<char> >();
-    fseek(fp, 0, SEEK_END);
-    size_t length = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
+    }
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        fclose(fp);
+        return std::shared_ptr<std::vector<char>>();
+    }
+    const long fileLength = ftell(fp);
+    if (fileLength < 0 || fseek(fp, 0, SEEK_SET) != 0) {
+        fclose(fp);
+        return std::shared_ptr<std::vector<char>>();
+    }
 
-    //stream.open(path, std::ios::binary | std::ios::in);
-    // not found or other error
-    //if (stream.fail())
-    //    return std::shared_ptr<std::vector<char> >();
+    const size_t length = static_cast<size_t>(fileLength);
+    std::shared_ptr<std::vector<char>> ret = std::make_shared<std::vector<char>>(length);
+    const size_t bytesRead = (length > 0) ? fread(ret->data(), 1, length, fp) : 0;
+    fclose(fp);
+    if (bytesRead != length)
+        return std::shared_ptr<std::vector<char>>();
 
-    // get length
-    //stream.seekg(0, std::ios::end);
-    //int length = stream.tellg();
-    //stream.seekg(0, std::ios::beg);
-
-    std::shared_ptr<std::vector<char> > ret = std::shared_ptr<std::vector<char> >(new std::vector<char>());
-    ret->resize(length);
-
-    // HACK
-    //stream.read(&((*ret)[0]), length);
-    fread(&((*ret)[0]), 1, length, fp);
-
+    // The legacy client expects JPEG bytes for Character images. The image
+    // cache and portrait-upload path can contain empty or mislabeled PNG
+    // data under a .jpg name. Reject an obviously non-JPEG payload rather
+    // than sending it as image/jpeg during station load. This is a signature
+    // check, not a full JPEG decoder/validity guarantee.
+    if (category == "Character" && !EvEImage::HasJpegSignature(*ret)) {
+        sLog.Warning("      ImageServer",
+                     "Ignoring non-JPEG or empty cached Character image %u_%u from %s.",
+                     id, size, path.c_str());
+        return std::shared_ptr<std::vector<char>>();
+    }
+    if (localAgent50)
+        sLog.Debug("      ImageServer",
+                   "Serving disk JPEG for agent %u at 50px from %s (%lu bytes).",
+                   id, path.c_str(), static_cast<unsigned long>(ret->size()));
     return ret;
 }
 
@@ -152,9 +185,8 @@ std::string ImageServer::GetFilePath(std::string& category, uint32 id, uint32 si
 {
     std::string extension = category == "Character" ? "jpg" : "png";
 
-    // HACK: We don't have any other
-    size = 512;
-
+    // Preserve the requested size in the filename; GetImage() explicitly
+    // falls back to local 512px portraits if a smaller size is absent.
     std::stringstream builder;
     builder << _basePath << category << "/" << id << "_" << size << "." << extension;
     return builder.str();
@@ -171,6 +203,9 @@ bool ImageServer::ValidateSize(std::string& category, uint32 size)
     if (category == "Corporation")
         return size == 256 || size == 128 || size == 64 || size == 32;
 
+    // Legacy Crucible clients also request 50px character portraits.
+    if (category == "Character" && size == 50)
+        return true;
     // Render and Character
     return size == 1024 || size == 512 || size == 256 || size == 128 || size == 64 || size == 40 || size == 32;
 }

@@ -8,16 +8,26 @@
 #ifndef EVE_MISSIONS_H
 #define EVE_MISSIONS_H
 
+#include <cstddef>
+#include <random>
+
 struct MissionData {
         bool important;
+        bool storyline;
         uint8 level;
         uint8 typeID;
+        uint8 raceID;
         uint8 range;
         uint16 missionID;
         uint32 briefingID;
         uint32 constellationID;
         uint32 corporationID;
         uint32 dungeonID;
+        uint32 rewardISK;
+        uint32 bonusISK;
+        uint16 rewardItemID;
+        uint16 rewardItemQty;
+        uint16 bonusTime;
         std::string name;
 };
 
@@ -84,6 +94,51 @@ struct CourierData {
 };
 
 namespace Mission {
+    // Synthetic Level 0 Blockade encounter used for combat testing.
+    constexpr uint16 kBlockadeSecurityTestMissionID = 65535;
+    constexpr uint16 kBlockadeSecurityTestRequiredKills = 12;
+    constexpr uint32 kBlockadeSecurityTestRewardISK = 50000000;
+    constexpr uint32 kBlockadeSecurityTestDurationMinutes = 120;
+
+    // Separate Security Agent encounter; the working 65535 Blockade is untouched.
+    // Each high-value kill has a DED, faction, or officer loot-table tier.
+    constexpr uint16 kEliteSecurityMissionID = 65534;
+    constexpr uint16 kEliteSecurityRequiredKills = 8;
+    constexpr uint32 kEliteSecurityRewardISK = 500000000;
+    constexpr uint32 kEliteSecurityDurationMinutes = 120;
+
+    // MakeRandomInt(0, n - 1) truncates a float, so it virtually never
+    // chooses the last index when n == 2. Keep this fix mission-scoped to
+    // avoid changing existing server-wide spawn and market randomness.
+    inline std::size_t RandomCandidateIndex(std::size_t count) {
+        if (count <= 1)
+            return 0;
+        static thread_local std::mt19937 engine(std::random_device{}());
+        std::uniform_int_distribution<std::size_t> distribution(0, count - 1);
+        return distribution(engine);
+    }
+
+    inline bool IsSyntheticSecurityEncounter(uint16 missionID) {
+        return missionID == kBlockadeSecurityTestMissionID
+            || missionID == kEliteSecurityMissionID;
+    }
+
+    // invMetaGroups: 4 = Faction, 5 = Officer, 6 = Deadspace.
+    // Only the explicitly selected new encounter groups are eligible for
+    // premium mission loot; other NPCs retain their ordinary loot behavior.
+    inline uint8 EliteLootMetaGroupForNPCGroup(uint16 groupID) {
+        switch (groupID) {
+            case 789: case 796: case 798: case 807: case 852:
+                return 4;  // Faction commanders
+            case 553: case 559: case 564: case 569: case 574:
+                return 5;  // Pirate officers
+            case 597: case 605: case 613: case 620: case 630:
+            case 819: case 820: case 821:
+                return 6;  // DED rats and overseers
+            default:
+                return 0;
+        }
+    }
     namespace State {
         enum {
             Allocated   = 0,    // also listed as 'Offered' in some places
@@ -96,6 +151,21 @@ namespace Mission {
             Defered     = 6,    // send as Allocated
             Expired     = 7     // send as Failed
         };
+    }
+
+    // Deferred (Allocated) and newly Offered missions both await acceptance.
+    inline bool IsAwaitingAcceptance(uint8 stateID) {
+        return stateID == State::Offered || stateID == State::Allocated;
+    }
+
+    // An agent can serve multiple characters, and an old offer can coexist
+    // briefly with a new one: compare persistent offer identity.
+    inline bool MatchesOffer(const MissionOffer& offer, uint32 characterID, uint32 offerID) {
+        return offer.characterID == characterID && offer.offerID == offerID;
+    }
+
+    inline uint32 RemainingItemQuantity(uint32 stackQuantity, uint32 amountToRemove) {
+        return amountToRemove >= stackQuantity ? 0u : stackQuantity - amountToRemove;
     }
 
     namespace Status {

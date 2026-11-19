@@ -31,6 +31,10 @@
 
 #include "EntityList.h"
 
+#include "EVE_ContainerHelpers.h"
+#include "EVE_MovementFormulas.h"
+#include "system/SystemEntity.h"
+#include <cmath>
 #include "StaticDataMgr.h"
 #include "inventory/InvBrokerService.h"
 #include "inventory/InventoryBound.h"
@@ -111,7 +115,14 @@ PyResult InvBrokerBound::GetContainerContents(PyCallArgs &call, PyInt* container
          throw UserError ("CantDoThatWithSomeoneElsesStuff");
     }
 
-    return item->GetMyInventory()->List( flagNone );
+    auto* containerInventory = item->GetMyInventory();
+    if (containerInventory == nullptr) {
+        _log(INV__ERROR,
+             "GetContainerContents: item %u has no inventory (group=%u, owner=%u).",
+             item->itemID(), item->groupID(), item->ownerID());
+        return nullptr;
+    }
+    return containerInventory->List(flagNone);
 }
 
 //this is a view into the entire inventory item.  this CAN throw.  find and implement client error msgs here for corp usage
@@ -220,19 +231,30 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
         } break;
         case EVEDB::invCategories::Celestial: {
             switch (iRef->groupID ()) {
-                case EVEDB::invGroups::Cargo_Container: {
+                case EVEDB::invGroups::Cargo_Container:
+                case EVEDB::invGroups::Wreck: {
                     flag = flagNone;
-                    // only check distance if the item is in space and not in a station
                     if (sDataMgr.IsSolarSystem(iRef->locationID())) {
-                        GVector direction(iRef->position(), call.client->GetShip()->position());
-                        float maxDistance = 2500.0f;
-
-                        if (iRef->HasAttribute (AttrMaxOperationalDistance) == true)
-                            maxDistance = iRef->GetAttribute(AttrMaxOperationalDistance).get_float ();
-
-                        if (direction.length () > maxDistance)
-                            throw UserError ("NotCloseEnoughToOpen")
-                                .AddAmount ("maxdist", maxDistance);
+                        // Match Follow() and the client interaction range:
+                        // live surface clearance, not centre-to-centre stale
+                        // inventory coordinates. Fail closed if the in-space
+                        // entity cannot be resolved.
+                        const double maxDistance = iRef->HasAttribute(AttrMaxOperationalDistance)
+                            ? iRef->GetAttribute(AttrMaxOperationalDistance).get_double()
+                            : 2500.0;
+                        ShipSE* shipSE = call.client->GetShipSE();
+                        SystemEntity* containerSE = (shipSE != nullptr && shipSE->SystemMgr() != nullptr)
+                            ? shipSE->SystemMgr()->GetSE(iRef->itemID()) : nullptr;
+                        if (shipSE == nullptr || containerSE == nullptr ||
+                            !std::isfinite(maxDistance) || maxDistance < 0.0)
+                            throw UserError("NotCloseEnoughToOpen")
+                                .AddAmount("maxdist", maxDistance > 0.0 ? maxDistance : 2500.0);
+                        const double clearance = EVEmuMovement::SurfaceSeparation(
+                            shipSE->GetPosition().distance(containerSE->GetPosition()),
+                            shipSE->GetRadius(), containerSE->GetRadius());
+                        if (clearance > maxDistance)
+                            throw UserError("NotCloseEnoughToOpen")
+                                .AddAmount("maxdist", maxDistance);
                     }
                     break;
                 }
@@ -240,6 +262,10 @@ PyResult InvBrokerBound::GetInventoryFromId(PyCallArgs &call, PyInt* inventoryID
         }
     }
 
+    if (iRef->GetMyInventory() == nullptr) {
+        _log(INV__ERROR, "GetInventoryFromId: item %u (group %u) cannot hold inventory; refusing binding.", iRef->itemID(), iRef->groupID());
+        return nullptr;
+    }
     InventoryBound* ib = new InventoryBound(this->GetServiceManager(), reinterpret_cast <BoundServiceParent<InventoryBound>&> (this->GetParent ()), iRef, flag, ownerID, passive->value());
 
     ib->NewReference(call.client);
@@ -333,6 +359,10 @@ PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std:
             return nullptr;
     }
 
+    if (item->GetMyInventory() == nullptr) {
+        _log(INV__ERROR, "GetInventory: item %u (group %u) cannot hold inventory; refusing binding.", item->itemID(), item->groupID());
+        return nullptr;
+    }
     InventoryBound* ib = new InventoryBound(this->GetServiceManager(), reinterpret_cast <BoundServiceParent<InventoryBound>&> (this->GetParent ()), item, flag, ownerID, false);
 
     ib->NewReference(call.client);
@@ -342,11 +372,15 @@ PyResult InvBrokerBound::GetInventory(PyCallArgs &call, PyInt* containerID, std:
 
 // this cannot throw, returns nothing.
 PyResult InvBrokerBound::SetLabel(PyCallArgs &call, PyInt* itemID, PyRep* itemName) {
-    sItemFactory.SetUsingClient( call.client );
+    sItemFactory.SetUsingClient(call.client);
+    // Rename can throw a POS anchoring error. Always clear the client marker
+    // even if the service dispatcher unwinds with an exception.
+    struct ScopedRenameClient {
+        ~ScopedRenameClient() { sItemFactory.UnsetUsingClient(); }
+    } renameClient;
     InventoryItemRef iRef = sItemFactory.GetItemRef(itemID->value());
     if (iRef.get() == nullptr) {
         codelog(INV__ERROR, "%s: Unable to load item %u", call.client->GetName(), itemID->value());
-        sItemFactory.UnsetUsingClient();
         return nullptr;
     }
 
@@ -359,14 +393,14 @@ PyResult InvBrokerBound::SetLabel(PyCallArgs &call, PyInt* itemID, PyRep* itemNa
     /** @todo if owner is corp, make sure char has permissions to rename corp items  */
     if (IsPlayerCorp(iRef->ownerID())) {
         if (iRef->ownerID() != call.client->GetCorporationID()) {
-            _log(INV__ERROR, "%u(%u) tried to rename CorpItem %s(%u) owned by %u.", \
+            _log(INV__ERROR, "%s(%u) tried to rename CorpItem %s(%u) owned by %u.", \
                     call.client->GetName(), call.client->GetCharacterID(), iRef->name(), \
                     iRef->itemID(), iRef->ownerID());
             error = true;
         }
     } else if (IsCharacterID(iRef->ownerID())) {
         if (iRef->ownerID() != call.client->GetCharacterID()) {
-            _log(INV__ERROR, "%u(%u) tried to rename PlayerItem %s(%u) owned by %u.", \
+            _log(INV__ERROR, "%s(%u) tried to rename PlayerItem %s(%u) owned by %u.", \
                     call.client->GetName(), call.client->GetCharacterID(), iRef->name(), \
                     iRef->itemID(), iRef->ownerID());
             error = true;
@@ -382,8 +416,7 @@ PyResult InvBrokerBound::SetLabel(PyCallArgs &call, PyInt* itemID, PyRep* itemNa
         iRef->Rename(PyRep::StringContent(itemName));
     }
 
-    // Release the ItemFactory
-    sItemFactory.UnsetUsingClient();
+    // The scoped client guard releases ItemFactory on every exit path.
 
     //OnItemNameChange
     // need to also check pos rename code.
@@ -434,24 +467,62 @@ PyResult InvBrokerBound::TrashItems(PyCallArgs &call, PyList* itemIDs, PyInt* lo
  */
 
 PyResult InvBrokerBound::AssembleCargoContainer(PyCallArgs &call, PyInt* itemID, PyNone* none, PyFloat* zero) {
-    /* invMgr.AssembleCargoContainer(invItem.itemID, None, 0.0)
-     *
-     * 14:37:46 [BindDump]   Call Arguments:
-     * 14:37:46 [BindDump]       Tuple: 3 elements
-     * 14:37:46 [BindDump]         [ 0] Integer field: 140000489
-     * 14:37:46 [BindDump]         [ 1] (None)
-     * 14:37:46 [BindDump]         [ 2] Real field: 0.000000
-     *
-     * 14:37:46 L InvBrokerBound::Handle_AssembleCargoContainer(): [00msize= 3
-     * 14:37:46 [InvMsg]   Call Arguments:
-     * 14:37:46 [InvMsg]       Tuple: 3 elements
-     * 14:37:46 [InvMsg]         [ 0] Integer field: 140000489
-     * 14:37:46 [InvMsg]         [ 1] (None)
-     * 14:37:46 [InvMsg]         [ 2] Real field: 0.000000
-     */
+    // Crucible client: invMgr.AssembleCargoContainer(invItem.itemID, None, 0.0)
+    // The previous implementation logged this call and always returned without
+    // changing the inventory item's packaged/singleton state.
+    (void)none;
+    (void)zero;
 
-    sLog.Warning( "InvBrokerBound::Handle_AssembleCargoContainer()", "size=%lu", call.tuple->size());
-    call.Dump(INV__DUMP);
+    const uint32 containerID = itemID->value();
+    InventoryItemRef item = sItemFactory.GetItemRef(containerID);
+    if (item.get() == nullptr) {
+        _log(INV__ERROR, "AssembleCargoContainer: cannot load item %u.", containerID);
+        return nullptr;
+    }
+
+    const uint32 characterID = call.client->GetCharacterID();
+    const uint32 stationID = call.client->GetStationID();
+    if (item->ownerID() != characterID) {
+        _log(INV__WARNING, "AssembleCargoContainer: character %u cannot assemble item %u owned by %u.",
+             characterID, containerID, item->ownerID());
+        throw UserError("CantDoThatWithSomeoneElsesStuff");
+    }
+
+    if (!EvEContainer::CanAssembleCargoContainer(item->groupID(), item->isSingleton(),
+                                                  item->quantity(), item->ownerID(),
+                                                  characterID, item->locationID(), stationID,
+                                                  call.client->IsDocked())) {
+        _log(INV__WARNING,
+             "AssembleCargoContainer: rejected item=%u group=%u qty=%d singleton=%u location=%u station=%u docked=%u.",
+             containerID, item->groupID(), item->quantity(), item->isSingleton() ? 1u : 0u,
+             item->locationID(), stationID, call.client->IsDocked() ? 1u : 0u);
+        return nullptr;
+    }
+
+    // Assembling a quantity-one stack changes its own itemID to a singleton.
+    // For a larger purchased stack, split off exactly ONE so other packaged
+    // containers remain in the original stack. Split() notifies both items.
+    InventoryItemRef assembled = item;
+    if (item->quantity() > 1) {
+        assembled = item->Split(1, true, false);
+        if (assembled.get() == nullptr) {
+            _log(INV__ERROR, "AssembleCargoContainer: failed to split one unit from stack %u.", containerID);
+            return nullptr;
+        }
+
+        // Persist original stack quantity even with saveOnUpdate disabled.
+        item->SaveItem();
+    }
+
+    if (!assembled->ChangeSingleton(true, true)) {
+        _log(INV__ERROR, "AssembleCargoContainer: failed to set singleton on item %u.", assembled->itemID());
+        return nullptr;
+    }
+    // Preserve the assembled state across restarts regardless of server
+    // saveOnUpdate setting; ChangeSingleton updates item volume and notifies.
+    assembled->SaveItem();
+    _log(INV__MESSAGE, "AssembleCargoContainer: character=%u source=%u assembled=%u type=%u originalQty=%d.",
+         characterID, containerID, assembled->itemID(), assembled->typeID(), item->quantity());
 
     return nullptr;
 }

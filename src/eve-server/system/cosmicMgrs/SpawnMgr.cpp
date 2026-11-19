@@ -9,15 +9,124 @@
   */
 
 #include "EVEServerConfig.h"
+#include <algorithm>
+#include <cctype>
 
 #include "StaticDataMgr.h"
+#include "EVE_Missions.h"
 #include "npc/NPC.h"
 #include "npc/NPCAI.h"
 #include "system/DestinyManager.h"
+#include "system/Celestial.h"
 #include "system/SystemManager.h"
 #include "system/SystemBubble.h"
 #include "system/cosmicMgrs/SpawnMgr.h"
 #include "system/cosmicMgrs/DungeonMgr.h"
+#include "agents/Agent.h"
+
+// NPC ship types in this Crucible data set use Entity category (11) and
+// faction rat groups named "Asteroid ...". Retain non-NPC room objects as
+// celestials instead of silently discarding them.
+static bool IsMissionNPCGroup(const Inv::GrpData& group)
+{
+    return group.catID == EVEDB::invCategories::Ship
+        || group.catID == EVEDB::invCategories::Drone
+        || (group.catID == EVEDB::invCategories::Entity
+            && group.name.compare(0, 9, "Asteroid ") == 0);
+}
+
+// Synthetic Blockade mission 65535 uses 12 Angel Cartel cruisers and battlecruisers.
+// These are the verified Angel Cartel NPC group IDs. In particular, group
+// 552 is Battleships (not Cruisers), while group 576 is BattleCruisers.
+// Keep the expected group name alongside each ID so a mismatched static-data
+// pack cannot silently introduce a higher hull class into this encounter.
+struct BlockadeTestShipClass
+{
+    uint16 groupID;
+    const char* expectedGroupName;
+    uint8 quantity;
+};
+
+struct BlockadeTestShip
+{
+    uint16 typeID;
+    uint16 groupID;
+    const char* expectedGroupName;
+};
+
+static const BlockadeTestShipClass kAngelCartelBlockadeTestMix[] = {
+    {551, "Asteroid Angel Cartel Cruiser", 8},
+    {576, "Asteroid Angel Cartel BattleCruiser", 4}
+};
+
+// Mission 65534 retains 18 valid Crucible NPC candidate groups, but selects
+// only 8 ships per new pocket: 2 DED/deadspace, 2 commanders, 2 officers
+// and 2 overseers. Factions and hull classes vary between offers.
+// The original 12-NPC Blockade is unchanged.
+struct EliteSecurityShipSpec {
+    uint16 groupID;
+    uint32 factionID;
+    const char* groupNameToken;
+};
+
+static const EliteSecurityShipSpec kEliteSecurityFleet[] = {
+    // Deadspace: frigate, destroyer, cruiser, battlecruiser, battleship.
+    {597, factionAngel,       "Deadspace"},
+    {605, factionBloodRaider, "Deadspace"},
+    {613, factionGuristas,    "Deadspace"},
+    {620, factionSanshas,     "Deadspace"},
+    {630, factionSerpentis,   "Deadspace"},
+    // Faction commanders: one of each hull size across the five factions.
+    {789, factionAngel,       "Commander"},
+    {796, factionBloodRaider, "Commander"},
+    {798, factionGuristas,    "Commander"},
+    {807, factionSanshas,     "Commander"},
+    {852, factionSerpentis,   "Commander"},
+    // Officers: one rare boss representing each pirate faction.
+    {553, factionAngel,       "Officer"},
+    {559, factionBloodRaider, "Officer"},
+    {564, factionGuristas,    "Officer"},
+    {569, factionSanshas,     "Officer"},
+    {574, factionSerpentis,   "Officer"},
+    // DED overseer frigate, cruiser and battleship (Angel-backed faction).
+    {819, factionAngel,       "Overseer"},
+    {820, factionAngel,       "Overseer"},
+    {821, factionAngel,       "Overseer"}
+};
+// Four category buckets in the 18-element candidate roster:
+ // Deadspace, Commander, Officer, Overseer.
+// Name-based exclusions apply only to the synthetic elite expedition.
+// True Sansha and Domination Grigori were observed in game as invalid targets.
+static bool IsTrueSanshaEliteMissionTarget(const std::string& typeName)
+{
+    static const std::string forbidden = "true sansha";
+    return std::search(typeName.begin(), typeName.end(),
+        forbidden.begin(), forbidden.end(),
+        [](unsigned char a, unsigned char b) {
+            return std::tolower(a) == std::tolower(b);
+        }) != typeName.end();
+}
+
+// Keep the exclusion specific to this one broken officer rather than
+// removing its entire NPC group or changing unrelated encounter rosters.
+static bool IsDominationGrigoriEliteMissionTarget(const std::string& typeName)
+{
+    static const std::string forbidden = "domination grigori";
+    return typeName.size() == forbidden.size()
+        && std::equal(typeName.begin(), typeName.end(), forbidden.begin(),
+            [](unsigned char a, unsigned char b) {
+                return std::tolower(a) == std::tolower(b);
+            });
+}
+
+static constexpr std::size_t kEliteSecurityCategoryOffsets[] = {0, 5, 10, 15, 18};
+static constexpr uint8 kEliteSecurityShipsPerCategory = 2;
+static_assert(sizeof(kEliteSecurityFleet) / sizeof(kEliteSecurityFleet[0]) == 18,
+    "Keep all 18 validated Crucible NPC candidate groups");
+static_assert(Mission::kEliteSecurityRequiredKills
+    == kEliteSecurityShipsPerCategory
+        * (sizeof(kEliteSecurityCategoryOffsets) / sizeof(kEliteSecurityCategoryOffsets[0]) - 1),
+    "Elite mission kill target must match its 8 selected ships");
 
 /** @todo  this can be updated to spawn mission, anomaly and deadspace rats.
  *   change all *roidRat* to *somethingelse* to better explain/describe the maps and how they're used.
@@ -108,14 +217,22 @@ void SpawnMgr::Process() {
             while (itr != end) {
                 if (itr->second.enabled) {
                     killTimer = false;
-                    if (itr->second.stamp < sEntityList.GetStamp()) {
+                    // stamp is the earliest permitted respawn time, not
+                    // an expiry; retain entries until their delay has elapsed.
+                    if (itr->second.stamp > sEntityList.GetStamp()) {
+                        ++itr;
+                        continue;
+                    }
+                    SystemBubble* spawnBubble = sBubbleMgr.FindBubbleByID(itr->first);
+                    if (spawnBubble == nullptr) {
+                        itr->second.enabled = false;
                         ++itr;
                         continue;
                     }
                     _log(SPAWN__TRACE, "Process() calling Respawn for SpawnEntryID %u (0x%X)", \
                             itr->second.spawnID, &itr->second);
                     // this means check SpawnEntry for 'missing' SpawnGroup members and respawn as needed.
-                    ReSpawn(sBubbleMgr.FindBubbleByID(itr->first), itr->second);
+                    ReSpawn(spawnBubble, itr->second);
                     itr->second.enabled = false;
                 }
                 ++itr;
@@ -220,7 +337,7 @@ void SpawnMgr::StartRatGroupTimer()
             m_system->GetName(), m_system->GetID(), m_groupTimerSetTime);
 }
 
-void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID)
+void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID, uint32 killerID)
 {
     if (pBubble == nullptr)
         return;
@@ -229,22 +346,28 @@ void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID)
         // if any SpawnEntry still exists for this bubble, reset group timer.
         // this enables chain ratting
         bool killed = true;
+        bool foundKilledNPC = false;
         auto range = m_spawns.equal_range(pBubble->GetID());
         auto itr = range.first;
         while (itr != range.second) {
             if (itr->second.itemID == itemID) {
-                itr->second.stamp = sEntityList.GetStamp() + sConfig.npc.RespawnTimer; // in seconds
+                foundKilledNPC = true;
+                itr->second.stamp = sEntityList.GetStamp() + sConfig.npc.RespawnTimer; // seconds
                 itr->second.enabled = true;
             }
             if (!itr->second.enabled)
                 killed = false;     // at least one rat left.
             ++itr;
         }
+        if (!foundKilledNPC)
+            return;
         if (killed) {
             _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled - Belt Spawn has been destoyed.  Resetting spawn checks for bubble %u.", pBubble->GetID());
             // spawn destroyed.  delete from list and reset bubble checks.
-            m_spawns.erase(pBubble->GetID()); // just in case....may/may not be in here.
-            m_bubbles.erase(std::find(m_bubbles.begin(), m_bubbles.end(), pBubble));
+            m_spawns.erase(pBubble->GetID());
+            auto bubbleItr = std::find(m_bubbles.begin(), m_bubbles.end(), pBubble);
+            if (bubbleItr != m_bubbles.end())
+                m_bubbles.erase(bubbleItr);
             pBubble->ResetBubbleRatSpawn();
             m_system->RemoveSpawnBubble(pBubble);
             return;
@@ -282,15 +405,65 @@ void SpawnMgr::SpawnKilled(SystemBubble* pBubble, uint32 itemID)
          * 5- more/others?
          */
     } else if (pBubble->IsMission()) {
-        _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Mission - called by %u.", itemID);
-        // placeholder - not coded yet.
-        /*  this needs to deal with multiple things.
-         * 1- unlocking warp gates when needed per wave
-         * 2- dropping loot according to (wave/mission/template)?
-         * 3- setting mission completion status
-         * 4- spawn next wave, if applicable
-         * 5- more/others?
-         */
+        _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Mission - NPC %u killed by character %u.", itemID, killerID);
+        RemoveSpawn(pBubble->GetID(), itemID);
+
+        const bool missionKillRecorded = pBubble->RecordMissionKill();
+        const uint32 liveNPCsIncludingDyingShip = pBubble->CountNPCs();
+        // NPC::Killed runs while the dying NPC may still be in the bubble.
+        // <= 1 therefore means this was the final live hostile in this
+        // dedicated mission pocket, even if the spawn registry retained rows.
+        const bool allMissionNPCsDestroyed =
+            (m_spawns.count(pBubble->GetID()) == 0 || liveNPCsIncludingDyingShip <= 1);
+
+        _log(SPAWN__ERROR,
+            "Mission kill event: offer %u, NPC %u, bubble %u, live NPCs (including dying ship) %u, registry entries %u, kill counter %u/%u.",
+            pBubble->GetMissionOfferID(), itemID, pBubble->GetID(),
+            liveNPCsIncludingDyingShip,
+            static_cast<uint32>(m_spawns.count(pBubble->GetID())),
+            pBubble->GetMissionKills(), pBubble->GetMissionKillsRequired());
+
+        // The final live NPC closes the objective even if stale spawn rows remain.
+        if (allMissionNPCsDestroyed)
+            m_spawns.erase(pBubble->GetID());
+
+        if (missionKillRecorded || allMissionNPCsDestroyed) {
+            Agent* pAgent = sEntityList.GetAgent(pBubble->GetMissionAgentID());
+            MissionOffer offer = MissionOffer();
+            if (pAgent != nullptr
+                && pAgent->HasMission(pBubble->GetMissionCharacterID(), offer)
+                && offer.offerID == pBubble->GetMissionOfferID()
+                && offer.stateID == Mission::State::Accepted
+                && offer.courierAmount > 0) {
+                offer.courierTypeID = (allMissionNPCsDestroyed
+                    || pBubble->GetMissionKills() >= offer.courierAmount
+                    ? offer.courierAmount : pBubble->GetMissionKills());
+                pAgent->UpdateOffer(pBubble->GetMissionCharacterID(), offer);
+                Client* pClient = sEntityList.FindClientByCharID(pBubble->GetMissionCharacterID());
+                if (pClient != nullptr)
+                    pAgent->SendMissionUpdate(pClient, "modified");
+                _log(SPAWN__MESSAGE,
+                    "Mission offer %u progress: %u/%u hostile ships destroyed%s.",
+                    offer.offerID, offer.courierTypeID, offer.courierAmount,
+                    allMissionNPCsDestroyed ? " (all mission spawns cleared)" : "");
+            } else {
+                _log(SPAWN__WARNING,
+                    "Mission pocket %u has no remaining NPC spawns, but its accepted offer %u could not be updated.",
+                    pBubble->GetID(), pBubble->GetMissionOfferID());
+            }
+        }
+
+        if (allMissionNPCsDestroyed) {
+            _log(SPAWN__ERROR,
+                "Mission offer %u marked ready for turn-in: all live NPCs cleared; objective is %u/%u.",
+                pBubble->GetMissionOfferID(), pBubble->GetMissionKillsRequired(),
+                pBubble->GetMissionKillsRequired());
+            auto bubbleItr = std::find(m_bubbles.begin(), m_bubbles.end(), pBubble);
+            if (bubbleItr != m_bubbles.end())
+                m_bubbles.erase(bubbleItr);
+            pBubble->SetSpawned(false);
+            _log(SPAWN__MESSAGE, "Mission pocket %u has no remaining NPC spawn entries.", pBubble->GetID());
+        }
     } else if (pBubble->IsIncursion()) {
         _log(SPAWN__DEPOP, "SpawnMgr::SpawnKilled::Incursion - called by %u.", itemID);
         // placeholder - not coded yet.
@@ -322,7 +495,14 @@ void SpawnMgr::DoSpawnForAnomaly(SystemBubble* pBubble, GPoint pos, uint8 level,
     group.quantity = 1;
     group.typeID = typeID;
 
-    if (m_toSpawn.size() > 0) {
+    // A missing faction/class mapping yields typeID 0. Do not create
+    // invalid NPCs or mark an empty belt bubble as successfully spawned.
+    m_toSpawn.erase(std::remove_if(m_toSpawn.begin(), m_toSpawn.end(),
+                     [](const SpawnGroup& group) {
+                         return group.typeID == 0 || group.quantity == 0;
+                     }), m_toSpawn.end());
+
+    if (!m_toSpawn.empty()) {
         if (is_log_enabled(SPAWN__MESSAGE)) {
             _log(SPAWN__MESSAGE, "SpawnMgr::DoSpawnForAnomaly() - toSpawn size is %u.", m_toSpawn.size());    //variable
             _log(SPAWN__MESSAGE, "SpawnMgr::DoSpawnForAnomaly() - Creating spawn for %s in bubbleID %u.", \
@@ -430,21 +610,582 @@ void SpawnMgr::DoSpawnForIncursion(SystemBubble* pBubble, uint32 regionID)
     // unknown parameters at this time
 }
 
-void SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID)
+bool SpawnMgr::ReleaseMissionBubble(SystemBubble* pBubble, uint32 offerID)
 {
-    if (pBubble == nullptr)
-        return;
-    if (!IsRegionID(regionID))
-        return;
-    pBubble->SetMission();
-    // unknown parameters at this time
+    if (pBubble == nullptr || offerID == 0 || !pBubble->IsMission()
+        || pBubble->GetMissionOfferID() != offerID)
+        return false;
 
-    /*  this needs to deal with multiple things.
-     * 1- npc types per template
-     * 2- faction per template
-     * 3- waves per template.
-     * 4- more/others?
-     */
+    const uint16 bubbleID = pBubble->GetID();
+    const std::size_t removedEntries = m_spawns.count(bubbleID);
+    m_spawns.erase(bubbleID);
+    m_bubbles.erase(std::remove(m_bubbles.begin(), m_bubbles.end(), pBubble),
+                    m_bubbles.end());
+    pBubble->ClearMissionData();
+    _log(SPAWN__MESSAGE,
+        "Retired mission offer %u in bubble %u: removed %u spawn registrations; "
+        "remaining NPCs and wrecks were not deleted.",
+        offerID, bubbleID, static_cast<uint32>(removedEntries));
+    return true;
+}
+
+bool SpawnMgr::DoSpawnForMission(SystemBubble* pBubble, uint32 regionID, uint8 missionLevel,
+                                  uint32 characterID, uint32 agentID, uint32 offerID, uint16 missionID,
+                                  uint32 beaconID, uint32 factionID, uint32 dungeonID)
+{
+    _log(SPAWN__MESSAGE,
+        "SpawnMgr::DoSpawnForMission() - offer %u mission %u level %u character %u agent %u beacon %u faction %u dungeon %u bubble %u.",
+        offerID, missionID, missionLevel, characterID, agentID, beaconID, factionID,
+        dungeonID, (pBubble != nullptr ? pBubble->GetID() : 0));
+    if (pBubble == nullptr || !IsRegionID(regionID)
+        || characterID == 0 || agentID == 0 || offerID == 0) {
+        _log(SPAWN__ERROR,
+            "SpawnMgr::DoSpawnForMission() - rejected invalid arguments for offer %u mission %u (region %u).",
+            offerID, missionID, regionID);
+        return false;
+    }
+
+    uint8 spawnClass = Spawn::Class::Easy;
+    switch (missionLevel) {
+        case 0: spawnClass = Spawn::Class::Easy; break;
+        case 1: spawnClass = Spawn::Class::Fair; break;
+        case 2: spawnClass = Spawn::Class::Average; break;
+        case 3: spawnClass = Spawn::Class::Medium; break;
+        case 4: spawnClass = Spawn::Class::Hard; break;
+        default: spawnClass = Spawn::Class::Crazy; break;
+    }
+
+    pBubble->SetMission();
+    pBubble->SetMissionTypeID(missionID);
+
+    if (missionID == Mission::kEliteSecurityMissionID) {
+        // Fail closed if the selected Crucible SDE cannot supply one of the
+        // named NPC classes or any of the three required real loot tiers.
+        uint16 previewLoot = 0;
+        for (uint8 tier = 4; tier <= 6; ++tier) {
+            if (!sDataMgr.GetEliteMissionLootType(tier, previewLoot)) {
+                _log(SPAWN__ERROR,
+                    "DED/Officer mission %u has no valid Module-category loot for meta group %u in installed static data.",
+                    offerID, tier);
+                pBubble->SetMission(false);
+                pBubble->SetMissionTypeID(0);
+                return false;
+            }
+        }
+
+        std::map<uint16, Inv::TypeData> allTypes;
+        sDataMgr.GetTypes(allTypes);
+        struct SelectedEliteShip {
+            uint16 typeID;
+            uint16 groupID;
+            uint32 factionID;
+        };
+        // Validate NPC types before choosing two distinct groups per category.
+        // Some installed SDE types (including "True Sansha" and
+        // "Domination Grigori") are not valid combat targets. Exclude
+        // only those types, preserving eight targetable hostile NPCs.
+        std::map<uint16, std::vector<uint16>> eligibleTypesByGroup;
+        std::vector<const EliteSecurityShipSpec*> chosenSpecs;
+        uint32 excludedTrueSansha = 0;
+        uint32 excludedDominationGrigori = 0;
+        for (std::size_t category = 0; category + 1
+                < sizeof(kEliteSecurityCategoryOffsets) / sizeof(kEliteSecurityCategoryOffsets[0]);
+                ++category) {
+            std::vector<const EliteSecurityShipSpec*> available;
+            for (std::size_t i = kEliteSecurityCategoryOffsets[category];
+                    i < kEliteSecurityCategoryOffsets[category + 1]; ++i) {
+                const EliteSecurityShipSpec& spec = kEliteSecurityFleet[i];
+                Inv::GrpData group = {};
+                sDataMgr.GetGroup(spec.groupID, group);
+                if (group.id == 0 || group.catID != EVEDB::invCategories::Entity
+                    || group.name.find(spec.groupNameToken) == std::string::npos) {
+                    _log(SPAWN__WARNING,
+                        "DED/Officer mission %u skips missing/invalid entity group %u (%s).",
+                        offerID, spec.groupID, spec.groupNameToken);
+                    continue;
+                }
+
+                std::vector<uint16> candidates;
+                for (const auto& candidate : allTypes) {
+                    if (candidate.second.id == 0 || candidate.second.groupID != spec.groupID)
+                        continue;
+                    if (IsTrueSanshaEliteMissionTarget(candidate.second.name)) {
+                        ++excludedTrueSansha;
+                        continue;
+                    }
+                    if (IsDominationGrigoriEliteMissionTarget(candidate.second.name)) {
+                        ++excludedDominationGrigori;
+                        continue;
+                    }
+                    candidates.push_back(candidate.first);
+                }
+                if (candidates.empty()) {
+                    _log(SPAWN__WARNING,
+                        "DED/Officer mission %u skips NPC group %u (%s): "
+                        "no eligible targetable NPC types after untargetable NPC filtering.",
+                        offerID, spec.groupID, group.name.c_str());
+                    continue;
+                }
+                eligibleTypesByGroup.emplace(spec.groupID, candidates);
+                available.push_back(&spec);
+            }
+
+            if (available.size() < kEliteSecurityShipsPerCategory) {
+                _log(SPAWN__ERROR,
+                    "DED/Officer mission %u has only %u eligible NPC groups in category %u; "
+                    "needs %u for the eight-target encounter.",
+                    offerID, static_cast<uint32>(available.size()),
+                    static_cast<uint32>(category),
+                    static_cast<uint32>(kEliteSecurityShipsPerCategory));
+                pBubble->SetMission(false);
+                pBubble->SetMissionTypeID(0);
+                return false;
+            }
+            for (uint8 i = 0; i < kEliteSecurityShipsPerCategory; ++i) {
+                const std::size_t index = Mission::RandomCandidateIndex(available.size());
+                chosenSpecs.push_back(available[index]);
+                available[index] = available.back();
+                available.pop_back();
+            }
+        }
+
+        std::vector<SelectedEliteShip> selectedFleet;
+        for (const EliteSecurityShipSpec* spec : chosenSpecs) {
+            const auto& candidates = eligibleTypesByGroup.at(spec->groupID);
+            const uint16 typeID = candidates[Mission::RandomCandidateIndex(candidates.size())];
+            selectedFleet.push_back({typeID, spec->groupID, spec->factionID});
+        }
+        if (excludedTrueSansha != 0 || excludedDominationGrigori != 0)
+            _log(SPAWN__MESSAGE,
+                "DED/Officer mission %u excluded %u True Sansha and %u Domination Grigori "
+                "NPC candidates; selected %u valid enemies from other eligible types.",
+                offerID, excludedTrueSansha, excludedDominationGrigori,
+                static_cast<uint32>(selectedFleet.size()));
+
+        uint16 spawnedCount = 0;
+        uint16 failedCount = 0;
+        uint16 fleetNumber = 0;
+        const GPoint center = pBubble->GetCenter();
+        for (const SelectedEliteShip& ship : selectedFleet) {
+            Inv::TypeData type = {};
+            sDataMgr.GetType(ship.typeID, type);
+            if (type.id == 0 || type.groupID != ship.groupID) {
+                ++failedCount;
+                continue;
+            }
+            const uint32 corpID = sDataMgr.GetFactionCorp(ship.factionID);
+            if (corpID == 0) {
+                _log(SPAWN__ERROR, "DED/Officer mission %u invalid faction %u.",
+                    offerID, ship.factionID);
+                ++failedCount;
+                continue;
+            }
+
+            GPoint position(center);
+            // Separate hostile ships across the mission pocket, not on the
+            // warp-in point. Range includes battleship and officer spawns.
+            position.x += MakeRandomFloat(-24000.0f, 24000.0f);
+            position.y += MakeRandomFloat(-24000.0f, 24000.0f);
+            position.z += MakeRandomFloat(-12000.0f, 12000.0f);
+
+            ItemData itemData(ship.typeID, corpID, m_system->GetID(),
+                flagNone, "", position, type.name.c_str());
+            InventoryItemRef item = sItemFactory.SpawnItem(itemData);
+            if (item.get() == nullptr) {
+                ++failedCount;
+                _log(SPAWN__ERROR, "DED/Officer mission %u failed spawning NPC type %u.",
+                    offerID, ship.typeID);
+                continue;
+            }
+
+            FactionData factionData = FactionData();
+            factionData.allianceID = ship.factionID;
+            factionData.corporationID = corpID;
+            factionData.factionID = ship.factionID;
+            factionData.ownerID = corpID;
+            NPC* pNPC = new NPC(item, m_services, m_system, factionData, this);
+            if (pNPC == nullptr || !pNPC->Load()) {
+                ++failedCount;
+                _log(SPAWN__ERROR, "DED/Officer mission %u NPC load failed for type %u.",
+                    offerID, ship.typeID);
+                if (pNPC != nullptr)
+                    pNPC->Delete();
+                continue;
+            }
+
+            m_system->AddNPC(pNPC);
+            pNPC->DestinyMgr()->SetPosition(position);
+            SpawnEntry entry = SpawnEntry();
+            entry.enabled = false;  // do not respawn completed mission kills
+            entry.groupID = ship.groupID;
+            entry.itemID = item->itemID();
+            entry.total = 1;
+            entry.number = ++fleetNumber;
+            entry.typeID = ship.typeID;
+            entry.spawnID = m_spawnID;
+            entry.corpID = corpID;
+            entry.factionID = ship.factionID;
+            entry.spawnClass = spawnClass;
+            entry.spawnGroup = GetSpawnGroup(spawnClass);
+            entry.level = missionLevel;
+            entry.stamp = 0;
+            m_spawns.emplace(pBubble->GetID(), entry);
+            ++spawnedCount;
+        }
+
+        if (spawnedCount == 0) {
+            _log(SPAWN__ERROR, "DED/Officer mission %u spawned zero valid NPCs.",
+                offerID);
+            pBubble->SetMission(false);
+            pBubble->SetMissionTypeID(0);
+            return false;
+        }
+        ++m_spawnID;
+        m_bubbles.push_back(pBubble);
+        const uint32 npcCount = pBubble->CountNPCs();
+        if (npcCount == 0 || npcCount > 65535) {
+            m_spawns.erase(pBubble->GetID());
+            m_bubbles.pop_back();
+            pBubble->SetMission(false);
+            pBubble->SetMissionTypeID(0);
+            pBubble->SetSpawned(false);
+            return false;
+        }
+        // Accepted offer's required kills are updated from this actual pocket
+        // by Client::StartEncounterMission; no unwinnable stale target.
+        pBubble->SetMissionData(characterID, agentID, offerID, beaconID,
+            static_cast<uint16>(npcCount));
+        pBubble->SetSpawned(true);
+        _log(SPAWN__MESSAGE,
+            "DED/Officer mission %u spawned %u/%u NPCs (%u failures), two from each elite category selected.",
+            offerID, spawnedCount, Mission::kEliteSecurityRequiredKills, failedCount);
+        return true;
+    }
+
+    // Mission 65535 is a synthetic test encounter. Spawn the supplied Angel
+    // Cartel inventory types directly so it is independent of incomplete or
+    // unrelated imported mission-dungeon room data.
+    if (missionID == Mission::kBlockadeSecurityTestMissionID) {
+        const uint32 angelCartelFactionID = 500011;
+        const uint32 angelCartelCorporationID = 1000138;
+        FactionData factionData = FactionData();
+        factionData.allianceID = angelCartelFactionID;
+        factionData.corporationID = angelCartelCorporationID;
+        factionData.factionID = angelCartelFactionID;
+        factionData.ownerID = angelCartelCorporationID;
+
+        uint16 spawnedCount = 0;
+        uint16 failedCount = 0;
+        uint16 fleetNumber = 0;
+        const GPoint center = pBubble->GetCenter();
+
+        std::map<uint16, Inv::TypeData> allTypes;
+        sDataMgr.GetTypes(allTypes);
+        std::vector<BlockadeTestShip> selectedFleet;
+        for (const BlockadeTestShipClass& shipClass : kAngelCartelBlockadeTestMix) {
+            Inv::GrpData group = {};
+            sDataMgr.GetGroup(shipClass.groupID, group);
+            if (group.id == 0 || group.catID != EVEDB::invCategories::Entity
+                || group.name != shipClass.expectedGroupName) {
+                _log(SPAWN__ERROR,
+                    "Blockade test fleet group %u is missing or is not the expected NPC class (%s).",
+                    shipClass.groupID, shipClass.expectedGroupName);
+                ++failedCount;
+                continue;
+            }
+
+            std::vector<uint16> candidates;
+            for (const auto& typeEntry : allTypes) {
+                if (typeEntry.second.groupID == shipClass.groupID
+                    && typeEntry.second.id != 0)
+                    candidates.push_back(typeEntry.first);
+            }
+            if (candidates.empty()) {
+                _log(SPAWN__ERROR,
+                    "Blockade test fleet group %u (%s) has no available NPC ship types.",
+                    shipClass.groupID, group.name.c_str());
+                ++failedCount;
+                continue;
+            }
+
+            for (uint8 i = 0; i < shipClass.quantity; ++i) {
+                const uint16 selectedTypeID =
+                    candidates[static_cast<size_t>(rand()) % candidates.size()];
+                selectedFleet.push_back({selectedTypeID, shipClass.groupID, shipClass.expectedGroupName});
+            }
+        }
+
+        const uint32 fleetSize = Mission::kBlockadeSecurityTestRequiredKills;
+        if (selectedFleet.size() != fleetSize) {
+            _log(SPAWN__ERROR,
+                "Blockade test fleet composition incomplete: selected %u of %u ships (%u group errors).",
+                static_cast<uint32>(selectedFleet.size()), fleetSize, failedCount);
+            pBubble->SetMission(false);
+            return false;
+        }
+
+        for (const BlockadeTestShip& ship : selectedFleet) {
+            const uint16 typeID = ship.typeID;
+            Inv::TypeData type = {};
+            Inv::GrpData group = {};
+            sDataMgr.GetType(typeID, type);
+            if (type.id == 0) {
+                _log(SPAWN__ERROR, "Blockade test fleet selected missing NPC type %u.", typeID);
+                ++failedCount;
+                continue;
+            }
+            sDataMgr.GetGroup(type.groupID, group);
+            if (group.id == 0 || group.catID != EVEDB::invCategories::Entity
+                || group.name != ship.expectedGroupName) {
+                _log(SPAWN__ERROR,
+                    "Blockade test fleet type %u has invalid NPC group %u.",
+                    typeID, type.groupID);
+                ++failedCount;
+                continue;
+            }
+
+            ++fleetNumber;
+            GPoint spawnPosition(center);
+            // Spread the test fleet around the pocket centre to avoid stacking
+            // every ship at precisely the same coordinates.
+            spawnPosition.x += MakeRandomFloat(-5000.0f, 5000.0f);
+            spawnPosition.y += MakeRandomFloat(-5000.0f, 5000.0f);
+            spawnPosition.z += MakeRandomFloat(-2500.0f, 2500.0f);
+
+            ItemData itemData(typeID, angelCartelCorporationID,
+                m_system->GetID(), flagNone, "", spawnPosition, type.name.c_str());
+            InventoryItemRef item = sItemFactory.SpawnItem(itemData);
+            if (item.get() == nullptr) {
+                _log(SPAWN__ERROR, "Blockade test fleet failed to create type %u.", typeID);
+                ++failedCount;
+                continue;
+            }
+
+            NPC* pNPC = new NPC(item, m_services, m_system, factionData, this);
+            if (pNPC == nullptr || !pNPC->Load()) {
+                _log(SPAWN__ERROR, "Blockade test fleet failed to load NPC type %u.", typeID);
+                if (pNPC != nullptr)
+                    pNPC->Delete();
+                ++failedCount;
+                continue;
+            }
+
+            m_system->AddNPC(pNPC);
+            pNPC->DestinyMgr()->SetPosition(spawnPosition);
+
+            SpawnEntry entry = SpawnEntry();
+            entry.enabled = false;
+            entry.groupID = type.groupID;
+            entry.itemID = item->itemID();
+            entry.total = 1;
+            entry.number = fleetNumber;
+            entry.typeID = typeID;
+            entry.spawnID = m_spawnID;
+            entry.corpID = angelCartelCorporationID;
+            entry.factionID = angelCartelFactionID;
+            entry.spawnClass = spawnClass;
+            entry.spawnGroup = GetSpawnGroup(spawnClass);
+            entry.level = missionLevel;
+            entry.stamp = 0;
+            m_spawns.emplace(pBubble->GetID(), entry);
+            ++spawnedCount;
+        }
+
+        if (spawnedCount == 0) {
+            _log(SPAWN__ERROR, "Blockade test mission %u spawned no Angel Cartel NPCs (%u failed).",
+                offerID, failedCount);
+            pBubble->SetMission(false);
+            return false;
+        }
+
+        ++m_spawnID;
+        m_bubbles.push_back(pBubble);
+        const uint32 npcCount = pBubble->CountNPCs();
+        if (npcCount == 0 || npcCount > 65535) {
+            m_spawns.erase(pBubble->GetID());
+            m_bubbles.pop_back();
+            pBubble->SetMission(false);
+            pBubble->SetSpawned(false);
+            return false;
+        }
+
+        pBubble->SetMissionData(characterID, agentID, offerID, beaconID,
+            static_cast<uint16>(npcCount));
+        pBubble->SetSpawned(true);
+        _log(SPAWN__MESSAGE,
+            "Blockade test mission %u spawned %u/%u Angel Cartel NPCs (faction %u, corporation %u; %u failed).",
+            offerID, spawnedCount, fleetSize, angelCartelFactionID,
+            angelCartelCorporationID, failedCount);
+        return true;
+    }
+
+    const bool blockadeTestMission = (missionID == Mission::kBlockadeSecurityTestMissionID);
+
+    // Mission dungeon metadata is more authoritative than the agent's faction:
+    // the dungeon template identifies the actual opposing NPC faction and its
+    // first-room NPC type IDs. Later room/gate progression is handled separately.
+    bool spawnedFromTemplate = false;
+    {
+        Dungeon::Dungeon missionDungeon = {};
+        if (dungeonID != 0)
+            sDunDataMgr.GetDungeon(missionDungeon, dungeonID);
+
+        // The imported mission rows in some Crucible data sets have dungeonID=0.
+        // Resolve a real NPC-bearing agent-mission template by faction instead
+        // of requiring the empty legacy dunDungeons/dunRooms tables.
+        if (missionDungeon.rooms.empty()) {
+            if (blockadeTestMission) {
+                // The synthetic Blockade test is Angel Cartel content and must
+                // not inherit the issuing agent's empire faction.
+                sDunDataMgr.GetRandomMissionDungeonForGroup(missionDungeon, "Asteroid Angel Cartel");
+            } else {
+                sDunDataMgr.GetRandomMissionDungeon(missionDungeon, factionID);
+            }
+        }
+
+        if (blockadeTestMission && missionDungeon.rooms.empty()) {
+            _log(SPAWN__ERROR, "Blockade test mission %u has no Angel Cartel first-room template; refusing to spawn a different faction.", offerID);
+            pBubble->SetMission(false);
+            return false;
+        }
+
+        if (missionDungeon.factionID != 0)
+            factionID = missionDungeon.factionID;
+        if (factionID == 0)
+            factionID = sDataMgr.GetRegionRatFaction(m_system->GetRegionID());
+
+        const uint32 selectedDungeonID = missionDungeon.dungeonID;
+        _log(SPAWN__MESSAGE, "Mission %u uses dungeon template %u and faction %u.",
+                offerID, selectedDungeonID, factionID);
+
+        if (!missionDungeon.rooms.empty()) {
+            const Dungeon::Room& firstRoom = missionDungeon.rooms.begin()->second;
+            const uint32 corpID = sDataMgr.GetFactionCorp(factionID);
+            FactionData factionData = FactionData();
+            factionData.allianceID = factionID;
+            factionData.corporationID = corpID;
+            factionData.factionID = (factionID == factionRogueDrones ? 0 : factionID);
+            factionData.ownerID = corpID;
+
+            uint16 spawnNumber = 0;
+            uint16 staticObjectCount = 0;
+            for (const Dungeon::RoomObject& object : firstRoom.objects) {
+                // Static-data lookups are void-returning and leave the output
+                // untouched when an ID is missing. Zero-initialize both records
+                // so malformed dungeon references cannot expose uninitialized IDs.
+                Inv::TypeData objectType = {};
+                Inv::GrpData objectGroup = {};
+                sDataMgr.GetType(object.typeID, objectType);
+                if (objectType.id == 0) {
+                    _log(SPAWN__WARNING, "Mission %u dungeon %u references missing type %u.",
+                            offerID, selectedDungeonID, object.typeID);
+                    continue;
+                }
+                sDataMgr.GetGroup(objectType.groupID, objectGroup);
+                if (objectGroup.id == 0) {
+                    _log(SPAWN__WARNING, "Mission %u dungeon %u type %u references missing group %u.",
+                            offerID, selectedDungeonID, object.typeID, objectType.groupID);
+                    continue;
+                }
+
+                GPoint spawnPosition = pBubble->GetCenter();
+                spawnPosition.x += object.x;
+                spawnPosition.y += object.y;
+                spawnPosition.z += object.z;
+
+                if (IsMissionNPCGroup(objectGroup)) {
+                    ItemData itemData(object.typeID, corpID, m_system->GetID(), flagNone,
+                                      "", spawnPosition, objectType.name.c_str());
+                    InventoryItemRef item = sItemFactory.SpawnItem(itemData);
+                    if (item.get() == nullptr) {
+                        _log(SPAWN__ERROR, "Mission %u failed to create template NPC type %u.",
+                                offerID, object.typeID);
+                        continue;
+                    }
+
+                    NPC* pNPC = new NPC(item, m_services, m_system, factionData, this);
+                    if (pNPC == nullptr)
+                        continue;
+                    if (!pNPC->Load()) {
+                        _log(SPAWN__ERROR, "Mission %u failed to load template NPC %u (type %u).",
+                                offerID, pNPC->GetID(), object.typeID);
+                        pNPC->Delete();
+                        continue;
+                    }
+
+                    m_system->AddNPC(pNPC);
+                    pNPC->DestinyMgr()->SetPosition(spawnPosition);
+
+                    SpawnEntry entry = SpawnEntry();
+                    entry.enabled = false;
+                    entry.groupID = item->type().groupID();
+                    entry.itemID = item->itemID();
+                    entry.total = 1;
+                    entry.number = ++spawnNumber;
+                    entry.typeID = object.typeID;
+                    entry.spawnID = m_spawnID;
+                    entry.corpID = corpID;
+                    entry.factionID = factionID;
+                    entry.spawnClass = spawnClass;
+                    entry.spawnGroup = GetSpawnGroup(spawnClass);
+                    entry.level = missionLevel;
+                    entry.stamp = 0;
+                    m_spawns.emplace(pBubble->GetID(), entry);
+                } else {
+                    // Non-NPC room objects (structures, gates, containers and
+                    // scenery) remain part of the pocket as ordinary celestials.
+                    ItemData objectData(object.typeID, corpID, m_system->GetID(), flagNone,
+                                        "", spawnPosition, objectType.name.c_str());
+                    InventoryItemRef objectItem = sItemFactory.SpawnItem(objectData);
+                    if (objectItem.get() == nullptr) {
+                        _log(SPAWN__WARNING, "Mission %u failed to create room object type %u.",
+                                offerID, object.typeID);
+                        continue;
+                    }
+
+                    CelestialSE* pCelestial = new CelestialSE(objectItem, m_services, m_system);
+                    m_system->AddEntity(pCelestial, false);
+                    ++staticObjectCount;
+                }
+            }
+
+            if (spawnNumber > 0) {
+                ++m_spawnID;
+                m_bubbles.push_back(pBubble);
+                spawnedFromTemplate = true;
+                _log(SPAWN__MESSAGE, "Mission %u spawned %u NPCs and %u room objects from dungeon %u room %u.",
+                        offerID, spawnNumber, staticObjectCount, selectedDungeonID, firstRoom.roomID);
+            }
+        }
+    }
+
+    if (!spawnedFromTemplate && blockadeTestMission) {
+        _log(SPAWN__ERROR, "Blockade test mission %u did not spawn from its Angel Cartel room template.", offerID);
+        pBubble->SetMission(false);
+        return false;
+    }
+
+    if (!spawnedFromTemplate && !PrepSpawn(pBubble, spawnClass, 0, factionID)) {
+        pBubble->SetMission(false);
+        return false;
+    }
+
+    const uint32 npcCount = pBubble->CountNPCs();
+    if (npcCount == 0 || npcCount > 65535) {
+        m_spawns.erase(pBubble->GetID());
+        auto bubbleItr = std::find(m_bubbles.begin(), m_bubbles.end(), pBubble);
+        if (bubbleItr != m_bubbles.end())
+            m_bubbles.erase(bubbleItr);
+        pBubble->SetMission(false);
+        pBubble->SetSpawned(false);
+        return false;
+    }
+
+    pBubble->SetMissionData(characterID, agentID, offerID, beaconID, static_cast<uint16>(npcCount));
+    pBubble->SetSpawned(true);
+    _log(SPAWN__MESSAGE, "Created Level %u mission pocket %u for character %u with %u NPCs.",
+            missionLevel, pBubble->GetID(), characterID, npcCount);
+    return true;
 }
 
 bool SpawnMgr::DoSpawnForBubble(SystemBubble* pBubble)
@@ -484,18 +1225,30 @@ bool SpawnMgr::DoSpawnForBubble(SystemBubble* pBubble)
     return true;
 }
 
-bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None*/, uint8 level/*0*/)
+bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None*/, uint8 level/*0*/, uint32 factionOverride)
 {
     if (pBubble == nullptr)
         return false;
-    float secRating = m_system->GetSecValue();
+    // Use the actual system security rating (-1.0 to 1.0). GetSecValue()
+    // stores 1.1 - trueSec and the old 1.0 - GetSecValue() was 0.1 too low.
+    const float secRating = m_system->GetSystemSecurityRating();
+    m_toSpawn.clear();
+    m_factionGroups.clear();
+
     bool anomaly = false;
     // get faction for this region
     uint32 factionID = factionRogueDrones;  // default to rogue drones.  this is my internal rogue drone factionID.
-    if (sConfig.npc.RatFaction) {            // is RatFaction set in config?
+    if (factionOverride != 0) {
+        // Mission encounters are tied to the issuing agent, not regional rat RNG.
+        factionID = factionOverride;
+    } else if (sConfig.npc.RatFaction) {        // is RatFaction set in config?
         factionID = sConfig.npc.RatFaction;
-    } else if (MakeRandomFloat() > 0.05) {      // 5% chance for ANY spawn to be rogue drone.
+    } else if (MakeRandomFloat() > 0.05) {      // 5% chance for ANY ordinary spawn to be rogue drone.
         factionID = sDataMgr.GetRegionRatFaction(m_system->GetRegionID());
+        if (!factionID) {
+            _log(SPAWN__WARNING, "No NPC faction configured for region %u; using rogue drones.", m_system->GetRegionID());
+            factionID = factionRogueDrones;
+        }
     }
 
     if (is_log_enabled(SPAWN__MESSAGE))
@@ -588,7 +1341,7 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
         // anomaly, incursion or mission
         ++level;    // increment wave
         // check wave # vs possible waves.  (oob check)
-        if (spawnEntry.size() < level) {
+        if (spawnEntry.size() <= level) {
             _log(SPAWN__ERROR, "SpawnMgr::PrepSpawn() - spawnEntry.size (%u) < level (%u) for anomaly class %s.  Cancelling spawn.", spawnEntry.size(), level, GetSpawnClassName(sClass).c_str());
             return false;
         }
@@ -604,9 +1357,17 @@ bool SpawnMgr::PrepSpawn(SystemBubble* pBubble, uint8 sClass/*Spawn::Class::None
         else if (secRating < 0.7)   { level = 2; }
         else                        { level = 1; }
     } else if (sClass <= Spawn::Class::Hell) {
-        level = MakeRandomInt(0, spawnEntry.size());  // random belt/gate spawn type.
+        level = MakeRandomInt(0, spawnEntry.size() - 1);  // highest valid index is size()-1.
     } else {
         // do we need anything else here?
+    }
+
+    if (level >= spawnEntry.size()) {
+        // Some static-data packs have fewer hauler variants than the
+        // security-based range above. Never index past the available rows.
+        _log(SPAWN__WARNING, "NPC spawn class %u has %u variants; clamping requested level %u.",
+             sClass, static_cast<uint32>(spawnEntry.size()), level);
+        level = static_cast<uint8>(spawnEntry.size() - 1);
     }
 
     // get ship class data from spawnEntry.at(subtype)
@@ -873,6 +1634,9 @@ void SpawnMgr::MakeSpawn(SystemBubble* pBubble, uint32 factionID, uint8 sClass, 
 
 void SpawnMgr::ReSpawn(SystemBubble* pBubble, SpawnEntry& spawnEntry)
 {
+    if (pBubble == nullptr)
+        return;
+
     //  we are NOT enabling spawn chaining for officer, hauler, or commander spawns.
     if (spawnEntry.spawnClass > Spawn::Class::Insane)
         return;

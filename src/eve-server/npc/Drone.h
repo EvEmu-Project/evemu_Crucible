@@ -65,18 +65,19 @@ public:
     virtual void Killed(Damage &damage);
     virtual void Abandon();     // reset all owner info and bubblecast new data
 
-    virtual void TargetAdded(SystemEntity *who);
+    void TargetAdded(SystemEntity *who) override;
     virtual void TargetLost(SystemEntity *who);
     virtual void TargetedAdd(SystemEntity *who);
     virtual void TargetedLost(SystemEntity *who);
 
     /* specific functions handled here. */
-    Client* GetOwner()                                  { return m_pClient; }
+    Client* GetOwner() const; // resolves the currently connected owner by character ID
     DroneAIMgr* GetAI()                                 { return m_AI; }
 
     void Launch(ShipSE* pShipSE);           //add drone entity to system
     void Online(ShipSE* pShipSE=nullptr);         //  if nullptr sent, assign to controlling ship
     void Offline();
+    bool ScoopToBay();
     void StateChange();
     //begin idle orbit around assigned ship
     void IdleOrbit(ShipSE* pShipSE=nullptr);
@@ -85,14 +86,15 @@ public:
     void RemoveDrone();
     void SetResists();
     void SetOwner(Client* pClient);
+    void ClearShipControl()                          { m_pShipSE = nullptr; m_controllerID = 0; m_controllerOwnerID = 0; }
 
-    uint32 GetBounty() const                            { return (m_pClient == nullptr ? 0 : m_pClient->GetChar()->bounty()); }
+    uint32 GetBounty() const;
 
     float GetThermal()                                  { return m_therDamage; }
     float GetEM()                                       { return m_emDamage; }
     float GetKinetic()                                  { return m_kinDamage; }
     float GetExplosive()                                { return m_expDamage; }
-    float GetSecurityRating() const                     { return (m_pClient == nullptr ? 0.0 : m_pClient->GetChar()->GetSecurityRating()); }
+    float GetSecurityRating() const;
 
     double GetOrbitRange()                              { return m_orbitRange; }
 
@@ -108,12 +110,12 @@ public:
     bool IsEnabled()                                    { return m_online; }
 
     void AssignShip(ShipSE* pSE)                        { m_AI->AssignShip(pSE); }
-    void SetTarget(SystemEntity* pSE = nullptr)         { (pSE == nullptr ? 0 : m_targetID = pSE->GetID()); }
+    void SetTarget(SystemEntity* pSE = nullptr)         { m_targetID = (pSE == nullptr ? 0 : pSE->GetID()); }
 
-    ShipSE* GetHomeShip()                               { return m_pShipSE; }
+    ShipSE* GetHomeShip(); // resolves controller ID through the live system registry
+    SystemManager* GetSystemManager()                    { return m_system; }
 
 protected:
-    Client* m_pClient;          //we do not own this
     DroneAIMgr* m_AI;           //we do own this
     ShipSE* m_pShipSE;            //we do not own this
     SystemManager* m_system;    //we do not own this

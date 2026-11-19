@@ -601,13 +601,19 @@ void ModuleManager::Offline(uint32 itemID)
         _log(MODULE__ERROR, "MM::Offline(itemID) -  Module %u not found", itemID);
         return;
     }
-    if (!pMod->isOnline()) {
-        _log(MODULE__WARNING, "MM::Offline(itemID) -  %s not Online", pMod->GetSelf()->name());
+    if (!pMod->isOnline()
+        && (pMod->GetModuleState() == Module::State::Offline
+            || pMod->GetModuleState() == Module::State::Unfitted)) {
+        _log(MODULE__WARNING, "MM::Offline(itemID) - %s is already offline.", pMod->GetSelf()->name());
         pMod->SetModuleState(Module::State::Offline);
         return;
     }
 
-    _log(MODULE__MESSAGE, "MM::Offline(itemID) -  %s going Offline", pMod->GetSelf()->name());
+    // Reconcile the internal state even when AttrOnline is already false.
+    // Otherwise an Activated/Deactivating module can retain effects and timers
+    // while the inventory attribute incorrectly reports it as offline.
+    _log(MODULE__MESSAGE, "MM::Offline(itemID) - %s going Offline (state: %d, online attribute: %s).",
+         pMod->GetSelf()->name(), pMod->GetModuleState(), pMod->isOnline() ? "true" : "false");
     pMod->Offline();
 }
 
@@ -618,12 +624,17 @@ void ModuleManager::Offline(EVEItemFlags flag)
         _log(MODULE__ERROR, "MM::Offline(flag) -  Module not found in %s", sDataMgr.GetFlagName(flag));
         return;
     }
-    if (!pMod->isOnline()) {
-        _log(MODULE__WARNING, "MM::Offline(flag) -  %s not Online", pMod->GetSelf()->name());
+    if (!pMod->isOnline()
+        && (pMod->GetModuleState() == Module::State::Offline
+            || pMod->GetModuleState() == Module::State::Unfitted)) {
+        _log(MODULE__WARNING, "MM::Offline(flag) - %s is already offline.", pMod->GetSelf()->name());
         pMod->SetModuleState(Module::State::Offline);
         return;
     }
-    _log(MODULE__MESSAGE, "MM::Offline(flag) -  %s going Offline", pMod->GetSelf()->name());
+
+    // Keep the slot-based path consistent with the itemID path above.
+    _log(MODULE__MESSAGE, "MM::Offline(flag) - %s going Offline (state: %d, online attribute: %s).",
+         pMod->GetSelf()->name(), pMod->GetModuleState(), pMod->isOnline() ? "true" : "false");
     pMod->Offline();
 }
 
@@ -809,7 +820,7 @@ void ModuleManager::RepairModule(uint32 itemID, EvilNumber amount)
 
 void ModuleManager::RepairModule(GenericModule* pMod, EvilNumber amount)
 {
-    if (pMod != nullptr){
+    if (pMod == nullptr) {
         _log(MODULE__ERROR, "MM::RepairModule() - Called on module that is not loaded.");
         return;
     }
@@ -1024,8 +1035,10 @@ void ModuleManager::UnloadCharge(GenericModule* pMod)
     m_charges.erase(pMod->flag());
 
     if (!pMod->IsLoaded()) {
-        _log(MODULE__ERROR, "MM::UnloadCharge() - %s at %s is not loaded", \
-                pMod->GetSelf()->name(), sDataMgr.GetFlagName(pMod->flag()));
+        // Unload requests commonly include empty weapon slots; this is a
+        // harmless no-op, not an operational error.
+        _log(MODULE__TRACE, "MM::UnloadCharge() - %s at %s is not loaded; nothing to unload.",
+             pMod->GetSelf()->name(), sDataMgr.GetFlagName(pMod->flag()));
         return;
     }
 
@@ -1144,11 +1157,16 @@ void ModuleManager::UnloadModule(GenericModule* pMod) {
 
 void ModuleManager::UnloadWeapons()
 {
-    std::map<uint8, GenericModule*>::iterator mItr;
-    for (uint8 i = flagHiSlot0; 1 < flagFixedSlot; ++i) {
-        mItr = m_modules.find((uint8)i);
-        if (mItr->second != nullptr)
-            UnloadCharge(mItr->second);
+    // Iterate only modules that actually exist in the weapon-to-fixed-slot
+    // range. The previous loop tested the constant expression
+    // "1 < flagFixedSlot" (an endless uint8 loop) and dereferenced find()
+    // without checking for end(), either of which could hang or crash.
+    const uint8 firstSlot = static_cast<uint8>(flagHiSlot0);
+    const uint8 endSlot = static_cast<uint8>(flagFixedSlot);
+    for (auto itr = m_modules.lower_bound(firstSlot);
+         itr != m_modules.end() && itr->first < endSlot; ++itr) {
+        if (itr->second != nullptr)
+            UnloadCharge(itr->second);
     }
 }
 

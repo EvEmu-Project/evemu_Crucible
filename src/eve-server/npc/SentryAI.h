@@ -74,7 +74,7 @@ private:
     uint16 m_attackSpeed;
     uint16 m_targetRange;   // max targeting range  default: m_maxAttackRange (unused)
     uint16 m_optimalRange;
-    uint16 m_damageMultiplier;
+    float m_damageMultiplier;
 
     uint32 m_sigRadius;
     uint32 m_falloff;// distance past maximum range at which accuracy has fallen by half

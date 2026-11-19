@@ -45,17 +45,23 @@ ReactorSE::~ReactorSE()
 void ReactorSE::Init()
 {
     StructureSE::Init();
+    if (!IsPOSInitialized())
+        return;
 
     if (!m_db.GetReactorData(pData, m_data)) {
         _log(SE__TRACE, "ReactorSE %s(%u) has no saved data.  Initializing default set.", m_self->name(), m_self->itemID());
         // invalid data....init to 0 as this will only hit for currently-launching items (or errors)
-        InitData();
+        if (!InitData())
+            return;
     }
 }
 
-void ReactorSE::InitData() {
+bool ReactorSE::InitData() {
+    if (!StructureSE::InitData())
+        return false;
     pData->Init();
     m_db.SaveReactorData(pData, m_data);
+    return true;
 }
 
 void ReactorSE::Process()

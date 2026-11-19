@@ -282,13 +282,13 @@ service("")
 void PyAddress::Dump(FILE *into, const char *pfx) const {
     switch(type) {
         case Any:
-            fprintf(into, "%sAny: service='%s' callID=%lli", pfx, service.c_str(), callID);
+            fprintf(into, "%sAny: service='%s' callID=%lld", pfx, service.c_str(), static_cast<long long>(callID));
         break;
         case Node:
-            fprintf(into, "%sNode: nodeID=%lli service='%s' callID=%lli", pfx, objectID, service.c_str(), callID);
+            fprintf(into, "%sNode: nodeID=%lld service='%s' callID=%lld", pfx, static_cast<long long>(objectID), service.c_str(), static_cast<long long>(callID));
         break;
         case Client:
-            fprintf(into, "%sClient: clientID=%lli service='%s' callID=%lli", pfx, objectID, service.c_str(), callID);
+            fprintf(into, "%sClient: clientID=%lld service='%s' callID=%lld", pfx, static_cast<long long>(objectID), service.c_str(), static_cast<long long>(callID));
         break;
         case Broadcast:
             fprintf(into, "%sBroadcast: broadcastID='%s' narrowcast=(not implemented) idtype='%s'", pfx, service.c_str(), bcast_idtype.c_str());

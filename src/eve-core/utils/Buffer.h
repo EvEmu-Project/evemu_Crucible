@@ -50,22 +50,14 @@ public:
      */
     template< typename T >
     class const_iterator
-    : public std::iterator< std::random_access_iterator_tag, T >
     {
-        /// Typedef for our base due to readibility.
-        typedef std::iterator< std::random_access_iterator_tag, T > _Base;
-
     public:
-        /// Typedef for iterator category.
-        typedef typename _Base::iterator_category iterator_category;
-        /// Typedef for value type.
-        typedef typename _Base::value_type        value_type;
-        /// Typedef for difference type.
-        typedef typename _Base::difference_type   difference_type;
-        /// Typedef for pointer.
-        typedef typename _Base::pointer           pointer;
-        /// Typedef for reference.
-        typedef typename _Base::reference         reference;
+        /// Standard iterator traits (C++17-compatible; std::iterator is deprecated).
+        typedef std::random_access_iterator_tag iterator_category;
+        typedef T                               value_type;
+        typedef std::ptrdiff_t                  difference_type;
+        typedef T*                              pointer;
+        typedef T&                              reference;
 
         /// Typedef for const pointer.
         typedef const T* const_pointer;
@@ -553,19 +545,20 @@ public:
     template< typename Iter >
     void AssignSeqAt( const_iterator< typename std::iterator_traits< Iter >::value_type > index, Iter first, Iter last )
     {
-        // make sure we're not going off the bounds
-        assert( last - first <= end< typename std::iterator_traits< Iter >::value_type >() - index );
+        // Reject empty/reversed ranges and out-of-bounds writes in release builds too.
+        const auto elementCount = last - first;
+        if (elementCount <= 0)
+            return;
 
-        // is there anything to assign?
-        if( first != last )
-        {
-            // turn the iterator into byte offset
-            const size_type _index = ( index.template As< uint8 >() - begin< uint8 >() );
-            // obtain byte length of input data
-            const size_type _len = sizeof( typename std::iterator_traits< Iter >::value_type ) * ( last - first );
-            // assign the content
-            memmove( &mBuffer[ _index ], &*first, _len );
-        }
+        const auto available = end< typename std::iterator_traits< Iter >::value_type >() - index;
+        assert(elementCount <= available);
+        if (elementCount > available)
+            return;
+
+        const size_type _index = (index.template As<uint8>() - begin<uint8>());
+        const size_type _len = sizeof(typename std::iterator_traits<Iter>::value_type)
+                             * static_cast<size_type>(elementCount);
+        memmove(&mBuffer[_index], &*first, _len);
     }
 
     /**

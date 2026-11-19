@@ -105,9 +105,9 @@ public:
 protected:
 
 private:
-    BeltMgr* m_beltMgr;
+    BeltMgr* m_beltMgr = nullptr;
     Timer m_growTimer;
-    uint32 m_beltID;
+    uint32 m_beltID = 0;
 };
 
 #endif /* !__ASTEROID__H__INCL__ */

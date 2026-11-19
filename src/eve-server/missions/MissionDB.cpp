@@ -17,7 +17,7 @@ void MissionDB::LoadMissionData(DBQueryResult& res)
 {
     if (!sDatabase.RunQuery(res,
         "SELECT id, briefingID, name, level, typeID, important, storyline, raceID, constellationID, corporationID, dungeonID,"
-        " rewardISK, rewardItemID, rewardISK, rewardItemQty, bonusISK, bonusTime FROM agtMissions WHERE briefingID > 0 AND rewardISK > 0"))
+        " rewardISK, rewardItemID, rewardItemQty, bonusISK, bonusTime FROM agtMissions WHERE briefingID > 0 AND rewardISK > 0"))
         codelog(DATABASE__ERROR, "Error in LoadMissionData query: %s", res.error.c_str());
 }
 
@@ -76,11 +76,69 @@ void MissionDB::DeleteOffer(MissionOffer& data)
 void MissionDB::UpdateMissionOffer(MissionOffer& data)
 {
     DBerror err;
-    if (!sDatabase.RunQuery(err, "UPDATE agtOffers SET stateID = %u, dateAccepted = %f, dateCompleted = %f, expiryTime = %f WHERE offerID = %u",
-        data.stateID, data.dateAccepted, data.dateCompleted, data.expiryTime, data.offerID))
+    if (!sDatabase.RunQuery(err,
+        "UPDATE agtOffers SET stateID = %u, dateAccepted = %f, dateCompleted = %f, expiryTime = %f, "
+        "courierTypeID = %u, courierAmount = %u, rewardISK = %u, destinationID = %u, destinationTypeID = %u, "
+        "destinationOwnerID = %u, destinationSystemID = %u, dungeonLocationID = %u, dungeonSolarSystemID = %u "
+        "WHERE offerID = %u",
+        data.stateID, data.dateAccepted, data.dateCompleted, data.expiryTime,
+        data.courierTypeID, data.courierAmount, data.rewardISK, data.destinationID, data.destinationTypeID,
+        data.destinationOwnerID, data.destinationSystemID, data.dungeonLocationID,
+        data.dungeonSolarSystemID, data.offerID))
     {
         codelog(DATABASE__ERROR, "Failed to update MissionOffer: %s", err.c_str());
     }
+}
+
+uint32 MissionDB::GetCompletedStarterMissionCount(uint32 characterID)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT COUNT(DISTINCT missionID) FROM agtOffers WHERE characterID = %u AND typeID = %u "
+        "AND stateID = %u AND name LIKE 'Level 0 - %%'",
+        characterID, Mission::Type::Encounter, Mission::State::Completed))
+    {
+        codelog(DATABASE__ERROR, "Failed to load Level 0 mission progress: %s", res.error.c_str());
+        return 0;
+    }
+
+    DBResultRow row;
+    return (res.GetRow(row) ? row.GetUInt(0) : 0);
+}
+
+void MissionDB::GetCompletedStarterMissionIDs(uint32 characterID, std::vector<uint16>& missionIDs)
+{
+    missionIDs.clear();
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT DISTINCT missionID FROM agtOffers WHERE characterID = %u AND typeID = %u "
+        "AND stateID = %u AND name LIKE 'Level 0 - %%'",
+        characterID, Mission::Type::Encounter, Mission::State::Completed))
+    {
+        codelog(DATABASE__ERROR, "Failed to load completed Level 0 mission IDs: %s", res.error.c_str());
+        return;
+    }
+
+    DBResultRow row;
+    while (res.GetRow(row))
+        missionIDs.push_back(static_cast<uint16>(row.GetUInt(0)));
+}
+
+bool MissionDB::HasActiveStarterMission(uint32 characterID)
+{
+    DBQueryResult res;
+    if (!sDatabase.RunQuery(res,
+        "SELECT offerID FROM agtOffers WHERE characterID = %u AND typeID = %u "
+        "AND stateID IN (%u, %u) AND expiryTime > %f "
+        "AND name LIKE 'Level 0 - %%' LIMIT 1",
+        characterID, Mission::Type::Encounter, Mission::State::Offered, Mission::State::Accepted, GetFileTimeNow()))
+    {
+        codelog(DATABASE__ERROR, "Failed to check active Level 0 mission: %s", res.error.c_str());
+        return false;
+    }
+
+    DBResultRow row;
+    return res.GetRow(row);
 }
 
 void MissionDB::LoadOpenOffers(DBQueryResult& res)
@@ -116,29 +174,41 @@ void MissionDB::LoadMissionBookMark(DBQueryResult& res, std::vector<int32>& bmID
 
 void MissionDB::RemoveMissionItem(uint32 charID, uint16 typeID, uint32 qty)
 {
-    //  this may get a bit complicated if the items are split.
+    // Offline mission item cleanup: preserve complete stack quantities and
+    // avoid querying or modifying inventory for empty requests.
+    if (typeID == 0 || qty == 0)
+        return;
+
     DBQueryResult res;
-    sDatabase.RunQuery(res, "SELECT itemID, quantity FROM entity WHERE typeID = %u AND ownerID = %u", typeID, charID);
+    if (!sDatabase.RunQuery(res,
+        "SELECT itemID, quantity FROM entity WHERE typeID = %u AND ownerID = %u AND quantity > 0 ORDER BY itemID",
+        typeID, charID)) {
+        codelog(DATABASE__ERROR, "Failed to load offline mission item stacks: %s", res.error.c_str());
+        return;
+    }
 
     DBResultRow row;
-    std::map<uint32, uint16> map;
-    while (res.GetRow(row)) {
-        // make map of all items of 'typeID'
-        map.emplace(row.GetInt(0), row.GetInt(1));
-    }
+    std::map<uint32, uint32> stacks;
+    while (res.GetRow(row))
+        stacks.emplace(row.GetUInt(0), row.GetUInt(1));
 
     DBerror err;
-    for (auto cur : map) {
-        if (qty < 1)
+    for (const auto& stack : stacks) {
+        if (qty == 0)
             break;
-        if (cur.second <= qty) {
-            qty -= cur.second;
-            sDatabase.RunQuery(err, "DELETE FROM entity WHERE itemID = %u", cur.first);
-        } else if (cur.second > qty) {
-            sDatabase.RunQuery(err, "UPDATE entity SET quantity = %u WHERE itemID = %u", qty, cur.first);
-            qty = 0;
+        const uint32 remaining = Mission::RemainingItemQuantity(stack.second, qty);
+        if (remaining == 0) {
+            if (!sDatabase.RunQuery(err, "DELETE FROM entity WHERE itemID = %u", stack.first)) {
+                codelog(DATABASE__ERROR, "Failed to delete offline mission item: %s", err.c_str());
+                break;
+            }
+            qty -= stack.second;
+        } else {
+            if (!sDatabase.RunQuery(err,
+                "UPDATE entity SET quantity = %u WHERE itemID = %u", remaining, stack.first)) {
+                codelog(DATABASE__ERROR, "Failed to reduce offline mission item stack: %s", err.c_str());
+            }
+            break;
         }
     }
-
 }
-

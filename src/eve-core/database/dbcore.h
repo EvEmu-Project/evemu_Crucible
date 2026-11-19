@@ -106,7 +106,11 @@ public:
 
     bool IsNull( uint32 index ) const { return ( NULL == GetText( index ) ); }
 
-    const char* GetText( uint32 index ) const { return mRow[ index ]; }
+    const char* GetText( uint32 index ) const {
+        if (mRow == nullptr || mResult == nullptr || index >= mResult->ColumnCount())
+            return nullptr;
+        return mRow[index];
+    }
     int32 GetInt( uint32 index ) const;
     bool GetBool( uint32 index ) const;
     uint32 GetUInt( uint32 index ) const;
