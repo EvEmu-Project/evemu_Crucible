@@ -347,12 +347,24 @@ void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/
              mySE->GetName(), mySE->GetID(), m_prevSpeed, fraction, startMovement ? "true" : "false", m_stop ? "true" : "false", \
              m_accel ? "true" : "false", m_decel ? "true": "false");
 
+    const bool startFromStop = startMovement && fraction > 0.0f
+        && m_ballMode == Destiny::Ball::Mode::STOP;
     // this is to start movement when setting fractional speeds from speedo in client.
     //  also a hack to circumvent above check when called again by goto, warp, align, follow for changing direction.
     if (startMovement) {
         m_stop = false;
-        if (m_ballMode == Destiny::Ball::Mode::STOP)
-            m_ballMode = Destiny::Ball::Mode::GOTO;
+    }
+    if (startFromStop) {
+        // Halt clears the target. A throttle-only command still needs a
+        // heading and target so the next movement tick can accelerate.
+        if (m_shipHeading.isZero() || m_shipHeading.isNaN() || m_shipHeading.isInf())
+            m_shipHeading = GVector(1.0, 0.0, 0.0);
+        m_shipHeading.normalize();
+        m_targetHeading = m_shipHeading;
+        m_targetPoint = m_position + m_shipHeading * 1.0e16;
+        m_stateStamp = sEntityList.GetStamp();
+        m_ballMode = Destiny::Ball::Mode::GOTO;
+        UnCloak();
     }
 
     // prevent multiple client calls to Stop() from resetting ship speed.
@@ -433,7 +445,14 @@ void DestinyManager::SetSpeedFraction(float fraction/*1.0*/, bool startMovement/
     }
 
     std::vector<PyTuple*> updates;
-    updates.clear();
+    if (startFromStop) {
+        CmdGotoDirection direction;
+        direction.entityID = mySE->GetID();
+        direction.x = m_shipHeading.x;
+        direction.y = m_shipHeading.y;
+        direction.z = m_shipHeading.z;
+        updates.push_back(direction.Encode());
+    }
     if (fraction) {
          CmdSetSpeedFraction du;
             du.entityID = mySE->GetID();
@@ -1956,13 +1975,23 @@ void DestinyManager::WarpStop(double currentShipSpeed) {
     SetPosition(m_targetPoint);
     Halt();
     sBubbleMgr.Add(mySE);
-    SendStoppedPosition();
+    SendStoppedPosition(true);
 
     if (mySE->IsNPCSE() && mySE->GetNPCSE()->GetAIMgr() != nullptr)
         mySE->GetNPCSE()->GetAIMgr()->WarpOutComplete();
 }
 
-void DestinyManager::SendStoppedPosition() const {
+PyTuple* DestinyManager::EncodeWarpEffect(bool active) const {
+    OnSpecialFX10 effect;
+    effect.guid = "effects.Warping";
+    effect.entityID = mySE->GetID();
+    effect.isOffensive = false;
+    effect.start = active;
+    effect.active = active;
+    return effect.Encode();
+}
+
+void DestinyManager::SendStoppedPosition(bool warpEnded) const {
     SetBallPosition position;
     position.entityID = mySE->GetID();
     position.x = m_position.x;
@@ -1975,6 +2004,8 @@ void DestinyManager::SendStoppedPosition() const {
     velocity.x = velocity.y = velocity.z = 0.0;
     std::vector<PyTuple*> updates{
         position.Encode(), stop.Encode(), velocity.Encode()};
+    if (warpEnded)
+        updates.push_back(EncodeWarpEffect(false));
     SendDestinyUpdate(updates);
 }
 
@@ -2261,14 +2292,7 @@ void DestinyManager::WarpTo(const GPoint& where, int32 distance/*0*/) {
     wt.distance = std::max(0, m_stopDistance);
     wt.warpSpeed = GetWarpSpeed(); // warp speed x10
 
-    OnSpecialFX10 sfx;
-    sfx.guid = "effects.Warping";
-    sfx.entityID = mySE->GetID();
-    sfx.isOffensive = false;
-    sfx.start = true;
-    sfx.active = true;
-
-    std::vector<PyTuple*> updates{wt.Encode(), sfx.Encode()};
+    std::vector<PyTuple*> updates{wt.Encode(), EncodeWarpEffect(true)};
     SendDestinyUpdate(updates);
     if (npcWarp)
         return;
@@ -3489,25 +3513,6 @@ void DestinyManager::SendSetState() const {
         );
     }
 
-    // if the player is not warping, tell the client they're not warping.
-    // As of 2024-10-03, this doesn't always work and there are still issues
-    // with the client sometimes not starting a warp sequence.
-    std::vector<PyTuple*> updates;
-    OnSpecialFX10 sfx;
-    sfx.guid = "effects.Warping";
-    sfx.entityID = mySE->GetID();
-    sfx.isOffensive = false;
-    sfx.start = false;
-    sfx.active = false;
-    if (m_ballMode == Destiny::Ball::Mode::WARP) {
-        sfx.start = true; // TODO: verify if this is necessary
-        sfx.active = true;
-    }
-
-    updates.push_back(sfx.Encode());
-    SendDestinyUpdate(updates);
-    updates.clear();
-
     SetState ss;
 
     ss.stamp = sEntityList.GetStamp();
@@ -3529,9 +3534,19 @@ void DestinyManager::SendSetState() const {
     PyTuple* tmp(ss.Encode());
 
     // setstate should be alone and immediate. send directly
-    mySE->GetPilot()->QueueDestinyUpdate(&tmp, true, true); // consumed
+    Client* pilot = mySE->GetPilot();
+    pilot->QueueDestinyUpdate(&tmp, true, true); // consumed
+    pilot->SetStateSent(true);
 
-    mySE->GetPilot()->SetStateSent(true);
+    // Install the ego ball before restoring its effects and speed display.
+    std::vector<PyTuple*> updates{EncodeWarpEffect(HasWarpOrder())};
+    if (pilot->IsGateJump()) {
+        SetBallSpeed speed;
+        speed.entityID = mySE->GetID();
+        speed.speed = m_maxShipSpeed;
+        updates.push_back(speed.Encode());
+    }
+    SendDestinyUpdate(updates, true);
 }
 
 void DestinyManager::SendMovementPacket()

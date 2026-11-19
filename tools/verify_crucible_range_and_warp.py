@@ -132,10 +132,45 @@ assert "WarpDecelerationRemaining(" in deceleration
 assert deceleration.index("WarpStop(currentShipSpeed);") < deceleration.index("WarpUpdate(currentShipSpeed);")
 warp_stop = destiny.split("void DestinyManager::WarpStop(", 1)[1].split("void DestinyManager::EntityRemoved(", 1)[0]
 assert warp_stop.index("SetPosition(m_targetPoint);") < warp_stop.index("Halt();")
-assert warp_stop.index("Halt();") < warp_stop.index("SendStoppedPosition();")
+assert warp_stop.index("Halt();") < warp_stop.index("SendStoppedPosition(true);")
 assert "SetBallVelocity velocity;" in warp_stop
 assert "position.Encode(), stop.Encode(), velocity.Encode()" in warp_stop
+assert "if (warpEnded)\n        updates.push_back(EncodeWarpEffect(false));" in warp_stop
 assert "SetPosition(m_position, true);" not in warp_stop
+
+# The origin grid must be drained before a new session. A successful arrival
+# must publish SetState before completing the jump and resyncing the speed.
+move_location = client.split("void Client::MoveToLocation(", 1)[1].split(
+    "void Client::SetDestiny(", 1)[0]
+assert move_location.index("m_system->RemoveEntity(pShipSE);") < move_location.index("FlushQueue();")
+assert move_location.index("FlushQueue();") < move_location.index("SendSessionChange();")
+assert "if (!IsGateJump())\n            m_beyonce = false;" in move_location
+ballpark = client.split("void Client::SetBallPark()", 1)[1].split("void Client::CheckBallparkTimer()", 1)[0]
+assert ballpark.index("if (IsGateJump() && m_stateTimer.Enabled())") < ballpark.index("SendSetState();")
+assert ballpark.index("SendSetState();") < ballpark.index("if (m_setStateSent && m_beyonce)")
+assert ballpark.index("if (m_setStateSent && m_beyonce)") < ballpark.index("m_cloakTimer.Start(")
+snapshot = destiny.split("void DestinyManager::SendSetState()", 1)[1].split(
+    "void DestinyManager::SendMovementPacket()", 1)[0]
+assert snapshot.index("QueueDestinyUpdate(&tmp, true, true)") < snapshot.index("SetBallSpeed speed;")
+assert "if (pilot->IsGateJump())" in snapshot and "speed.speed = m_maxShipSpeed;" in snapshot
+assert "SendDestinyUpdate(updates, true);" in snapshot
+assert "if (!pClient->IsGateJump())\n            SendAddBalls(pSE);" in source(
+    "src/eve-server/system/SystemBubble.cpp")
+
+# Throttle from STOP must seed a valid course before enabling GOTO and
+# send that course before the client starts accelerating.
+throttle = destiny.split("void DestinyManager::SetSpeedFraction(", 1)[1].split(
+    "void DestinyManager::UpdateVelocity(", 1)[0]
+assert "const bool startFromStop = startMovement && fraction > 0.0f" in throttle
+assert throttle.index("m_targetPoint = m_position + m_shipHeading * 1.0e16;") < throttle.index(
+    "m_ballMode = Destiny::Ball::Mode::GOTO;")
+assert throttle.index("UnCloak();") < throttle.index("UpdateVelocity(")
+assert throttle.index("direction.Encode()") < throttle.index("du.fraction = fraction;")
+jump_rpc = beyonce.split("PyResult BeyonceBound::CmdStargateJump(", 1)[1].split(
+    "PyResult BeyonceBound::CmdAbandonLoot(", 1)[0]
+assert "if (!call.client->StargateJump(" in jump_rpc
+assert jump_rpc.index("if (!call.client->StargateJump(") < jump_rpc.index("return this->GetOID();")
+
 wreck = source("src/eve-server/system/Container.cpp").split("void WreckSE::EncodeDestiny", 1)[1]
 assert "tractored ? Ball::Mode::FOLLOW : Ball::Mode::TROLL" in wreck
 invbroker = source("src/eve-server/inventory/InvBrokerService.cpp")

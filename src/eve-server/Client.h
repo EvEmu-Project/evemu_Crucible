@@ -260,7 +260,7 @@ public:
     void SetSessionTimer()                              { m_sessionChangeActive = true; m_sessionTimer.Start(Player::Timer::Session); }
     void SetSessionChange(bool set=false)               { m_sessionChangeActive = set; }
     void SetBallPark();
-    void StargateJump(uint32 fromGate, uint32 toGate);
+    bool StargateJump(uint32 fromGate, uint32 toGate);
     void CynoJump(InventoryItemRef beacon);
     void WormholeJump(InventoryItemRef wormhole);
 
@@ -362,7 +362,7 @@ protected:
     void ExecuteDriveJump();
     void ExecuteWormholeJump();
     void ProcessPendingSpaceActions();
-    void BeginStargateJump(uint32 fromGate, uint32 toGate);
+    bool BeginStargateJump(uint32 fromGate, uint32 toGate);
     void DestroyShipSE();
 
     //void _AwardBounty(SystemEntity *who);

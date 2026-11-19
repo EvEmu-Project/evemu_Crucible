@@ -156,7 +156,8 @@ PyResult BeyonceBound::CmdFollowBall(PyCallArgs &call, PyInt* ballID, PyRep* dis
 }
 
 PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFraction) {
-    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    ShipSE* ship = call.client->GetShipSE();
+    DestinyManager* pDestiny = ship != nullptr ? ship->DestinyMgr() : nullptr;
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
@@ -170,18 +171,20 @@ PyResult BeyonceBound::CmdSetSpeedFraction(PyCallArgs &call, PyFloat* speedFract
         return PyStatic.NewNone();
     }
 
-    /** @todo  rework this...this is to set speed ONLY...NOT to begin moving.  */
-    // client should not legally send anything < 0.1 (except on rare occasion a 0.0 instead of Stop.)
-    if ((speedFraction->value() != 0) && (speedFraction->value() < 0.1))
+    const double fraction = speedFraction->value();
+    if (!std::isfinite(fraction) || fraction < 0.0 || fraction > 1.0
+        || (fraction > 0.0 && fraction < 0.1))
         return PyStatic.NewNone();
 
-    //sLog.Warning( "BeyonceBound", "Handle_CmdSetSpeedFraction %.2f", arg.arg );
-    if (!call.client->IsUndock()){
-        if (pDestiny->IsMoving()) {
-            pDestiny->SetSpeedFraction(speedFraction->value());
-        } else {
-            pDestiny->SetSpeedFraction(speedFraction->value(), true);
-        }
+    if (call.client->IsGateJump()) {
+        call.client->SetBallPark();
+        if (call.client->IsGateJump())
+            return PyStatic.NewNone();
+    }
+    if (!call.client->IsUndock()) {
+        if (fraction > 0.0)
+            call.client->SetInvul(false);
+        pDestiny->SetSpeedFraction(fraction, !pDestiny->IsMoving());
     }
 
     return PyStatic.NewNone();
@@ -751,7 +754,8 @@ PyResult BeyonceBound::CmdStargateJump(PyCallArgs &call, PyInt* fromStargateID, 
         call.client->SendNotifyMsg("Session Change currently active.");
         return PyStatic.NewNone();
     }
-    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    ShipSE* ship = call.client->GetShipSE();
+    DestinyManager* pDestiny = ship != nullptr ? ship->DestinyMgr() : nullptr;
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
@@ -762,14 +766,10 @@ PyResult BeyonceBound::CmdStargateJump(PyCallArgs &call, PyInt* fromStargateID, 
         return PyStatic.NewNone();
     }
 
-    // Client::StargateJump queues the request when a normal warp is active.
-    /** @todo  check distance from ship to gate */
-    call.client->StargateJump(fromStargateID->value(), toStargateID->value());
+    if (!call.client->StargateJump(fromStargateID->value(), toStargateID->value()))
+        return PyStatic.NewNone();
 
-    /* return error msg from this call, if applicable, else nodeid and timestamp */
-    // returns nodeID and timestamp
-    // HACK: WE'RE RETURNING BACK THE SAME BOUND SERVICE, IN REALITY A NEW BOUND INSTANCE SHOULD BE CREATED FOR THIS SHIP IN SPECIFIC
-    //       INSTEAD OF REUSING THIS ONE, THIS WOULD HELP KEEP INFORMATION IN/OUT OF MEMORY BASED ON THE BOUND SERVICES
+    // The client can reuse this bound service when the new system loads.
     return this->GetOID();
 }
 
@@ -815,7 +815,8 @@ PyResult BeyonceBound::CmdAbandonLoot(PyCallArgs &call, PyList* wreckIDs) {
 PyResult BeyonceBound::UpdateStateRequest(PyCallArgs &call) {
     codelog(CLIENT__ERROR, "%s: Client sent UpdateStateRequest. Previous call generated a bad return.  Check Logs.", call.client->GetName());
 
-    DestinyManager* pDestiny = call.client->GetShipSE()->DestinyMgr();
+    ShipSE* ship = call.client->GetShipSE();
+    DestinyManager* pDestiny = ship != nullptr ? ship->DestinyMgr() : nullptr;
     if (pDestiny == nullptr) {
         codelog(CLIENT__ERROR, "%s: Client has no destiny manager!", call.client->GetName());
         return PyStatic.NewNone();
@@ -828,7 +829,10 @@ PyResult BeyonceBound::UpdateStateRequest(PyCallArgs &call) {
     }
 
     call.client->SetStateSent(false);
-    pDestiny->SendSetState();
+    if (call.client->IsGateJump())
+        call.client->SetBallPark();
+    else
+        pDestiny->SendSetState();
 
     return PyStatic.NewNone();
 }

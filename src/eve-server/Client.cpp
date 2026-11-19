@@ -723,6 +723,9 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
 
         // remove from current system before resetting system vars
         m_system->RemoveEntity(pShipSE);
+        // Deliver the origin grid removals before the destination session.
+        if (IsGateJump())
+            FlushQueue();
 
         m_system->RemoveClient(this, (count = true), IsJump());
 
@@ -741,7 +744,10 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
             return;
         }
 
-        m_beyonce = false;
+        // CmdStargateJump returns the existing Beyonce bound object. A
+        // client that reuses it can receive the arrival state without rebinding.
+        if (!IsGateJump())
+            m_beyonce = false;
         m_setStateSent = false;
 
         // register ourselves with new system manager (this wont hit on login)
@@ -837,7 +843,7 @@ void Client::MoveToLocation(uint32 locationID, const GPoint& pt) {
 
         SetDestiny(pt);
 
-        if (IsJump() and !m_autoPilot)
+        if (IsJump() && !IsGateJump() && !m_autoPilot)
             pShipSE->DestinyMgr()->Stop();
     }
 
@@ -855,7 +861,7 @@ void Client::SetDestiny(const GPoint& pt, bool update/*false*/) {
         _log(CLIENT__ERROR, "%s(%u) - Calling SetDestiny() when not in space.", GetName(), m_char->itemID());
         return;
     }
-    m_bubbleWait = false;        // allow client processing of subsquent destiny msgs
+    m_bubbleWait = IsGateJump();   // wait for the destination snapshot
     m_setStateSent = false;
 
     bool updateShip = false;
@@ -893,17 +899,35 @@ void Client::SetDestiny(const GPoint& pt, bool update/*false*/) {
 void Client::SetBallPark() {
     _log(PLAYER__AP_TRACE, "Client::SetBallPark():  State: %s, SetState: %s, Beyonce: %s", \
                 GetStateName(m_clientState).c_str(), m_setStateSent?"true":"false", m_beyonce?"true":"false");
+    if (pShipSE == nullptr || pShipSE->DestinyMgr() == nullptr || m_system == nullptr)
+        return;
+    // A state request can arrive during the jump-out animation. Keep the
+    // transition pending until ExecuteJump has installed the new system.
+    if (IsGateJump() && m_stateTimer.Enabled())
+        return;
+
     m_bubbleWait = false;   // allow client processing of subsequent destiny msgs
-    if (pShipSE->SysBubble() == nullptr)
-        m_system->AddEntity(pShipSE);
+    if (pShipSE->SysBubble() == nullptr) {
+        if (m_system->GetSE(pShipSE->GetID()) == pShipSE)
+            sBubbleMgr.Add(pShipSE);
+        else
+            m_system->AddEntity(pShipSE);
+    }
     if (!m_beyonce and !m_login and !m_undock) {
         m_bubbleWait = true;    // wait on proc destiny msgs
-        CheckBallparkTimer();
-        SetBallParkTimer(Player::Timer::Default);    // set timer 1s to wait for beyonce
+        if (!m_ballparkTimer.Enabled())
+            SetBallParkTimer(Player::Timer::Default);
         return;
     }
-    if (!m_setStateSent and m_beyonce) {  // MUST have beyonce before sending state data.
+    if (!m_setStateSent && m_beyonce)
         pShipSE->DestinyMgr()->SendSetState();
+    if (!m_setStateSent && IsGateJump()) {
+        m_bubbleWait = true;
+        if (!m_ballparkTimer.Enabled())
+            SetBallParkTimer(Player::Timer::Default);
+        return;
+    }
+    if (m_setStateSent && m_beyonce) {
         m_ballparkTimer.Disable();
         if (IsGateJump()) {
             SetInvulTimer(Player::Timer::JumpInvul);
@@ -1425,7 +1449,7 @@ PyRep *Client::GetAggressors() const {
     return dict;
 }
 
-void Client::StargateJump(uint32 fromGate, uint32 toGate) {
+bool Client::StargateJump(uint32 fromGate, uint32 toGate) {
     ClearPendingSpaceActions();
 
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
@@ -1433,12 +1457,12 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
                 m_char->name(), GetStateName(m_clientState).c_str(),
                 (m_stateTimer.Enabled() ? "active" : "inactive"));
         SendNotifyMsg("Your stargate jump is waiting for another movement or session change to finish. Please wait and try again.");
-        return;
+        return false;
     }
 
     if (pShipSE == nullptr || pShipSE->DestinyMgr() == nullptr || m_system == nullptr) {
         SendErrorMsg("Unable to initiate stargate jump: ship or solar system is unavailable.");
-        return;
+        return false;
     }
 
     SystemEntity* gate = m_system->GetSE(fromGate);
@@ -1446,14 +1470,14 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         SendErrorMsg("The stargate you selected is not available in this solar system.");
         _log(CLIENT__WARNING, "%s: StargateJump rejected; source gate %u is not present in system %u.",
                 m_char->name(), fromGate, m_locationID);
-        return;
+        return false;
     }
 
     StaticData toData = StaticData();
     if (!sDataMgr.GetStaticInfo(toGate, toData)) {
         _log(DATA__ERROR, "Failed to retrieve destination data for stargate %u", toGate);
         SendErrorMsg("The destination stargate is unavailable.");
-        return;
+        return false;
     }
 
     // A gate can be selected while the ship is already in warp (for example,
@@ -1465,12 +1489,12 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         SetAutoPilot(false);
         _log(AUTOPILOT__MESSAGE, "%s: Queued stargate jump %u -> %u until current warp completes.",
                 m_char->name(), fromGate, toGate);
-        return;
+        return true;
     }
 
     const double rangeToGatePerimeter = pShipSE->DestinyMgr()->InteractionDistanceTo(*gate);
     if (!std::isfinite(rangeToGatePerimeter))
-        return;
+        return false;
 
     SetAutoPilot(false);
     if (rangeToGatePerimeter > EVEmuMovement::GateJumpSurfaceRange) {
@@ -1480,19 +1504,26 @@ void Client::StargateJump(uint32 fromGate, uint32 toGate) {
         pShipSE->DestinyMgr()->Follow(gate, followDistance);
         _log(AUTOPILOT__MESSAGE, "%s: Approaching stargate %u before jumping; perimeter range %.2fm.",
                 m_char->name(), fromGate, rangeToGatePerimeter);
-        return;
+        return true;
     }
 
-    BeginStargateJump(fromGate, toGate);
+    return BeginStargateJump(fromGate, toGate);
 }
 
-void Client::BeginStargateJump(uint32 fromGate, uint32 toGate) {
+bool Client::BeginStargateJump(uint32 fromGate, uint32 toGate) {
     if ((m_clientState != Player::State::Idle) or m_stateTimer.Enabled()) {
         _log(CLIENT__WARNING, "%s: Stargate jump could not start; client state is %s and state timer is %s.",
                 m_char->name(), GetStateName(m_clientState).c_str(),
                 (m_stateTimer.Enabled() ? "active" : "inactive"));
         SendNotifyMsg("Your stargate jump is waiting for another movement or session change to finish. Please wait and try again.");
-        return;
+        return false;
+    }
+
+    StaticData toData = StaticData();
+    if (!sDataMgr.GetStaticInfo(toGate, toData)) {
+        _log(DATA__ERROR, "Failed to retrieve data for stargate %u", toGate);
+        SendErrorMsg("The destination stargate is unavailable.");
+        return false;
     }
 
     _log(AUTOPILOT__MESSAGE, "%s: StargateJump accepted from gate %u to gate %u.",
@@ -1503,13 +1534,6 @@ void Client::BeginStargateJump(uint32 fromGate, uint32 toGate) {
     pShipSE->DestinyMgr()->SendJumpOut(fromGate);
     pShipSE->DestinyMgr()->SendGateActivity(fromGate);
 
-    StaticData toData = StaticData();
-    if (!sDataMgr.GetStaticInfo(toGate, toData)) {
-        _log(DATA__ERROR, "Failed to retrieve data for stargate %u", toGate);
-        SendErrorMsg("The destination stargate is unavailable.");
-        return;
-    }
-
     MapDB::AddJump(toData.systemID);
     m_char->VisitSystem(toData.systemID);
 
@@ -1518,6 +1542,7 @@ void Client::BeginStargateJump(uint32 fromGate, uint32 toGate) {
     m_moveSystemID = toData.systemID;
 
     SetStateTimer(Player::State::Jump, Player::Timer::Jumping);
+    return true;
 }
 
 void Client::ProcessPendingSpaceActions() {

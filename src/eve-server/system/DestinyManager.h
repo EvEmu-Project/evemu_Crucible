@@ -326,7 +326,8 @@ protected:
     void UpdateVelocity(bool isMoving=false);
 
 private:
-    void SendStoppedPosition() const;
+    PyTuple* EncodeWarpEffect(bool active) const;
+    void SendStoppedPosition(bool warpEnded = false) const;
     bool m_frozen;                      // hack to keep ship from moving when using modules that prevent movement
     bool m_changeDelay;                 // this is to try to sync destiny with client, as client has a delay when changing destiny states.
 
