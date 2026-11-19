@@ -6,7 +6,9 @@ concurrency:
 
 on:
   push:
-    branches: [master]
+    # Keep the long-running upstream contribution branch testable in the fork.
+    # This exercises Docker, Linux/Windows and MariaDB on its exact head.
+    branches: [master, "contrib/upstream-crucible-maintenance-2026-11-15"]
     tags: ["v*", "stable-rizonx"]
   pull_request:
     branches: [master]
