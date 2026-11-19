@@ -147,10 +147,7 @@ void MarketBotMgr::Process(bool overrideTimer) {
         }
     }
     
-    sLog.Green("     Market Bot Mgr", "Processing old orders...\n");
-    codelog(MARKET__TRACE, "Processing old orders...");
-    ExpireOldOrders();
-
+    // ExpireOldOrders() runs once below; do not scan all NPC orders twice.
     std::vector<uint32> eligibleSystems = GetEligibleSystems();
     sLog.Green("     Market Bot Mgr", "Trader Joe found %zu eligible systems for order placement.", eligibleSystems.size());
     codelog(MARKET__TRACE, "Trader Joe found %zu eligible systems for order placement.", eligibleSystems.size());
@@ -201,31 +198,55 @@ void MarketBotMgr::AddSystem() { /* To be implemented if needed */ }
 void MarketBotMgr::RemoveSystem() { /* To be implemented if needed */ }
 
 int MarketBotMgr::ExpireOldOrders() {
-    uint64_t now = GetFileTimeNow();
-
+    const uint64_t now = GetFileTimeNow();
     DBQueryResult res;
     DBResultRow row;
-
-    int expiredCount = 0;
-
-    sLog.Yellow("     Trader Joe", "ExpireOldOrders: now = %" PRIu64, now);
-    codelog(MARKET__TRACE, "ExpireOldOrders: now = %" PRIu64, now);
-
+    // Restrict by bot owner first. Keep the original 550-unit exclusion.
     if (!sDatabase.RunQuery(res,
-        "SELECT orderID FROM mktOrders WHERE (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ") < CAST(%" PRIu64 " AS UNSIGNED) AND ownerID IN (%u, %u) AND volEntered != 550",
-        FILETIME_TICKS_PER_DAY, now, BOT_OWNER_ID, BOT_BUY_OWNER_ID)) {
-        codelog(MARKET__DB_ERROR, "Failed to query expired bot orders.");
+        "SELECT orderID FROM mktOrders"
+        " WHERE ownerID IN (%u, %u) AND volEntered != 550"
+        " AND (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ")"
+        " < CAST(%" PRIu64 " AS UNSIGNED)",
+        BOT_OWNER_ID, BOT_BUY_OWNER_ID, FILETIME_TICKS_PER_DAY, now)) {
+        codelog(MARKET__DB_ERROR, "Failed to query expired Trader Joe orders.");
         return 0;
     }
 
-    while (res.GetRow(row)) {
-        uint32 orderID = row.GetUInt(0);
-        MarketDB::DeleteOrder(orderID);
-        ++expiredCount;
-        codelog(MARKET__TRACE, "Expired Trader Joe order %u", orderID);
-    }
+    std::vector<uint32> expiredIDs;
+    expiredIDs.reserve(res.GetRowCount());
+    while (res.GetRow(row))
+        expiredIDs.push_back(row.GetUInt(0));
 
-    return expiredCount;
+    // Batch the former one-DELETE-per-order loop. The extra conditions on
+    // DELETE avoid deleting a refreshed order or an unrelated player order.
+    constexpr size_t kDeleteBatchSize = 128;
+    int processed = 0;
+    for (size_t offset = 0; offset < expiredIDs.size(); offset += kDeleteBatchSize) {
+        const size_t limit = std::min(offset + kDeleteBatchSize, expiredIDs.size());
+        std::string ids;
+        ids.reserve((limit - offset) * 12);
+        for (size_t i = offset; i < limit; ++i) {
+            if (!ids.empty())
+                ids += ',';
+            ids += std::to_string(expiredIDs[i]);
+        }
+        DBerror err;
+        if (!sDatabase.RunQuery(err,
+            "DELETE FROM mktOrders WHERE orderID IN (%s)"
+            " AND ownerID IN (%u, %u) AND volEntered != 550"
+            " AND (issued + CAST(duration AS UNSIGNED) * %" PRIu64 ")"
+            " < CAST(%" PRIu64 " AS UNSIGNED)",
+            ids.c_str(), BOT_OWNER_ID, BOT_BUY_OWNER_ID,
+            FILETIME_TICKS_PER_DAY, now)) {
+            codelog(MARKET__DB_ERROR, "Failed to delete expired Trader Joe order batch: %s.", err.c_str());
+            continue;
+        }
+        // Counts successfully processed candidates; concurrent refresh can
+        // make actual removed-row count smaller.
+        processed += static_cast<int>(limit - offset);
+    }
+    codelog(MARKET__TRACE, "Trader Joe expired-order candidates processed: %d.", processed);
+    return processed;
 }
 
 int MarketBotMgr::PlaceBuyOrders(uint32 systemID) {

@@ -1,3 +1,10 @@
+## 19 November 2026 — Docker MariaDB market loading performance
+
+- Source investigation identifies nested best-ask MIN(price)/MIN(orderID) queries over mktOrders and uncapped region/type/bid orderbook fetches. The old migration only indexed solarSystemID. Add four **optional, non-destructive** composite query/expiry indexes; no market price, stock, ownership or row mutation from the migration.
+- Run Trader Joe order expiration once per refresh instead of twice and batch stale order DELETEs in groups of 128 with owner and expiry rechecks. Docker Compose now waits until MariaDB InnoDB initializes; no speculative buffer-pool settings.
+- Add Windows/Linux source checks, MariaDB index/idempotence tests and [read-only EXPLAIN/measurement and rollback runbook](docs/DOCKER_MARKET_PERFORMANCE_2026-11-19.md).
+- **No live database or user latency traces were available.** Installing the migration and profiling the real seeded server are required before claiming the slow market is resolved. Combined contribution branch CI remains to be verified.
+
 ## 19 November 2026 — Refresh upstream draft PR #335 and publish developer handover
 
 - Ancestry-preserving synchronization of the upstream contribution branch with fork `master` commit `e2f8e14bca5b50bb1f8ff055f5f16a00d01b7c27`; merge commit `9f8929de3387c9ae471e768556eefc8657c62f5f` retains both original parents, previous contribution market work and new master changes without force pushing or deleting parent paths.

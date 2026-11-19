@@ -58,6 +58,8 @@ jobs:
         run: python3 tools/verify_npc_buy_seed.py
       - name: Verify 100-million-unit ore and mineral orders
         run: python3 tools/verify_ore_mineral_100m.py
+      - name: Verify market lookup and database performance invariants
+        run: python3 tools/verify_market_performance.py
       - name: Verify gameplay subsystem source invariants
         run: python3 tools/verify_subsystems_audit.py
       - name: Verify 12-ship cruiser and battlecruiser Blockade mission
@@ -195,6 +197,11 @@ jobs:
         run: |
           python tools/verify_ore_mineral_100m.py
           if ($LASTEXITCODE -ne 0) { throw "Ore/mineral quantity regression" }
+      - name: Verify market lookup and database performance invariants
+        shell: pwsh
+        run: |
+          python tools/verify_market_performance.py
+          if ($LASTEXITCODE -ne 0) { throw "Market query/index/cleanup regression" }
       - name: Verify gameplay subsystem source invariants
         shell: pwsh
         run: |
@@ -487,6 +494,23 @@ jobs:
           expect "SELECT COUNT(*) FROM mktOrders WHERE ownerID=4000000 AND bid=1 AND orderRange=0 AND typeID IN (34,35,200,201) AND volEntered=100000000 AND volRemaining=100000000" "4"
           rm -f sql/evedb.yaml
           echo "PASS: unsigned orderRange insert, 100% prices, legacy NPC migration, player preservation, rerun and force scope."
+      - name: Validate additive market indexes against the MariaDB order fixture
+        env:
+          MYSQL_PWD: npc_seed_ci_only
+        run: |
+          set -euo pipefail
+          migration=sql/migrations/20261119113000-market-order-lookup-indexes.sql
+          sed '/^-- +migrate Down/,$d' "$migration" | mariadb --host=127.0.0.1 --user=root --database=EvE
+          # Idempotence: re-running Up must not remove data or duplicate indexes.
+          sed '/^-- +migrate Down/,$d' "$migration" | mariadb --host=127.0.0.1 --user=root --database=EvE
+          actual="$(mariadb --host=127.0.0.1 --user=root --database=EvE --batch --skip-column-names -e "SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA='EvE' AND TABLE_NAME='mktOrders' AND INDEX_NAME IN ('ix_mkt_region_book_v1','ix_mkt_station_asks_v1','ix_mkt_system_asks_v1','ix_mkt_owner_expiry_v1')")"
+          [[ "$actual" == "4" ]] || { echo "Missing additive market indexes: $actual" >&2; exit 1; }
+          # No market transactions/orders should be rewritten by the index DDL.
+          actual="$(mariadb --host=127.0.0.1 --user=root --database=EvE --batch --skip-column-names -e "SELECT COUNT(*) FROM mktOrders WHERE ownerID=90000000")"
+          [[ "$actual" == "2" ]] || { echo "Player orders changed during index migration" >&2; exit 1; }
+          mariadb --host=127.0.0.1 --user=root --database=EvE --batch -e "EXPLAIN SELECT price, orderID FROM mktOrders WHERE regionID=10000001 AND typeID=34 AND bid=0"
+          mariadb --host=127.0.0.1 --user=root --database=EvE --batch -e "EXPLAIN SELECT typeID, MIN(price) FROM mktOrders WHERE stationID=60000001 AND bid=0 GROUP BY typeID"
+          echo "PASS: market lookup indexes are additive, idempotent and preserve player orders."
 
   docker:
     name: Docker image build
