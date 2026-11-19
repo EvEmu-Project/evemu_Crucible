@@ -1,3 +1,10 @@
+## 19 November 2026 — Refresh upstream draft PR #335 and publish developer handover
+
+- Ancestry-preserving synchronization of the upstream contribution branch with fork `master` commit `e2f8e14bca5b50bb1f8ff055f5f16a00d01b7c27`; merge commit `9f8929de3387c9ae471e768556eefc8657c62f5f` retains both original parents, previous contribution market work and new master changes without force pushing or deleting parent paths.
+- Preserve the contribution-only **100-million-unit NPC ore/ice/mineral bids and asks** in EVEDBTool, Trader Joe, SQL seed templates and MariaDB regression fixtures. Resolve the only shared files (`.github/workflows/build-release.yml` and `PATCH_NOTES.md`) additively, keeping both 100M market and new ME/PE industry checks.
+- Add a comprehensive [19 November upstream developer handover](docs/UPSTREAM_DEVELOPER_HANDOVER_2026-11-19.md), [cumulative patch notes](docs/UPSTREAM_PATCH_NOTES_2026-11-19.md), [exact 303-path pre-handover diff inventory](docs/UPSTREAM_PR335_FILE_INVENTORY_2026-11-19.md), and [ready-to-publish PR description](docs/UPSTREAM_PR_335_DESCRIPTION_2026-11-19.md). Preserved dated 15/17/18 November dossiers remain historical snapshots.
+- Fork master [CI #44479434302](https://github.com/xrizonx/evemu_Crucible/actions/runs/44479434302) **passed Windows, Linux, Docker and MariaDB**. The combined contribution-only market changes plus latest industry tests **require an exact-branch CI run**, separate from that parent success. The upstream PR remains **draft**, not merged. No live database migrations, market seed force refresh, or deployment have been performed.
+
 ## 18 November 2026 — 100-million-unit mineral/ore NPC buy and sell orders
 
 - New EVEDBTool regional and legacy station seeds and Trader Joe's dynamic NPC buy/sell orders now create **100,000,000 units per order per type/station** for minerals (group 18) and ore/ice (450–462, 465, 467–469). Both volume columns start at 100M. Other groups keep their existing amounts and **100% base-price** pricing.
